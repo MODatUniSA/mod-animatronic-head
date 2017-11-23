@@ -12,6 +12,7 @@ from libs.logging.logger_creator import LoggerCreator
 
 from app.playback.audio.audio_playback_controller import AudioPlaybackController
 from app.playback.playback_controller import PlaybackController
+from app.servo_control.servo_controller import ServoController
 
 class AHDriver:
     def __init__(self, args):
@@ -23,12 +24,16 @@ class AHDriver:
 
         if self.args.hardware_present:
             self._logger.info("Running Almost Human with real hardware")
+            from app.servo_control.servo_communicator import ServoCommunicator
         else:
             self._logger.info("Running Almost Human with mocked hardware")
+            from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
         self.loop                      = asyncio.get_event_loop()
         self.audio_playback_controller = AudioPlaybackController()
-        self.playback_controller       = PlaybackController(self.audio_playback_controller, None)
+        self.servo_communicator        = ServoCommunicator()
+        self.servo_controller          = ServoController(self.servo_communicator)
+        self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
@@ -36,8 +41,8 @@ class AHDriver:
         self._assign_interrupt_handler()
 
         try:
-            # TEST: Triggers a single sound to play for testing
-            self.playback_controller.play_content('Mod1.ogg', None)
+            # TEST: Triggers a single sound + set of instructions to play for testing
+            self.playback_controller.play_content('Mod1.ogg', 'Mod1.csv')
             self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")
@@ -49,6 +54,7 @@ class AHDriver:
 
     def stop(self):
         self.playback_controller.stop()
+        self.servo_controller.stop()
         self._should_quit = True
         self.loop.stop()
 

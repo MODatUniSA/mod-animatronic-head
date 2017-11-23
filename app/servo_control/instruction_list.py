@@ -2,8 +2,15 @@
 """
 
 import csv
+from enum import Enum, auto
 
 from libs.config.path_helper import PathHelper
+from app.servo_control.phoneme_map import Phonemes
+
+class InstructionTypes(Enum):
+    PHONEME = auto()
+    JAW = auto()
+    EXPRESSION = auto()
 
 class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.
@@ -11,7 +18,8 @@ class ServoInstruction:
 
     def __init__(self, info_row):
         self.time_offset = float(info_row['time'])
-        self.instruction = info_row['instruction'].upper()
+        # TODO: Gracefully handle unrecognised instruction. Just ignore.
+        self.instruction_type = InstructionTypes[info_row['instruction'].upper()]
         self.arg = info_row['arg']
         self.phoneme = None
 
@@ -22,8 +30,9 @@ class ServoInstruction:
             Just used for readable access to args
         """
 
-        if self.instruction == 'PHONEME':
-            self.phoneme = self.arg
+        if self.instruction_type == InstructionTypes.PHONEME:
+            # TODO: Gracefully handle unrecognised phoneme. Default to rest?
+            self.phoneme = Phonemes[self.arg.upper()]
 
 class InstructionList:
     def __init__(self, filename):
