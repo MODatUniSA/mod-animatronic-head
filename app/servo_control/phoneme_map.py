@@ -4,6 +4,7 @@
 from enum import Enum, auto
 
 from app.servo_control.servo_map import ServoMap
+from app.servo_control.servo_position_map import ServoPositionMap
 
 class Phonemes(Enum):
     REST = auto()
@@ -18,19 +19,11 @@ class Phonemes(Enum):
     WQ = auto()
     CLOSED = auto()
 
-class PhonemeMap(dict):
-    def __init__(self):
-        self._build_phoneme_map()
-
-    @staticmethod
-    def to_pin_numbers(position_map):
-        return { k.value: v for k, v in position_map.items() }
-
-    def _build_phoneme_map(self):
-        self ['names'] = {}
+class PhonemeMap(ServoPositionMap):
+    def _build_map(self):
+        self['names'] = {}
         self['pins'] = {}
 
-        # REVISE: May want to store in ServoPositions object (extends dict), rather than dict
         self['names'][Phonemes.CLOSED]  = { ServoMap.JAW : 1200, ServoMap.LIPS_UPPER : 1800, ServoMap.LIPS_LOWER : 1400, ServoMap.LIPS_LEFT : 1500, ServoMap.LIPS_RIGHT : 1500 }
         self['names'][Phonemes.REST]  = { ServoMap.JAW : 1500, ServoMap.LIPS_UPPER : 1500, ServoMap.LIPS_LOWER : 1500, ServoMap.LIPS_LEFT : 1500, ServoMap.LIPS_RIGHT : 1500 }
         self['names'][Phonemes.AI]    = { ServoMap.JAW : 2000, ServoMap.LIPS_UPPER : 1500, ServoMap.LIPS_LOWER : 1800, ServoMap.LIPS_LEFT : 1500, ServoMap.LIPS_RIGHT : 1500 }
@@ -43,5 +36,4 @@ class PhonemeMap(dict):
         self['names'][Phonemes.MBP]   = { ServoMap.JAW : 1200, ServoMap.LIPS_UPPER : 1800, ServoMap.LIPS_LOWER : 1400, ServoMap.LIPS_LEFT : 1500, ServoMap.LIPS_RIGHT : 1500 }
         self['names'][Phonemes.WQ]    = { ServoMap.JAW : 1200, ServoMap.LIPS_UPPER : 1800, ServoMap.LIPS_LOWER : 1400, ServoMap.LIPS_LEFT : 1300, ServoMap.LIPS_RIGHT : 1700 }
 
-        for phoneme, positions in self['names'].items():
-            self['pins'][phoneme] = type(self).to_pin_numbers(positions)
+        self['pins'] = type(self).mapping_to_servo_positions(self['names'])

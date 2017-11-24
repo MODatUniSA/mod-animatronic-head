@@ -6,6 +6,7 @@ from enum import Enum, auto
 
 from libs.config.path_helper import PathHelper
 from app.servo_control.phoneme_map import Phonemes
+from app.servo_control.expression_map import Expressions
 
 class InstructionTypes(Enum):
     PHONEME = auto()
@@ -22,6 +23,7 @@ class ServoInstruction:
         self.instruction_type = InstructionTypes[info_row['instruction'].upper()]
         self.arg = info_row['arg']
         self.phoneme = None
+        self.expression = None
 
         self._set_instruction_arg()
 
@@ -30,9 +32,12 @@ class ServoInstruction:
             Just used for readable access to args
         """
 
+        # TODO: Gracefully handle unrecognised phoneme/expression. Default to rest?
+
         if self.instruction_type == InstructionTypes.PHONEME:
-            # TODO: Gracefully handle unrecognised phoneme. Default to rest?
             self.phoneme = Phonemes[self.arg.upper()]
+        elif self.instruction_type == InstructionTypes.EXPRESSION:
+            self.expression = Expressions[self.arg.upper()]
 
 class InstructionList:
     def __init__(self, filename):

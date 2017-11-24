@@ -54,7 +54,6 @@ class AHDriver:
 
     def stop(self):
         self.playback_controller.stop()
-        self.servo_controller.stop()
         self._should_quit = True
         self.loop.stop()
 
