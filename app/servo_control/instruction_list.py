@@ -2,6 +2,7 @@
 """
 
 import csv
+import logging
 from enum import Enum, auto
 
 from libs.config.path_helper import PathHelper
@@ -9,9 +10,14 @@ from app.servo_control.phoneme_map import Phonemes
 from app.servo_control.expression_map import Expressions
 
 class InstructionTypes(Enum):
+    # Set the mouth/jaw servos to a named phoneme
     PHONEME = auto()
-    JAW = auto()
+    # Set the face servos to a mapped fixed expression
     EXPRESSION = auto()
+    # Load an execute an additional sequence of instructions in parallel with the current
+    NESTED_SEQUENCE = auto()
+    # Set the servos to a fixed, specified position
+    POSITION = auto()
 
 class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.
@@ -22,9 +28,12 @@ class ServoInstruction:
         # TODO: Gracefully handle unrecognised instruction. Just ignore.
         self.instruction_type = InstructionTypes[info_row['instruction'].upper()]
         self.arg = info_row['arg']
+
+        # Semantic sugar for accessing instruction arguments
         self.phoneme = None
         self.expression = None
-
+        self.nested_filename = None
+        self.positions = None
         self._set_instruction_arg()
 
     def _set_instruction_arg(self):
@@ -33,14 +42,18 @@ class ServoInstruction:
         """
 
         # TODO: Gracefully handle unrecognised phoneme/expression. Default to rest?
+        # TODO: Handle POSITION instruction
 
         if self.instruction_type == InstructionTypes.PHONEME:
             self.phoneme = Phonemes[self.arg.upper()]
         elif self.instruction_type == InstructionTypes.EXPRESSION:
             self.expression = Expressions[self.arg.upper()]
+        elif self.instruction_type == InstructionTypes.NESTED_SEQUENCE:
+            self.nested_filename = self.arg
 
 class InstructionList:
     def __init__(self, filename):
+        self._logger = logging.getLogger('instruction_list')
         self._filename = filename
         self._file_path = None
         self.instructions = []

@@ -3,24 +3,25 @@
 
 import logging
 
+from libs.config.path_helper import PathHelper
+
 from app.servo_control.instruction_iterator import InstructionIterator
 from app.servo_control.instruction_list import InstructionList, InstructionTypes
 from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
 
-# TODO: Provide a way to interrupt/stop this (and triggered children) at any time
 class ServoController:
     def __init__(self, servo_communicator):
         self._logger = logging.getLogger('servo_controller')
         self._servo_communicator = servo_communicator
-        self._instruction_iterator = InstructionIterator()
         self._instruction_list = None
         self._phoneme_map = PhonemeMap()
         self._expression_map = ExpressionMap()
         self.phonemes_override_expression = False
 
-        self._instruction_iterator.set_intruction_callback(self._execute_instruction)
-        self._instruction_iterator.set_complete_callback(self._instructions_complete)
+        self._main_instruction_iterator = self._create_instruction_iterator()
+        # Iterators for any nested instruction sequences
+        self._nested_instruction_iterators = {}
 
     def prepare_instructions(self, instructions_filename):
         """ Prepares a list of instructions for executing from the argument file
@@ -33,12 +34,13 @@ class ServoController:
             self._logger.error("No instructions loaded. Cannot execute")
 
         self._logger.info("Executing Servo Instructions")
-        self._instruction_iterator.iterate_instructions(self._instruction_list)
+        self._main_instruction_iterator.iterate_instructions(self._instruction_list)
 
     def stop(self):
         """ Stop the servo controller and any dependent object
         """
 
+        # TODO: Stop any instruction iterators, including nested ones
         self._servo_communicator.stop()
 
     # CALLBACKS
@@ -53,17 +55,30 @@ class ServoController:
             self._execute_phoneme_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.EXPRESSION:
             self._execute_expression_instruction(instruction)
+        elif instruction.instruction_type == InstructionTypes.NESTED_SEQUENCE:
+            self._execute_nested_sequence_instruction(instruction)
         else:
             self._logger.error("Unhandled instruction type: %s. Cannot execute!", instruction.instruction_type)
 
-    def _instructions_complete(self):
+    def _instructions_complete(self, iterator_id):
         """ Called by the instruction iterator when iteration complete
         """
 
-        self._logger.info("Instruction execution complete")
-        self._instruction_list = None
+        self._logger.info("Instruction execution complete for iterator: %s", iterator_id)
+        if iterator_id in self._nested_instruction_iterators:
+            self._logger.info("Clearing nested instruction iterator")
+            del(self._nested_instruction_iterators[iterator_id])
 
     # INTERNAL METHODS
+    # =========================================================================
+
+    def _create_instruction_iterator(self):
+        instruction_iterator = InstructionIterator()
+        instruction_iterator.set_intruction_callback(self._execute_instruction)
+        instruction_iterator.set_complete_callback(self._instructions_complete)
+        return instruction_iterator
+
+    # INSTRUCTION EXECUTION
     # =========================================================================
 
     def _execute_phoneme_instruction(self, instruction):
@@ -93,3 +108,19 @@ class ServoController:
         self._logger.debug("Sending servo positions: %s", position_to_send)
 
         self._servo_communicator.move_to(position_to_send, 200)
+
+    # TODO: Loading and executing nested instructions is rather dangerous, as files could contain loops/self references that cause infinite loops. Should guard against this.
+    def _execute_nested_sequence_instruction(self, instruction):
+        """ Loads a named instruction sequence into an instruction list and starts iteration.
+            This allows mulitple lists of instructions to be triggered in parallel
+        """
+
+        if not PathHelper.is_valid_instruction_file(instruction.nested_filename):
+            self._logger.error = "Nested sequence is not a valid filename. Can't load."
+            return
+
+        self._logger.info("Loading nested instruction sequence: %s", instruction.nested_filename)
+        instruction_list = InstructionList(instruction.nested_filename)
+        nested_iterator = self._create_instruction_iterator()
+        nested_iterator.iterate_instructions(instruction_list)
+        self._nested_instruction_iterators[id(nested_iterator)] = nested_iterator

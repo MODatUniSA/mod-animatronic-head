@@ -42,7 +42,7 @@ class AHDriver:
 
         try:
             # TEST: Triggers a single sound + set of instructions to play for testing
-            self.playback_controller.play_content('Mod1.ogg', 'Mod1.csv')
+            self.playback_controller.play_content('Mod1.ogg', 'top_level_nested_test.csv')
             self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")

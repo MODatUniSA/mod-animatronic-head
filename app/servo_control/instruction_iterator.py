@@ -50,6 +50,10 @@ class InstructionIterator:
         self._iterating = True
         self._iteration_routine = asyncio.async(self._iterate_instructions())
 
+    def stop(self):
+        self._iterating = False
+        # TODO: See if we can also stop self._iteration_routine without waiting on sleeps
+
     # INTERNAL COROUTINES
     # =========================================================================
 
@@ -102,7 +106,7 @@ class InstructionIterator:
     def _trigger_complete_callback(self):
         if self._complete_callback is not None:
             self._logger.info("Triggering complete callback")
-            self._complete_callback()
+            self._complete_callback(id(self))
 
     def _stop_running_routines(self):
         """ Stops the coroutine that executes the instruction iteration

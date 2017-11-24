@@ -32,3 +32,5 @@ class ServoLimits(dict):
         self[ServoMap.LIPS_LOWER] = ServoLimit(1200, 1500, 1800)
         self[ServoMap.LIPS_LEFT] = ServoLimit(1300, 1500, 1700)
         self[ServoMap.LIPS_RIGHT] = ServoLimit(1300, 1500, 1700)
+        self[ServoMap.EYEBROW_LEFT] = ServoLimit(0, 1000, 2000)
+        self[ServoMap.EYEBROW_RIGHT] = ServoLimit(0, 1000, 2000)
