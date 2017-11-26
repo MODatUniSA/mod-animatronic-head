@@ -17,6 +17,8 @@ class InstructionIterator:
         self._complete_callback = None
 
     # TODO: Generalise callback setting/triggering/handling
+    # Can either create service class to handle, which this class creates/calls
+    # OR create base class for this. Probably needs metaprogramming.
     def set_intruction_callback(self, to_call):
         """ Accepts a callable, which will be passed each instruction when it is time to be executed.
             Should be called before iterate_instructions.
@@ -45,6 +47,7 @@ class InstructionIterator:
 
         if len(instruction_list.instructions) == 0:
             self._logger.error("No instructions available to iterate!")
+            # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
             return
 
         self._iterating = True

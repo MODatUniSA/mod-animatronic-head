@@ -9,6 +9,7 @@ from app.servo_control.instruction_iterator import InstructionIterator
 from app.servo_control.instruction_list import InstructionList, InstructionTypes
 from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
+from app.servo_control.servo_positions import ServoPositions
 
 class ServoController:
     def __init__(self, servo_communicator):
@@ -19,6 +20,7 @@ class ServoController:
         self._expression_map = ExpressionMap()
         self.phonemes_override_expression = False
 
+        # REVISE: Do we need to distinguish between main and nested iterators?
         self._main_instruction_iterator = self._create_instruction_iterator()
         # Iterators for any nested instruction sequences
         self._nested_instruction_iterators = {}
@@ -55,8 +57,10 @@ class ServoController:
             self._execute_phoneme_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.EXPRESSION:
             self._execute_expression_instruction(instruction)
-        elif instruction.instruction_type == InstructionTypes.NESTED_SEQUENCE:
-            self._execute_nested_sequence_instruction(instruction)
+        elif instruction.instruction_type == InstructionTypes.PARALLEL_SEQUENCE:
+            self._execute_parallel_sequence_instruction(instruction)
+        elif instruction.instruction_type == InstructionTypes.POSITION:
+            self._execute_position_instruction(instruction)
         else:
             self._logger.error("Unhandled instruction type: %s. Cannot execute!", instruction.instruction_type)
 
@@ -90,6 +94,7 @@ class ServoController:
         self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
         self._logger.debug("Sending servo positions: %s",servo_positions)
 
+        # TODO: Support different movement speeds?
         self._servo_communicator.move_to(servo_positions, 200)
 
     def _execute_expression_instruction(self, instruction):
@@ -110,17 +115,37 @@ class ServoController:
         self._servo_communicator.move_to(position_to_send, 200)
 
     # TODO: Loading and executing nested instructions is rather dangerous, as files could contain loops/self references that cause infinite loops. Should guard against this.
-    def _execute_nested_sequence_instruction(self, instruction):
+    def _execute_parallel_sequence_instruction(self, instruction):
         """ Loads a named instruction sequence into an instruction list and starts iteration.
             This allows mulitple lists of instructions to be triggered in parallel
         """
 
-        if not PathHelper.is_valid_instruction_file(instruction.nested_filename):
+        if not PathHelper.is_valid_instruction_file(instruction.filename):
             self._logger.error = "Nested sequence is not a valid filename. Can't load."
             return
 
-        self._logger.info("Loading nested instruction sequence: %s", instruction.nested_filename)
-        instruction_list = InstructionList(instruction.nested_filename)
+        self._logger.info("Loading nested instruction sequence: %s", instruction.filename)
+        instruction_list = InstructionList(instruction.filename)
         nested_iterator = self._create_instruction_iterator()
         nested_iterator.iterate_instructions(instruction_list)
         self._nested_instruction_iterators[id(nested_iterator)] = nested_iterator
+
+    def _execute_position_instruction(self, instruction):
+        """ Send a position directly from the CSV to the servos. Still applies limiting, and allows phonemes to override mouth servos
+        """
+
+        if instruction.position is None:
+            self._logger.error("Unable to process POSITION instruction. Ignoring")
+            return
+
+        positions = ServoPositions(instruction.position)
+
+        if self.phonemes_override_expression:
+            self._logger.debug("Sending raw positions w/o mouth")
+            positions_to_send = positions.positions_without_mouth_str
+        else:
+            self._logger.debug("Sending raw positions w/ mouth")
+            positions_to_send = positions.positions_str
+
+        # TODO: Support different movement speeds per position?
+        self._servo_communicator.move_to(positions_to_send, 200)
