@@ -8,16 +8,14 @@ import argparse
 import os
 import random
 
+import pygame
+
 from libs.logging.logger_creator import LoggerCreator
+from app.servo_control.joystick_control.joystick_servo_controller import JoystickServoController
 
-from app.playback.audio.audio_playback_controller import AudioPlaybackController
-from app.playback.playback_controller import PlaybackController
-from app.servo_control.servo_controller import ServoController
-
-class AHDriver:
+class JoystickControlDriver:
     def __init__(self, args):
         self._should_quit              = False
-        self._shutdown_on_complete     = False
         self.args                      = args
         LoggerCreator().create_logger()
         self._logger                   = LoggerCreator.logger_for('driver')
@@ -29,32 +27,32 @@ class AHDriver:
             self._logger.info("Running Almost Human with mocked hardware")
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
+        pygame.init()
+        # REVISE: Do we need this here with the above init call?
+        pygame.joystick.init()
+
         self.loop                      = asyncio.get_event_loop()
-        self.audio_playback_controller = AudioPlaybackController()
         self.servo_communicator        = ServoCommunicator()
-        self.servo_controller          = ServoController(self.servo_communicator)
-        self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
+        self.servo_controller          = JoystickServoController(self.servo_communicator)
 
     def run(self):
-        self._logger.info("Almost Human driver starting.")
+        self._logger.info("Almost Human Joystick Control driver starting.")
 
         self._assign_interrupt_handler()
 
+        tasks = [
+            self.servo_controller.run(),
+        ]
+
         try:
-            # TEST: Triggers a single sound + set of instructions to play for testing
-            self.playback_controller.play_content('Mod1.ogg', 'Mod1.csv')
-            self.loop.run_forever()
+            self.loop.run_until_complete(asyncio.wait(tasks))
         finally:
             self._logger.debug("Closing Event Loop")
             self.loop.close()
 
-            if self._shutdown_on_complete:
-                self._logger.info("Initiating System Shutdown!")
-                os.system('shutdown now')
-
     def stop(self):
-        self.playback_controller.stop()
         self._should_quit = True
+        self._cont
         self.loop.stop()
 
     # EVENT LOOP SIGNAL HANDLING
@@ -71,10 +69,6 @@ class AHDriver:
         self._logger.info("Got signal %s: Stopping Execution", signame)
         self.stop()
 
-    def trigger_shutdown(self):
-        self._shutdown_on_complete = True
-        self.stop()
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -84,4 +78,4 @@ if __name__ == '__main__':
     parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output all logged info to the console")
     parser.set_defaults(verbose_output=False)
 
-    AHDriver(parser.parse_args()).run()
+    JoystickControlDriver(parser.parse_args()).run()
