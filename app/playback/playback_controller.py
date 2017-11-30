@@ -26,8 +26,8 @@ class PlaybackController:
         """ Stops any playback in preparation for code shutdown
         """
 
-        # TODO: Also stop servo controller instruction execution
         self._audio_playback_controller.stop_sound()
+        self._servo_controller.stop()
 
     # CALLBACKS
     # =========================================================================
@@ -41,6 +41,7 @@ class PlaybackController:
 
         self._logger.info("Sound loaded. Playing sound and instructions.")
         self._audio_playback_controller.play_sound()
+        self._servo_controller.phonemes_override_expression = True
         self._servo_controller.execute_instructions()
 
     def _on_playback_complete(self):
@@ -48,6 +49,7 @@ class PlaybackController:
         """
 
         self._logger.info("Playback complete!")
+        self._servo_controller.phonemes_override_expression = False
 
         # TEST: Trigger self again after playback complete for testing
         # time.sleep(1)

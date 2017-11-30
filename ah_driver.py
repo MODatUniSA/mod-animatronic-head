@@ -42,7 +42,7 @@ class AHDriver:
 
         try:
             # TEST: Triggers a single sound + set of instructions to play for testing
-            self.playback_controller.play_content('Mod1.ogg', 'Mod1.csv')
+            self.playback_controller.play_content('Mod1.ogg', 'top_level_nested_test.csv')
             self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")
@@ -54,7 +54,6 @@ class AHDriver:
 
     def stop(self):
         self.playback_controller.stop()
-        self.servo_controller.stop()
         self._should_quit = True
         self.loop.stop()
 

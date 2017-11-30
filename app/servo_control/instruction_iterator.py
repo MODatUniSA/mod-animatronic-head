@@ -17,6 +17,8 @@ class InstructionIterator:
         self._complete_callback = None
 
     # TODO: Generalise callback setting/triggering/handling
+    # Can either create service class to handle, which this class creates/calls
+    # OR create base class for this. Probably needs metaprogramming.
     def set_intruction_callback(self, to_call):
         """ Accepts a callable, which will be passed each instruction when it is time to be executed.
             Should be called before iterate_instructions.
@@ -45,10 +47,15 @@ class InstructionIterator:
 
         if len(instruction_list.instructions) == 0:
             self._logger.error("No instructions available to iterate!")
+            # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
             return
 
         self._iterating = True
         self._iteration_routine = asyncio.async(self._iterate_instructions())
+
+    def stop(self):
+        self._iterating = False
+        # TODO: See if we can also stop self._iteration_routine without waiting on sleeps
 
     # INTERNAL COROUTINES
     # =========================================================================
@@ -102,7 +109,7 @@ class InstructionIterator:
     def _trigger_complete_callback(self):
         if self._complete_callback is not None:
             self._logger.info("Triggering complete callback")
-            self._complete_callback()
+            self._complete_callback(id(self))
 
     def _stop_running_routines(self):
         """ Stops the coroutine that executes the instruction iteration
