@@ -15,7 +15,6 @@ from app.servo_control.joystick_control.joystick_servo_controller import Joystic
 
 class JoystickControlDriver:
     def __init__(self, args):
-        self._should_quit              = False
         self.args                      = args
         LoggerCreator().create_logger()
         self._logger                   = LoggerCreator.logger_for('driver')
@@ -51,9 +50,7 @@ class JoystickControlDriver:
             self.loop.close()
 
     def stop(self):
-        self._should_quit = True
-        self._cont
-        self.loop.stop()
+        self.servo_controller.stop()
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================
