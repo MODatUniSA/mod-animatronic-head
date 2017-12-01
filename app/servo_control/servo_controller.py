@@ -94,8 +94,7 @@ class ServoController:
         self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
         self._logger.debug("Sending servo positions: %s",servo_positions)
 
-        # TODO: Support different movement speeds?
-        self._servo_communicator.move_to(servo_positions, 200)
+        self._servo_communicator.move_to(servo_positions, instruction.move_time)
 
     def _execute_expression_instruction(self, instruction):
         """ Executes a single expression instruction, which sends a message to the face servos to move
@@ -112,7 +111,7 @@ class ServoController:
         self._logger.debug("Sending Expression: %s", instruction.expression)
         self._logger.debug("Sending servo positions: %s", position_to_send)
 
-        self._servo_communicator.move_to(position_to_send, 200)
+        self._servo_communicator.move_to(position_to_send, instruction.move_time)
 
     # TODO: Loading and executing nested instructions is rather dangerous, as files could contain loops/self references that cause infinite loops. Should guard against this.
     def _execute_parallel_sequence_instruction(self, instruction):
@@ -147,5 +146,4 @@ class ServoController:
             self._logger.debug("Sending raw positions w/ mouth")
             positions_to_send = positions.positions_str
 
-        # TODO: Support different movement speeds per position?
-        self._servo_communicator.move_to(positions_to_send, 200)
+        self._servo_communicator.move_to(positions_to_send, instruction.move_time)
