@@ -7,6 +7,7 @@ import logging
 import pygame
 
 import libs.input.xbox360_controller as xbox360_controller
+from libs.config.device_config import DeviceConfig
 from app.servo_control.joystick_control.joystick_servo_map import JoystickServoMap, JoystickAxes
 from app.servo_control.servo_limits import ServoLimits
 
@@ -19,10 +20,11 @@ class JoystickServoController:
         self._map = JoystickServoMap()
         self._limits = ServoLimits()
 
-        # TODO: Move to config
-        self._min_move_time_ms = 1
-        self._max_move_time_ms = 5000
-        self._update_period_seconds = 0.1
+        config = DeviceConfig.Instance()
+        joystick_config = config.options['JOYSTICK_CONTROL']
+        self._min_move_time_ms = joystick_config.getint('MIN_MOVE_TIME_MS')
+        self._max_move_time_ms = joystick_config.getint('MAX_MOVE_TIME_MS')
+        self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
 
     @asyncio.coroutine
     def run(self):
