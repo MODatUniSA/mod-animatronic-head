@@ -22,8 +22,10 @@ class ServoCommunicator:
         self._serial = serial.Serial(self._port, self._speed, timeout=self._timeout)
         self._logger.debug("Serial port open")
 
+        # TODO: Set Servos to default position
+
     def stop(self):
-        # TODO: Check if we need to do any checks/cleanup on servos
+        # TODO: Set Servos to default position
 
         self._logger.info("Stopping. Closing serial port.")
         self._serial.close()
@@ -46,6 +48,16 @@ class ServoCommunicator:
 
         self._logger.debug("Sending Instruction: %s", instruction)
         self._serial.write(instruction.encode('utf-8'))
+
+    def stop_servos(self, servos):
+        """ Accepts an array of servo pins to stop moving
+        """
+
+        self._logger.debug("Stopping Servos: %s", servos)
+
+        for servo in servos:
+            instruction = "STOP {}\r".format(servo)
+            self._serial.write(instruction.encode('utf-8'))
 
     # INTERNAL METHODS
     # =========================================================================

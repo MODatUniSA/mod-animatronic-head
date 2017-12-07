@@ -43,6 +43,12 @@ class JoystickServoPositions:
         self.positive = JoystickServoPosition(positive_positions)
         self.negative = JoystickServoPosition(negative_positions)
 
+        all_servos = list(positive_positions.keys())
+        if negative_positions is not None:
+            all_servos += list(negative_positions.keys())
+
+        self.controlled_servos = set(all_servos)
+
 # TODO: Will need to be able to easily alter position config for animation recording
 # Probably just create separate classes (e.g. JoystickServoMouthMap, JoystickServoEyesMap, etc.)
 # Could use config or command line args to specify which map to use
@@ -72,5 +78,17 @@ class JoystickServoMap(dict):
             {
                 ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
                 ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
+            }
+        )
+
+        # RIGHT STICK X Also controls Left and Right Servos, but in a different shape
+        self[JoystickAxes.RIGHT_STICK_X] = JoystickServoPositions(
+            {
+                ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
+                ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
+            },
+            {
+                ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
+                ServoMap.LIPS_RIGHT.value : { 'position' : 1200 }
             }
         )

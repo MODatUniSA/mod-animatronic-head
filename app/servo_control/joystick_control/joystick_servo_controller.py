@@ -28,6 +28,7 @@ class JoystickServoController:
         self._min_move_speed = joystick_config.getint('MIN_MOVE_SPEED')
         self._max_move_speed = joystick_config.getint('MAX_MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
+        self._axis_stop_sent = {}
 
     @asyncio.coroutine
     def run(self):
@@ -57,8 +58,8 @@ class JoystickServoController:
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
 
     def _handle_axis_position(self, axis, value):
-        # TODO: Instead of returning, send STOP command
         if value == 0:
+            self._stop_controlled_servos(axis)
             return
 
         pos_dict = self._to_position_dict(axis, value)
@@ -66,28 +67,37 @@ class JoystickServoController:
             return
 
         self._servo_communicator.move_to(ServoPositions(pos_dict).positions_str)
+        self._axis_stop_sent[axis] = False
 
         # TODO: Write position to CSV if flag set
 
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator
         """
-
         positions = self._map.get(axis)
-        if positions is None:
+        if positions is None or value == 0:
             return
 
         if value > 0:
             target_positions = positions.positive
         elif value < 0:
             target_positions = positions.negative
-        else:
-            # TODO: Need to send stop command for target servo
-            self._logger.debug("Sending stop command for servo")
-            target_positions = -1
 
         target_positions.set_speed(int(self._value_to_speed(value)))
         return target_positions.positions
+
+    def _stop_controlled_servos(self, axis):
+        """ Stops the servos that this control drives
+        """
+
+        positions = self._map.get(axis)
+        # Only want to send the stop for the controlled axis when it first becomes neutral. Don't need to repeat.
+        if positions is None or (axis in self._axis_stop_sent and self._axis_stop_sent[axis]):
+            return
+
+        self._axis_stop_sent[axis] = True
+        self._servo_communicator.stop_servos(positions.controlled_servos)
+
 
     def _value_to_time(self, value):
         """ Takes an axis value and uses it to determine how the how long the servos should take to reach their target position.
