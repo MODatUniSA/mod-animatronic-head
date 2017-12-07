@@ -86,7 +86,7 @@ class JoystickServoController:
             self._logger.debug("Sending stop command for servo")
             target_positions = -1
 
-        target_positions.set_speed(self._value_to_speed(value))
+        target_positions.set_speed(int(self._value_to_speed(value)))
         return target_positions.positions
 
     def _value_to_time(self, value):
