@@ -61,6 +61,8 @@ class ServoController:
             self._execute_parallel_sequence_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.POSITION:
             self._execute_position_instruction(instruction)
+        elif instruction.instruction_type == InstructionTypes.STOP:
+            self._execute_stop_instruction(instruction)
         else:
             self._logger.error("Unhandled instruction type: %s. Cannot execute!", instruction.instruction_type)
 
@@ -149,3 +151,9 @@ class ServoController:
         # Only send move time if individual servo speeds aren't specified
         move_time = None if positions.speed_specified else instruction.move_time
         self._servo_communicator.move_to(positions_to_send, move_time)
+
+    def _execute_stop_instruction(self, instruction):
+        """ Stops the servos specified by the instruction
+        """
+
+        self._servo_communicator.stop_servos(instruction.servos)

@@ -22,6 +22,8 @@ class InstructionTypes(Enum):
     PARALLEL_SEQUENCE = auto()
     # Set the servos to a fixed, specified position. Will still apply clamping.
     POSITION = auto()
+    # Stop the servos in their current position
+    STOP = auto()
 
 class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.
@@ -40,6 +42,7 @@ class ServoInstruction:
         self.filename = None
         self.position = None
         self.move_time = None
+        self.servos = None
         self._set_instruction_args()
 
     def _set_instruction_args(self):
@@ -58,6 +61,9 @@ class ServoInstruction:
         elif self.instruction_type == InstructionTypes.POSITION:
             with suppress(json.decoder.JSONDecodeError):
                 self.position = json.loads(self.arg_1, cls=PositionInstructionDecoder)
+        elif self.instruction_type == InstructionTypes.STOP:
+            with suppress(json.decoder.JSONDecodeError):
+                self.servos = set(json.loads(self.arg_1))
 
         if self.instruction_type != InstructionTypes.PARALLEL_SEQUENCE:
             self.move_time = self.arg_2
