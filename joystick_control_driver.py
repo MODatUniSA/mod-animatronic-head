@@ -27,8 +27,6 @@ class JoystickControlDriver:
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
         pygame.init()
-        # REVISE: Do we need this here with the above init call?
-        pygame.joystick.init()
 
         self.loop                      = asyncio.get_event_loop()
         self.servo_communicator        = ServoCommunicator()
