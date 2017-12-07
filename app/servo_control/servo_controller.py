@@ -130,7 +130,7 @@ class ServoController:
         self._nested_instruction_iterators[id(nested_iterator)] = nested_iterator
 
     def _execute_position_instruction(self, instruction):
-        """ Send a position directly from the CSV to the servos. Still applies limiting, and allows phonemes to override mouth servos
+        """ Send a position directly from the CSV to the servos. Applies limiting, and allows phonemes to override mouth servos
         """
 
         if instruction.position is None:
@@ -146,4 +146,6 @@ class ServoController:
             self._logger.debug("Sending raw positions w/ mouth")
             positions_to_send = positions.positions_str
 
-        self._servo_communicator.move_to(positions_to_send, instruction.move_time)
+        # Only send move time if individual servo speeds aren't specified
+        move_time = None if positions.speed_specified else instruction.move_time
+        self._servo_communicator.move_to(positions_to_send, move_time)

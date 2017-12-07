@@ -41,7 +41,7 @@ class PlaybackController:
 
         self._logger.info("Sound loaded. Playing sound and instructions.")
         self._audio_playback_controller.play_sound()
-        self._servo_controller.phonemes_override_expression = True
+        self._servo_controller.phonemes_override_expression = False
         self._servo_controller.execute_instructions()
 
     def _on_playback_complete(self):

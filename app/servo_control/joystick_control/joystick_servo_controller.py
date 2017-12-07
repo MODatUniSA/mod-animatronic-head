@@ -55,6 +55,10 @@ class JoystickServoController:
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
 
     def _handle_axis_position(self, axis, value):
+        # TODO: Instead of returning, send STOP command
+        if value == 0:
+            return
+
         pos_dict = self._to_position_dict(axis, value)
         self._servo_communicator.move_to(pos_dict, self._value_to_time(value))
 

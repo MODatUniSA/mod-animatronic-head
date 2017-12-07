@@ -1,23 +1,35 @@
 """ Stores single set of servo positions
 """
 
+import logging
+
 from app.servo_control.servo_map import MOUTH_SERVO_PINS
 from app.servo_control.servo_limits import ServoLimits
 
 class ServoPositions:
     def __init__(self, positions_dict):
-        """ Accepts a dict of servo positions in the format { pin : position, ... }
+        """ Accepts a dict of servo positions in the format { pin : position_int, ... }
+            Also accepts { pin : { position : int, speed : int } }
         """
+        self._logger = logging.getLogger('servo_positions')
+        self.speed_specified = False
         self._servo_limits = ServoLimits()
-        self.positions_raw = positions_dict
-        self.positions = self._to_limited_positions(self.positions_raw)
-        self.positions_str = type(self)._to_position_string(self.positions)
+        self.positions = self._to_limited_positions(positions_dict)
+        self.positions_str = self._to_positions_string(self.positions)
         self.positions_without_mouth = type(self)._to_positions_without_mouth(self.positions)
-        self.positions_without_mouth_str = type(self)._to_position_string(self.positions_without_mouth)
+        self.positions_without_mouth_str = self._to_positions_string(self.positions_without_mouth)
 
-    @staticmethod
-    def _to_position_string(positions):
-        return ''.join("#{!s}P{!s}".format(pin,post) for (pin,post) in positions.items())
+    def _to_positions_string(self, positions):
+        return ''.join("#{!s}P{!s}".format(pin,self._to_position_string(pos)) for (pin,pos) in positions.items())
+
+    def _to_position_string(self, position):
+        if isinstance(position, dict) and 'position' in position:
+            # REVISE: Apply default speed if no speed present?
+            self.speed_specified = True
+            return '{}S{}'.format(position['position'], position['speed'])
+        else:
+            return str(position)
+
 
     def _to_positions_without_mouth(positions):
         return {servo: position for servo, position in positions.items() if servo not in MOUTH_SERVO_PINS}
@@ -26,7 +38,22 @@ class ServoPositions:
         """ Accepts a dict of positions and ensures each servo is within the acceptable position limits
         """
 
+        # TODO: Need to handle possibility on None value returned if we can't apply limit. May filter here, or handle when attempting to process/send position
+
         return {
-            pin : self._servo_limits.to_limited_position(pin, value)
+            pin : self._to_limited_position(pin, value)
                 for pin, value in positions.items()
         }
+
+    def _to_limited_position(self, pin, position):
+        """ Accepts either an int or dict and returns the same structure with servo position limits applied
+        """
+
+        if isinstance(position, dict) and 'position' in position:
+            position['position'] = self._servo_limits.to_limited_position(pin, position['position'])
+            return position
+        elif isinstance(position, int):
+            return self._servo_limits.to_limited_position(pin, position)
+        else:
+            self._logger.error("Unable to construct limited servo position from: %s", position)
+            return None

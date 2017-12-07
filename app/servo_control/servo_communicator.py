@@ -30,7 +30,8 @@ class ServoCommunicator:
 
     def move_to(self, positions, in_milliseconds):
         """ Move a collection of servos to a position in milliseconds of time.
-            Accepts an array of pin:position pairs
+            Accepts an array of pin:position pairs.
+            If in_milliseconds is None, assumes individual servo speeds are specified in the positions
         """
 
         positions_str = self._to_position_string(positions)
@@ -38,7 +39,11 @@ class ServoCommunicator:
             self._logger.error("Can't perform move.")
             return
 
-        instruction = "{}T{}\r".format(positions_str, in_milliseconds)
+        if in_milliseconds is None:
+            instruction = "{}\r".format(positions_str)
+        else:
+            instruction = "{}T{}\r".format(positions_str, in_milliseconds)
+
         self._logger.debug("Sending Instruction: %s", instruction)
         self._serial.write(instruction.encode('utf-8'))
 
