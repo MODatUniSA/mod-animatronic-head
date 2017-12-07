@@ -28,7 +28,7 @@ class ServoCommunicator:
         self._logger.info("Stopping. Closing serial port.")
         self._serial.close()
 
-    def move_to(self, positions, in_milliseconds):
+    def move_to(self, positions, in_milliseconds=None):
         """ Move a collection of servos to a position in milliseconds of time.
             Accepts an array of pin:position pairs.
             If in_milliseconds is None, assumes individual servo speeds are specified in the positions

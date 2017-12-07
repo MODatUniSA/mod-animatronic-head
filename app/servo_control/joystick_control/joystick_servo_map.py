@@ -5,6 +5,7 @@ from enum import Enum, auto
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_limits import ServoLimits
+from app.servo_control.servo_positions import ServoPositions
 
 class JoystickAxes(Enum):
     LEFT_STICK_X = auto()
@@ -12,15 +13,64 @@ class JoystickAxes(Enum):
     RIGHT_STICK_X = auto()
     RIGHT_STICK_Y = auto()
 
+class JoystickServoPosition:
+    """ Stores a single set of servo positions to be used by a joystick control.
+        Allows simple setting of speed to move towards target positions.
+    """
+
+    def __init__(self, positions):
+        """ Accepts a dictionary of { pin : { 'position' : ... }, ... }
+        """
+        self.positions = None
+        if positions is None:
+            return
+
+        self.positions = { pin : { 'position' : position_info['position'], 'speed' : 0 }
+            for pin, position_info in positions.items()
+        }
+
+    def set_speed(self, speed):
+        if self.positions is None:
+            return
+
+        for pin, position_info in self.positions.items():
+            position_info['speed'] = speed
+
+class JoystickServoPositions:
+    """ Stores joystick control target positions in the positive and negative directions
+    """
+    def __init__(self, positive_positions, negative_positions = None):
+        self.positive = JoystickServoPosition(positive_positions)
+        self.negative = JoystickServoPosition(negative_positions)
+
+# TODO: Will need to be able to easily alter position config for animation recording
+# Probably just create separate classes (e.g. JoystickServoMouthMap, JoystickServoEyesMap, etc.)
+# Could use config or command line args to specify which map to use
 class JoystickServoMap(dict):
     def __init__(self):
         self._build_map()
 
     def _build_map(self):
-        self[JoystickAxes.LEFT_STICK_X] = ServoMap.LIPS_LOWER
-        self[JoystickAxes.LEFT_STICK_Y] = ServoMap.LIPS_UPPER
-        self[JoystickAxes.RIGHT_STICK_X] = ServoMap.LIPS_LEFT
-        self[JoystickAxes.RIGHT_STICK_Y] = ServoMap.LIPS_RIGHT
+            # LEFT STICK Y Controls Upper + Lower Lips
+        self[JoystickAxes.LEFT_STICK_Y] = JoystickServoPositions(
+            {
+                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
+                ServoMap.LIPS_UPPER.value : { 'position' : 1800 }
+            },
+            {
+                ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
+                ServoMap.LIPS_UPPER.value : { 'position' : 1200 }
+            }
+        )
 
-        # REVISE: Could acutally map to a ServoPosition object, which would allow a single stick to move mulitple servos towards a fixed position. Will need to confirm how this should work with Marshal
-        # self[JoystickAxes.LEFT_STICK_X] = { 'positive' : ServoPositions({ServoMap.LIPS_LOWER.value : 1200, ServoMap.LIPS_UPPER.value : 1700}), 'negative' : ... }
+        # LEFT STICK X Controls Lips Left and Right servos
+        self[JoystickAxes.LEFT_STICK_X] = JoystickServoPositions(
+            {
+                ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
+                ServoMap.LIPS_RIGHT.value : { 'position' : 1200 }
+            },
+            {
+                ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
+                ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
+            }
+        )

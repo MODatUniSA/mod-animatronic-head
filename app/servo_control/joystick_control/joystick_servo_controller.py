@@ -10,6 +10,7 @@ import libs.input.xbox360_controller as xbox360_controller
 from libs.config.device_config import DeviceConfig
 from app.servo_control.joystick_control.joystick_servo_map import JoystickServoMap, JoystickAxes
 from app.servo_control.servo_limits import ServoLimits
+from app.servo_control.servo_positions import ServoPositions
 
 class JoystickServoController:
     def __init__(self, servo_communicator):
@@ -24,6 +25,8 @@ class JoystickServoController:
         joystick_config = config.options['JOYSTICK_CONTROL']
         self._min_move_time_ms = joystick_config.getint('MIN_MOVE_TIME_MS')
         self._max_move_time_ms = joystick_config.getint('MAX_MOVE_TIME_MS')
+        self._min_move_speed = joystick_config.getint('MIN_MOVE_SPEED')
+        self._max_move_speed = joystick_config.getint('MAX_MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
 
     @asyncio.coroutine
@@ -48,7 +51,6 @@ class JoystickServoController:
         left_x, left_y = self._controller.get_left_stick()
         right_x, right_y = self._controller.get_right_stick()
 
-        # REVISE: Consider how we would map multiple servos to a single axis (e.g. LEFT Y Opens/Closes mouth)
         self._handle_axis_position(JoystickAxes.LEFT_STICK_X, left_x)
         self._handle_axis_position(JoystickAxes.LEFT_STICK_Y, left_y)
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_X, right_x)
@@ -60,26 +62,32 @@ class JoystickServoController:
             return
 
         pos_dict = self._to_position_dict(axis, value)
-        self._servo_communicator.move_to(pos_dict, self._value_to_time(value))
+        if pos_dict is None:
+            return
 
-        # TODO: Write position + time to CSV if flag set
+        self._servo_communicator.move_to(ServoPositions(pos_dict).positions_str)
+
+        # TODO: Write position to CSV if flag set
 
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator
         """
 
-        servo = self._map[axis]
+        positions = self._map.get(axis)
+        if positions is None:
+            return
 
         if value > 0:
-            target_position = self._limits[servo].upper
+            target_positions = positions.positive
         elif value < 0:
-            target_position = self._limits[servo].lower
+            target_positions = positions.negative
         else:
             # TODO: Need to send stop command for target servo
             self._logger.debug("Sending stop command for servo")
-            target_position = -1
+            target_positions = -1
 
-        return {servo.value : target_position}
+        target_positions.set_speed(self._value_to_speed(value))
+        return target_positions.positions
 
     def _value_to_time(self, value):
         """ Takes an axis value and uses it to determine how the how long the servos should take to reach their target position.
@@ -89,3 +97,12 @@ class JoystickServoController:
         # Value is effectively a %, so can use this to lerp between our min/max times
         percentage = abs(value)
         return round((percentage * self._min_move_time_ms) + ((1-percentage) * self._max_move_time_ms), 2)
+
+    def _value_to_speed(self, value):
+        """ Takes an axis value and uses it to determine how the how fast the servos should move
+            Movement speed is directly proportional to joystick value
+        """
+
+        # Value is effectively a %, so can use this to lerp between our min/max times
+        percentage = abs(value)
+        return round((percentage * self._max_move_speed) + ((1-percentage) * self._min_move_speed), 2)
