@@ -18,6 +18,7 @@ from app.servo_control.instruction_writer import InstructionWriter
 class JoystickServoController:
     def __init__(self, servo_communicator, playback_controller=None):
         self._logger = logging.getLogger('joystick_servo_controller')
+        # TODO: Extract to config/command line args
         self._write_csv = False
         self._playback_controller = playback_controller
         self._control_time_start = time.time()
@@ -29,6 +30,9 @@ class JoystickServoController:
 
         if self._write_csv:
             self._instruction_writer = InstructionWriter()
+            if self._playback_controller is not None:
+                self._playback_controller.set_move_instruction_callback(self._write_position_instruction)
+                self._playback_controller.set_stop_instruction_callback(self._write_stop_instruction)
 
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
@@ -41,12 +45,18 @@ class JoystickServoController:
 
     @asyncio.coroutine
     def run(self):
+        if self._playback_controller is not None:
+            self._playback_controller.execute_instructions()
+
         while not self._should_quit:
             self._process_pygame_events()
             self._process_joystick_axes()
             yield from asyncio.sleep(self._update_period_seconds)
 
     def stop(self):
+        if self._write_csv:
+            self._instruction_writer.stop()
+
         self._should_quit = True
 
     # INTERNAL METHODS
@@ -85,7 +95,7 @@ class JoystickServoController:
             self._playback_controller.override_control(servo_positions)
             return
 
-        # We only perform movement and writing in here
+        # We only perform movement and writing in here if we don't have a playback controller
         if self._write_csv:
             self._write_position_instruction(pos_dict)
         self._servo_communicator.move_to(servo_positions)

@@ -64,8 +64,9 @@ class ServoController:
 
         self._logger.debug("Final Override: %s", self._overridden_servo_positions.positions)
 
-        # Immediately send override positions through to communicator
+        # Immediately send override positions through to communicator and notify
         self._servo_communicator.move_to(self._overridden_servo_positions)
+        self._notify_move_instruction(self._overridden_servo_positions.positions)
 
     def clear_control_override(self, servos):
         """ Clears the argument servos out of any set servo control override
@@ -78,7 +79,7 @@ class ServoController:
         self._overridden_servo_positions.clear_servos(servos)
 
     def set_move_instruction_callback(self, to_call):
-        """
+        """ Assigns a callback for whenever a move instruction is issued
         """
 
         if not self._check_callable(to_call):
@@ -86,9 +87,8 @@ class ServoController:
 
         self._move_instruction_callback = to_call
 
-
     def set_stop_instruction_callback(self, to_call):
-        """
+        """ Assigns a callback for whenever a stop instruction is issued
         """
 
         if not self._check_callable(to_call):
@@ -224,9 +224,10 @@ class ServoController:
         # Don't stop servos whose control we're currently overriding
         to_stop = instruction.servos
         if self._overridden_servo_positions is not None:
-            to_stop -= self._overridden_servo_positions.keys()
+            to_stop -= self._overridden_servo_positions.positions.keys()
 
         self._servo_communicator.stop_servos(instruction.servos)
+        self._notify_stop_instruction(to_stop)
 
     # CALLBACK TRIGGERING
     # =========================================================================
