@@ -12,12 +12,16 @@ import pygame
 
 from libs.logging.logger_creator import LoggerCreator
 from app.servo_control.joystick_control.joystick_servo_controller import JoystickServoController
+from app.servo_control.servo_controller import ServoController
 
 class JoystickControlDriver:
     def __init__(self, args):
         self.args                      = args
         LoggerCreator().create_logger()
         self._logger                   = LoggerCreator.logger_for('driver')
+
+        self.playback = True
+        self.playback_filename = 'recorded_2017-12-08_15:40:06.csv'
 
         if self.args.hardware_present:
             self._logger.info("Running Almost Human with real hardware")
@@ -28,9 +32,11 @@ class JoystickControlDriver:
 
         pygame.init()
 
-        self.loop                      = asyncio.get_event_loop()
-        self.servo_communicator        = ServoCommunicator()
-        self.servo_controller          = JoystickServoController(self.servo_communicator)
+        self.loop                = asyncio.get_event_loop()
+        self.servo_communicator  = ServoCommunicator()
+        self.playback_controller = ServoController(self.servo_communicator)
+        self.servo_controller    = JoystickServoController(self.servo_communicator, self.playback_controller)
+        self.playback_controller.prepare_instructions(self.playback_filename)
 
     def run(self):
         self._logger.info("Almost Human Joystick Control driver starting.")
@@ -42,6 +48,9 @@ class JoystickControlDriver:
         ]
 
         try:
+            if self.playback:
+                self.playback_controller.execute_instructions()
+                
             self.loop.run_until_complete(asyncio.wait(tasks))
         finally:
             self._logger.debug("Closing Event Loop")

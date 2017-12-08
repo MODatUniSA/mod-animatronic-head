@@ -19,6 +19,28 @@ class ServoPositions:
         self.positions_without_mouth = type(self)._to_positions_without_mouth(self.positions)
         self.positions_without_mouth_str = self._to_positions_string(self.positions_without_mouth)
 
+    def merge(self, servo_positions):
+        """ Merge this servo positions object with another servo_positions object.
+            Positions in the other object take priority over this one.
+            Returns a new object with the merged positions
+        """
+
+        merged_positions = self.positions.copy()
+        merged_positions.update(servo_positions.positions)
+        return type(self)(merged_positions)
+
+
+    def clear_servos(self, servos):
+        """ Clears the argument servos out of our positions
+        """
+
+        if len(self.positions) == 0:
+            return
+
+        for servo in servos:
+            if servo in self.positions.keys():
+                del(self.positions[servo])
+
     def _to_positions_string(self, positions):
         return ''.join("#{!s}P{!s}".format(pin,self._to_position_string(pos)) for (pin,pos) in positions.items())
 

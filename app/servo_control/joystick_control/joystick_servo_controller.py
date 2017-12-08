@@ -16,15 +16,19 @@ from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
-    def __init__(self, servo_communicator):
+    def __init__(self, servo_communicator, playback_controller=None):
         self._logger = logging.getLogger('joystick_servo_controller')
+        self._write_csv = False
+        self._playback_controller = playback_controller
         self._control_time_start = time.time()
         self._servo_communicator = servo_communicator
         self._should_quit = False
         self._controller = xbox360_controller.Controller(0)
         self._map = JoystickServoMap()
         self._limits = ServoLimits()
-        self._instruction_writer = InstructionWriter()
+
+        if self._write_csv:
+            self._instruction_writer = InstructionWriter()
 
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
@@ -72,11 +76,19 @@ class JoystickServoController:
             return
 
         servo_positions = ServoPositions(pos_dict)
-        self._servo_communicator.move_to(servo_positions)
+
         self._axis_stop_sent[axis] = False
 
-        # TODO: Only write to CSV if flag set
-        self._write_position_instruction(pos_dict)
+        # If we have a playback controller, pass it position overrides for any
+        # control it is performing independently
+        if self._playback_controller is not None:
+            self._playback_controller.override_control(servo_positions)
+            return
+
+        # We only perform movement and writing in here
+        if self._write_csv:
+            self._write_position_instruction(pos_dict)
+        self._servo_communicator.move_to(servo_positions)
 
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator
@@ -105,8 +117,11 @@ class JoystickServoController:
         self._axis_stop_sent[axis] = True
         self._servo_communicator.stop_servos(servos)
 
-        # TODO: Only write to CSV if flag set
-        self._write_stop_instruction(servos)
+        if self._write_csv:
+            self._write_stop_instruction(servos)
+
+        if self._playback_controller is not None:
+            self._playback_controller.clear_control_override(servos)
 
     def _controlled_servos(self, axis):
         positions = self._map.get(axis)
