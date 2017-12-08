@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+import time
 
 import pygame
 
@@ -11,15 +12,19 @@ from libs.config.device_config import DeviceConfig
 from app.servo_control.joystick_control.joystick_servo_map import JoystickServoMap, JoystickAxes
 from app.servo_control.servo_limits import ServoLimits
 from app.servo_control.servo_positions import ServoPositions
+from app.servo_control.instruction_list import InstructionTypes
+from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
     def __init__(self, servo_communicator):
         self._logger = logging.getLogger('joystick_servo_controller')
+        self._control_time_start = time.time()
         self._servo_communicator = servo_communicator
         self._should_quit = False
         self._controller = xbox360_controller.Controller(0)
         self._map = JoystickServoMap()
         self._limits = ServoLimits()
+        self._instruction_writer = InstructionWriter()
 
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
@@ -66,10 +71,12 @@ class JoystickServoController:
         if pos_dict is None:
             return
 
-        self._servo_communicator.move_to(ServoPositions(pos_dict).positions_str)
+        servo_positions = ServoPositions(pos_dict)
+        self._servo_communicator.move_to(servo_positions)
         self._axis_stop_sent[axis] = False
 
-        # TODO: Write position to CSV if flag set
+        # TODO: Only write to CSV if flag set
+        self._write_position_instruction(pos_dict)
 
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator
@@ -90,14 +97,21 @@ class JoystickServoController:
         """ Stops the servos that this control drives
         """
 
-        positions = self._map.get(axis)
+        servos = self._controlled_servos(axis)
         # Only want to send the stop for the controlled axis when it first becomes neutral. Don't need to repeat.
-        if positions is None or (axis in self._axis_stop_sent and self._axis_stop_sent[axis]):
+        if servos is None or (axis in self._axis_stop_sent and self._axis_stop_sent[axis]):
             return
 
         self._axis_stop_sent[axis] = True
-        self._servo_communicator.stop_servos(positions.controlled_servos)
+        self._servo_communicator.stop_servos(servos)
 
+        # TODO: Only write to CSV if flag set
+        self._write_stop_instruction(servos)
+
+    def _controlled_servos(self, axis):
+        positions = self._map.get(axis)
+        if positions is not None:
+            return positions.controlled_servos
 
     def _value_to_time(self, value):
         """ Takes an axis value and uses it to determine how the how long the servos should take to reach their target position.
@@ -116,3 +130,19 @@ class JoystickServoController:
         # Value is effectively a %, so can use this to lerp between our min/max times
         percentage = abs(value)
         return round((percentage * self._max_move_speed) + ((1-percentage) * self._min_move_speed), 2)
+
+    def _control_time_offset(self, round_digits=2):
+        """ Returns the number of seconds we've been running this program execution
+        """
+
+        return round(time.time() - self._control_time_start, round_digits)
+
+
+    # CSV WRITING
+    # =========================================================================
+
+    def _write_position_instruction(self, positions):
+        self._instruction_writer.write_instruction(self._control_time_offset(), InstructionTypes.POSITION, positions)
+
+    def _write_stop_instruction(self, servos):
+        self._instruction_writer.write_instruction(self._control_time_offset(), InstructionTypes.STOP, list(servos))
