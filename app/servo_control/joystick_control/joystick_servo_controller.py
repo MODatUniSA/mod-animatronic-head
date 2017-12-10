@@ -70,11 +70,13 @@ class JoystickServoController:
     def _process_joystick_axes(self):
         left_x, left_y = self._controller.get_left_stick()
         right_x, right_y = self._controller.get_right_stick()
+        triggers = self._controller.get_triggers()
 
         self._handle_axis_position(JoystickAxes.LEFT_STICK_X, left_x)
         self._handle_axis_position(JoystickAxes.LEFT_STICK_Y, left_y)
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_X, right_x)
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
+        self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
 
     def _handle_axis_position(self, axis, value):
         if value == 0:

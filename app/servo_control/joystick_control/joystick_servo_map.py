@@ -12,6 +12,7 @@ class JoystickAxes(Enum):
     LEFT_STICK_Y = auto()
     RIGHT_STICK_X = auto()
     RIGHT_STICK_Y = auto()
+    TRIGGERS = auto()
 
 class JoystickServoPosition:
     """ Stores a single set of servo positions to be used by a joystick control.
@@ -90,5 +91,14 @@ class JoystickServoMap(dict):
             {
                 ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
                 ServoMap.LIPS_RIGHT.value : { 'position' : 1200 }
+            }
+        )
+
+        self[JoystickAxes.TRIGGERS] = JoystickServoPositions(
+            {
+                ServoMap.JAW.value : { 'position' : 2200 },
+            },
+            {
+                ServoMap.JAW.value : { 'position' : 1200 },
             }
         )
