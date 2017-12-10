@@ -18,7 +18,6 @@ from app.servo_control.instruction_writer import InstructionWriter
 class JoystickServoController:
     def __init__(self, servo_communicator, playback_controller=None):
         self._logger = logging.getLogger('joystick_servo_controller')
-        # TODO: Extract to config/command line args
         self._write_csv = False
         self._playback_controller = playback_controller
         self._control_time_start = time.time()
@@ -27,13 +26,6 @@ class JoystickServoController:
         self._controller = xbox360_controller.Controller(0)
         self._map = JoystickServoMap()
         self._limits = ServoLimits()
-
-        if self._write_csv:
-            self._instruction_writer = InstructionWriter()
-            if self._playback_controller is not None:
-                self._playback_controller.set_move_instruction_callback(self._write_position_instruction)
-                self._playback_controller.set_stop_instruction_callback(self._write_stop_instruction)
-
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
         self._min_move_time_ms = joystick_config.getint('MIN_MOVE_TIME_MS')
@@ -42,6 +34,13 @@ class JoystickServoController:
         self._max_move_speed = joystick_config.getint('MAX_MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
         self._axis_stop_sent = {}
+
+    def record_to_file(self, output_filename):
+        self._write_csv = True
+        self._instruction_writer = InstructionWriter(output_filename)
+        if self._playback_controller is not None:
+            self._playback_controller.set_move_instruction_callback(self._write_position_instruction)
+            self._playback_controller.set_stop_instruction_callback(self._write_stop_instruction)
 
     @asyncio.coroutine
     def run(self):

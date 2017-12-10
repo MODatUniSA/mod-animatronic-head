@@ -20,10 +20,6 @@ class JoystickControlDriver:
         LoggerCreator().create_logger()
         self._logger                   = LoggerCreator.logger_for('driver')
 
-        # TODO: Extract to config/command line args
-        self.playback = False
-        self.playback_filename = 'position_speed_test_min.csv'
-
         if self.args.hardware_present:
             self._logger.info("Running Almost Human with real hardware")
             from app.servo_control.servo_communicator import ServoCommunicator
@@ -36,11 +32,16 @@ class JoystickControlDriver:
         self.loop                = asyncio.get_event_loop()
         self.servo_communicator  = ServoCommunicator()
         self.playback_controller = None
-        if self.playback:
+
+        if args.input_file is not None:
+            self.playback = True
+            self.playback_filename = args.input_file
             self.playback_controller = ServoController(self.servo_communicator)
             self.playback_controller.prepare_instructions(self.playback_filename)
 
-        self.servo_controller    = JoystickServoController(self.servo_communicator, self.playback_controller)
+        self.servo_controller = JoystickServoController(self.servo_communicator, self.playback_controller)
+        if args.output_file is not None:
+            self.servo_controller.record_to_file(args.output_file)
 
     def run(self):
         self._logger.info("Almost Human Joystick Control driver starting.")
@@ -80,7 +81,16 @@ if __name__ == '__main__':
     parser.add_argument("--no-hw", dest='hardware_present', action='store_false', help="Don't attempt to communicate with hardware. Used to test behaviour when no serial device connected")
     parser.set_defaults(hardware_present=True)
 
-    parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output all logged info to the console")
+    parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output errors and warnings to the console")
+    parser.add_argument("-vv", dest='very_verbose_output', action='store_true', help="Output all logged output to the console")
     parser.set_defaults(verbose_output=False)
+
+
+    parser.add_argument("--playback", dest='input_file', help="Instruction file to execute")
+    parser.set_defaults(input_file=None)
+
+    # TODO: Consider adding arg to record to default file
+    parser.add_argument("--record", dest='output_file', help="File to write joystick control + playback instructions to.")
+    parser.set_defaults(output_file=None)
 
     JoystickControlDriver(parser.parse_args()).run()
