@@ -32,10 +32,14 @@ class JoystickServoController:
         self._max_move_time_ms = joystick_config.getint('MAX_MOVE_TIME_MS')
         self._min_move_speed = joystick_config.getint('MIN_MOVE_SPEED')
         self._max_move_speed = joystick_config.getint('MAX_MOVE_SPEED')
+        self._fixed_move_speed = joystick_config.getint('MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
         self._axis_stop_sent = {}
+        self._last_sent = {}
 
     def record_to_file(self, output_filename):
+        """
+        """
         self._write_csv = True
         self._instruction_writer = InstructionWriter(output_filename)
         if self._playback_controller is not None:
@@ -77,17 +81,23 @@ class JoystickServoController:
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
         self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
 
+    # TODO: Handle either speed or position based joystick control
     def _handle_axis_position(self, axis, value):
-        if value == 0:
-            self._stop_controlled_servos(axis)
-            return
+        # Only valid for speed based control
+        # if value == 0:
+        #     self._stop_controlled_servos(axis)
+        #     return
 
-        pos_dict = self._to_position_dict(axis, value)
+        pos_dict = self._to_position_based_position_dict(axis, value)
         if pos_dict is None:
             return
 
         servo_positions = ServoPositions(pos_dict)
 
+        # Don't send duplicate values successively
+        # TODO: Set position threshold in config
+        if servo_positions.within_threshold(self._last_sent.get(axis), 5):
+            return
         self._axis_stop_sent[axis] = False
 
         # If we have a playback controller, pass it position overrides for any
@@ -100,19 +110,30 @@ class JoystickServoController:
         if self._write_csv:
             self._write_position_instruction(pos_dict)
         self._servo_communicator.move_to(servo_positions)
+        self._last_sent[axis] = servo_positions
 
-    def _to_position_dict(self, axis, value):
-        """ Takes the axis value and returns a position dictionary to be passed to the communicator
+    def _to_position_based_position_dict(self, axis, value):
+        """ Takes the axis value and returns a position dictionary to be passed to the communicator.
+            Uses axis position to determine target position. Movement speed is fixed.
+        """
+
+        positions = self._map.get(axis)
+        if positions is None:
+            return
+
+        target_positions = positions.interpolated_position_for_percentage(value)
+        target_positions.set_speed(self._fixed_move_speed)
+        return target_positions.positions
+
+    def _to_speed_based_position_dict(self, axis, value):
+        """ Takes the axis value and returns a position dictionary to be passed to the communicator.
+            Uses axis position to determine speed of movement to target positions
         """
         positions = self._map.get(axis)
         if positions is None or value == 0:
             return
 
-        if value > 0:
-            target_positions = positions.positive
-        elif value < 0:
-            target_positions = positions.negative
-
+        target_positions = positions.for_value(value)
         target_positions.set_speed(int(self._value_to_speed(value)))
         return target_positions.positions
 
