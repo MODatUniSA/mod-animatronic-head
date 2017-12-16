@@ -66,7 +66,7 @@ class JoystickServoMap(dict):
             },
             {
                 ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1200 }
+                ServoMap.LIPS_UPPER.value : { 'position' : 1700 }
             }
         )
 
