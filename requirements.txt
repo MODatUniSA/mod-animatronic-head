@@ -1,0 +1,14 @@
+blessings==1.6
+bpython==0.16
+certifi==2017.11.5
+chardet==3.0.4
+curtsies==0.2.11
+greenlet==0.4.12
+idna==2.6
+pygame==1.9.3
+Pygments==2.2.0
+pyserial==3.4
+requests==2.18.4
+six==1.11.0
+urllib3==1.22
+wcwidth==0.1.7
