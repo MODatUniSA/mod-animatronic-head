@@ -129,7 +129,6 @@ class JoystickServoController:
         servo_positions = ServoPositions(pos_dict)
 
         # Don't send duplicate values successively
-        # TODO: Block duplicate sends on the servo controller
         if servo_positions.within_threshold(self._last_sent.get(axis), self._position_threshold):
             return
 

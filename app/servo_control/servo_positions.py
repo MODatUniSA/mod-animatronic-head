@@ -14,10 +14,26 @@ class ServoPositions:
         self._logger = logging.getLogger('servo_positions')
         self.speed_specified = False
         self._servo_limits = ServoLimits()
-        self.positions = self._to_limited_positions(positions_dict)
+        self.positions = type(self)._uniform_position_structure(positions_dict)
+        self.positions = self._to_limited_positions(self.positions)
         self.positions_str = self._to_positions_string(self.positions)
         self.positions_without_mouth = type(self)._to_positions_without_mouth(self.positions)
         self.positions_without_mouth_str = self._to_positions_string(self.positions_without_mouth)
+
+    @classmethod
+    def _uniform_position_structure(cls, positions_dict):
+        """ Takes formats { pin : position_int, ... } and { pin : { position : int, speed : int } }
+            And converts the former to the latter
+        """
+
+        positions = {}
+        for pin, position_info in positions_dict.items():
+            if isinstance(position_info, dict):
+                positions[pin] = position_info
+            else:
+                positions[pin] = { 'position' : position_info }
+
+        return positions
 
     def merge(self, servo_positions):
         """ Merge this servo positions object with another servo_positions object.
@@ -63,12 +79,11 @@ class ServoPositions:
 
     def _to_position_string(self, position):
         if isinstance(position, dict) and 'position' in position:
-            # REVISE: Apply default speed if no speed present?
-            self.speed_specified = True
-            return '{}S{}'.format(position['position'], position['speed'])
-        else:
-            return str(position)
-
+            pos_str = str(position['position'])
+            if 'speed' in position:
+                self.speed_specified = True
+                pos_str = '{}S{}'.format(pos_str, position['speed'])
+            return pos_str
 
     def _to_positions_without_mouth(positions):
         return {servo: position for servo, position in positions.items() if servo not in MOUTH_SERVO_PINS}
@@ -91,8 +106,6 @@ class ServoPositions:
         if isinstance(position, dict) and 'position' in position:
             position['position'] = self._servo_limits.to_limited_position(pin, position['position'])
             return position
-        elif isinstance(position, int):
-            return self._servo_limits.to_limited_position(pin, position)
         else:
             self._logger.error("Unable to construct limited servo position from: %s", position)
             return None
