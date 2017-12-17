@@ -35,8 +35,13 @@ class JoystickServoController:
         self._max_move_speed = joystick_config.getint('MAX_MOVE_SPEED')
         self._fixed_move_speed = joystick_config.getint('MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
+        self._position_threshold = joystick_config.getint('POSITION_DEDUPLICATE_THRESHOLD')
+        # Default to not overriding control with
+        self._use_left_stick = (playback_controller is None)
+        self._use_right_stick = (playback_controller is None)
         self._axis_stop_sent = {}
         self._last_sent = {}
+        self._last_pressed_states = []
 
     def record_to_file(self, output_filename):
         """ Tells this class to record servo positions to a file, and which file to write to
@@ -54,6 +59,7 @@ class JoystickServoController:
 
         while not self._should_quit:
             self._process_pygame_events()
+            self._process_buttons()
             self._process_joystick_axes()
             yield from asyncio.sleep(self._update_period_seconds)
 
@@ -63,7 +69,7 @@ class JoystickServoController:
 
         self._should_quit = True
 
-    # INTERNAL METHODS
+    # PYGAME EVENT PROCESSING
     # =========================================================================
 
     def _process_pygame_events(self):
@@ -71,16 +77,44 @@ class JoystickServoController:
             if event.type == pygame.QUIT:
                 self._should_quit = True
 
+    # JOYSTICK HANDLING
+    # =========================================================================
+
+    def _process_buttons(self):
+        pressed_buttons = self._controller.get_buttons()
+        if self._just_pressed(pressed_buttons, xbox360_controller.LEFT_BUMP):
+            self._use_left_stick = not self._use_left_stick
+            self._logger.info("Processing Left Stick Events: %s", self._use_left_stick)
+        if self._just_pressed(pressed_buttons, xbox360_controller.RIGHT_BUMP):
+            self._use_right_stick = not self._use_right_stick
+            self._logger.info("Processing Right Stick Events: %s", self._use_right_stick)
+
+        # Cache previous pressed states so we can detect when buttons are first pressed
+        self._last_pressed_states = pressed_buttons
+
+    def _just_pressed(self, pressed_buttons, button_id):
+        """ Returns whether this button was just pressed. Useful when we want to take an action
+            on the button just being pressed, rather than every time we detect it as pressed
+        """
+
+        return pressed_buttons[button_id] and \
+            not self._last_pressed_states[button_id]
+
+
     def _process_joystick_axes(self):
         left_x, left_y = self._controller.get_left_stick()
         right_x, right_y = self._controller.get_right_stick()
         triggers = self._controller.get_triggers()
 
-        self._handle_axis_position(JoystickAxes.LEFT_STICK_X, left_x)
-        self._handle_axis_position(JoystickAxes.LEFT_STICK_Y, left_y)
-        self._handle_axis_position(JoystickAxes.RIGHT_STICK_X, right_x)
-        self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
-        self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
+        if self._use_left_stick:
+            self._handle_axis_position(JoystickAxes.LEFT_STICK_X, left_x)
+            self._handle_axis_position(JoystickAxes.LEFT_STICK_Y, left_y)
+        if self._use_right_stick:
+            self._handle_axis_position(JoystickAxes.RIGHT_STICK_X, right_x)
+            self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
+
+        # TODO: Probably need to unmap these for recording/re-recording, or will need to add another toggle
+        # self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
 
     def _handle_axis_position(self, axis, value):
         pos_dict = self._to_position_dict(axis, value)
@@ -92,7 +126,7 @@ class JoystickServoController:
 
         # Don't send duplicate values successively
         # TODO: Set position threshold in config
-        if servo_positions.within_threshold(self._last_sent.get(axis), 5):
+        if servo_positions.within_threshold(self._last_sent.get(axis), self._position_threshold):
             return
 
         self._last_sent[axis] = servo_positions
@@ -108,6 +142,9 @@ class JoystickServoController:
         if self._write_csv:
             self._write_position_instruction(pos_dict)
         self._servo_communicator.move_to(servo_positions)
+
+    # INTERNAL HELPERS
+    # =========================================================================
 
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator.
