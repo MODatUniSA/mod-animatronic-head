@@ -37,13 +37,13 @@ class JoystickServoController:
         self._position_threshold = joystick_config.getint('POSITION_DEDUPLICATE_THRESHOLD')
         self._deadzone = joystick_config.getfloat('STICK_DEADZONE')
         self._controller = xbox360_controller.Controller(0, self._deadzone)
+        self._axis_stop_sent = {}
+        self._last_sent = {}
+        self._last_pressed_states = []
 
         # Default to not overwrite control if we're playing back existing instructions
         self._use_left_stick = (playback_controller is None)
         self._use_right_stick = (playback_controller is None)
-        self._axis_stop_sent = {}
-        self._last_sent = {}
-        self._last_pressed_states = []
 
     def record_to_file(self, output_filename):
         """ Tells this class to record servo positions to a file, and which file to write to
@@ -56,6 +56,9 @@ class JoystickServoController:
 
     @asyncio.coroutine
     def run(self):
+        """ Start processing joystick control.
+            If playing back existing instructions, this starts them running.
+        """
         if self._playback_controller is not None:
             self._playback_controller.execute_instructions()
 
@@ -66,6 +69,9 @@ class JoystickServoController:
             yield from asyncio.sleep(self._update_period_seconds)
 
     def stop(self):
+        """ Stop the joystick control.
+            Ensures control positions written to CSV if recording
+        """
         if self._write_csv:
             self._instruction_writer.stop()
 
@@ -123,7 +129,7 @@ class JoystickServoController:
         servo_positions = ServoPositions(pos_dict)
 
         # Don't send duplicate values successively
-        # TODO: Set position threshold in config
+        # TODO: Block duplicate sends on the servo controller
         if servo_positions.within_threshold(self._last_sent.get(axis), self._position_threshold):
             return
 

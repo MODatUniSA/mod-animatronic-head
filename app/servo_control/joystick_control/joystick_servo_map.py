@@ -58,15 +58,12 @@ class JoystickServoPosition:
 class JoystickServoPositions:
     """ Stores joystick control target positions in the positive and negative directions
     """
-    def __init__(self, positive_positions, negative_positions = None):
+    def __init__(self, positive_positions, negative_positions):
         self.positive = JoystickServoPosition(positive_positions)
         self.negative = JoystickServoPosition(negative_positions)
         self.neutral = JoystickServoPosition.interpolate_positions(self.negative, self.positive, 0.5)
 
-        all_servos = list(positive_positions.keys())
-        if negative_positions is not None:
-            all_servos += list(negative_positions.keys())
-
+        all_servos = list(positive_positions.keys()) + list(negative_positions.keys())
         self.controlled_servos = set(all_servos)
 
     def interpolated_position_for_percentage(self, percentage):
@@ -91,28 +88,16 @@ class JoystickServoMap(dict):
         #       otherwise we can't interpolate the target position
         self[JoystickAxes.LEFT_STICK_Y] = JoystickServoPositions(
             {
-                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1800 }
-            },
-            {
                 ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
                 ServoMap.LIPS_UPPER.value : { 'position' : 1700 }
-            }
-        )
-
-        # LEFT STICK X Controls Lips Left and Right servos
-        self[JoystickAxes.LEFT_STICK_X] = JoystickServoPositions(
-            {
-                ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
-                ServoMap.LIPS_RIGHT.value : { 'position' : 1200 }
             },
             {
-                ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
-                ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
+                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
+                ServoMap.LIPS_UPPER.value : { 'position' : 1800 }
             }
         )
 
-        # RIGHT STICK X Also controls Left and Right Servos, but in a different shape
+        # RIGHT STICK X controls Left and Right Servos to pinch/spread
         self[JoystickAxes.RIGHT_STICK_X] = JoystickServoPositions(
             {
                 ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
@@ -127,13 +112,13 @@ class JoystickServoMap(dict):
         # RIGHT STICK Y Controls Upper/Lower Lips + Jaw
         self[JoystickAxes.RIGHT_STICK_Y] = JoystickServoPositions(
             {
-                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1800 },
-                ServoMap.JAW.value : { 'position' : 1200 }
-            },
-            {
                 ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
                 ServoMap.LIPS_UPPER.value : { 'position' : 1700 },
                 ServoMap.JAW.value : { 'position' : 2200 }
+            },
+            {
+                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
+                ServoMap.LIPS_UPPER.value : { 'position' : 1800 },
+                ServoMap.JAW.value : { 'position' : 1200 }
             }
         )
