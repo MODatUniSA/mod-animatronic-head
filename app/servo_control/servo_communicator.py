@@ -14,27 +14,32 @@ class ServoCommunicator:
 
         config = DeviceConfig.Instance()
         serial_config = config.options['SERIAL']
+        joystick_config = config.options['JOYSTICK_CONTROL']
         self._port = serial_config['PORT']
         self._timeout = serial_config.getfloat('TIMEOUT')
         self._speed = serial_config.getint('SPEED')
+        self._position_threshold = joystick_config.getint('POSITION_DEDUPLICATE_THRESHOLD')
 
         self._logger.debug("Opening serial port %s", self._port)
         self._serial = serial.Serial(self._port, self._speed, timeout=self._timeout)
         self._logger.debug("Serial port open")
 
-        # TODO: Set Servos to default position
+        self._previous_positions = None
 
     def stop(self):
-        # TODO: Set Servos to default position
-
         self._logger.info("Stopping. Closing serial port.")
         self._serial.close()
 
     def move_to(self, positions, in_milliseconds=None):
         """ Move a collection of servos to a position in milliseconds of time.
-            Accepts an array of pin:position pairs.
+            Accepts an array of pin:position pairs, ServoPositions object, or raw positions instruction string
             If in_milliseconds is None, assumes individual servo speeds are specified in the positions
+            If ServoPositions object passed, deduplicates instructions
         """
+
+        if self._ignore_duplicate_positions(positions):
+            self._logger.debug("Ignoring duplicate positions")
+            return
 
         positions_str = self._to_position_string(positions)
         if positions_str is None:
@@ -61,6 +66,14 @@ class ServoCommunicator:
 
     # INTERNAL METHODS
     # =========================================================================
+
+    def _ignore_duplicate_positions(self, positions):
+        if not isinstance(positions, ServoPositions):
+            return False
+
+        should_ignore = positions.within_threshold(self._previous_positions, self._position_threshold)
+        self._previous_positions = positions
+        return should_ignore
 
     def _to_position_string(self, positions):
         """ Converts whatever object is passed to a position string. Accepts a string, dict, or ServoPositions object
