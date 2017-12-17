@@ -133,6 +133,20 @@ class JoystickServoMap(dict):
             }
         )
 
+        # RIGHT STICK Y Controls Upper/Lower Lips + Jaw
+        self[JoystickAxes.RIGHT_STICK_Y] = JoystickServoPositions(
+            {
+                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
+                ServoMap.LIPS_UPPER.value : { 'position' : 1800 },
+                ServoMap.JAW.value : { 'position' : 1200 }
+            },
+            {
+                ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
+                ServoMap.LIPS_UPPER.value : { 'position' : 1700 },
+                ServoMap.JAW.value : { 'position' : 2200 }
+            }
+        )
+
         self[JoystickAxes.TRIGGERS] = JoystickServoPositions(
             {
                 ServoMap.JAW.value : { 'position' : 2200 },

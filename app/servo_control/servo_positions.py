@@ -41,6 +41,23 @@ class ServoPositions:
             if servo in self.positions.keys():
                 del(self.positions[servo])
 
+    # REVISE: May also want to compare speed values
+    def within_threshold(self, other, threshold):
+        """ Returns whether the other positions are all within the threshold of this one
+        """
+
+        if other is None:
+            return False
+
+        for pin, position_info in self.positions.items():
+            other_position_info = other.positions.get(pin)
+            if other_position_info is None:
+                return False
+            if abs(position_info['position'] - other_position_info['position']) > threshold:
+                return False
+
+        return True
+
     def _to_positions_string(self, positions):
         return ''.join("#{!s}P{!s}".format(pin,self._to_position_string(pos)) for (pin,pos) in positions.items())
 
@@ -79,19 +96,3 @@ class ServoPositions:
         else:
             self._logger.error("Unable to construct limited servo position from: %s", position)
             return None
-
-    def within_threshold(self, other, threshold):
-        """ Returns whether the other positions are all within the threshold of this one
-        """
-
-        if other is None:
-            return False
-
-        for pin, position_info in self.positions.items():
-            other_position_info = other.positions.get(pin)
-            if other_position_info is None:
-                return False
-            if abs(position_info['position'] - other_position_info['position']) > threshold:
-                return False
-
-        return True

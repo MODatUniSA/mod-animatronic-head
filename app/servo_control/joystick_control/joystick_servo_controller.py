@@ -4,6 +4,7 @@
 import asyncio
 import logging
 import time
+from enum import Enum, auto
 
 import pygame
 
@@ -38,7 +39,7 @@ class JoystickServoController:
         self._last_sent = {}
 
     def record_to_file(self, output_filename):
-        """
+        """ Tells this class to record servo positions to a file, and which file to write to
         """
         self._write_csv = True
         self._instruction_writer = InstructionWriter(output_filename)
@@ -81,14 +82,9 @@ class JoystickServoController:
         self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
         self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
 
-    # TODO: Handle either speed or position based joystick control
     def _handle_axis_position(self, axis, value):
-        # Only valid for speed based control
-        # if value == 0:
-        #     self._stop_controlled_servos(axis)
-        #     return
+        pos_dict = self._to_position_dict(axis, value)
 
-        pos_dict = self._to_position_based_position_dict(axis, value)
         if pos_dict is None:
             return
 
@@ -98,10 +94,12 @@ class JoystickServoController:
         # TODO: Set position threshold in config
         if servo_positions.within_threshold(self._last_sent.get(axis), 5):
             return
-        self._axis_stop_sent[axis] = False
+
+        self._last_sent[axis] = servo_positions
 
         # If we have a playback controller, pass it position overrides for any
         # control it is performing independently
+        # TODO: Only want to override playback if toggled (on bumpers?)
         if self._playback_controller is not None:
             self._playback_controller.override_control(servo_positions)
             return
@@ -110,11 +108,10 @@ class JoystickServoController:
         if self._write_csv:
             self._write_position_instruction(pos_dict)
         self._servo_communicator.move_to(servo_positions)
-        self._last_sent[axis] = servo_positions
 
-    def _to_position_based_position_dict(self, axis, value):
+    def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator.
-            Uses axis position to determine target position. Movement speed is fixed.
+            Uses axis position to determine target position. Movement speed is fixed, set in the config.
         """
 
         positions = self._map.get(axis)
@@ -125,65 +122,11 @@ class JoystickServoController:
         target_positions.set_speed(self._fixed_move_speed)
         return target_positions.positions
 
-    def _to_speed_based_position_dict(self, axis, value):
-        """ Takes the axis value and returns a position dictionary to be passed to the communicator.
-            Uses axis position to determine speed of movement to target positions
-        """
-        positions = self._map.get(axis)
-        if positions is None or value == 0:
-            return
-
-        target_positions = positions.for_value(value)
-        target_positions.set_speed(int(self._value_to_speed(value)))
-        return target_positions.positions
-
-    def _stop_controlled_servos(self, axis):
-        """ Stops the servos that this control drives
-        """
-
-        servos = self._controlled_servos(axis)
-        # Only want to send the stop for the controlled axis when it first becomes neutral. Don't need to repeat.
-        if servos is None or (axis in self._axis_stop_sent and self._axis_stop_sent[axis]):
-            return
-
-        self._axis_stop_sent[axis] = True
-        self._servo_communicator.stop_servos(servos)
-
-        if self._write_csv:
-            self._write_stop_instruction(servos)
-
-        if self._playback_controller is not None:
-            self._playback_controller.clear_control_override(servos)
-
-    def _controlled_servos(self, axis):
-        positions = self._map.get(axis)
-        if positions is not None:
-            return positions.controlled_servos
-
-    def _value_to_time(self, value):
-        """ Takes an axis value and uses it to determine how the how long the servos should take to reach their target position.
-            Movement speed is directly proportional to joystick value, so time is inversely proportional
-        """
-
-        # Value is effectively a %, so can use this to lerp between our min/max times
-        percentage = abs(value)
-        return round((percentage * self._min_move_time_ms) + ((1-percentage) * self._max_move_time_ms), 2)
-
-    def _value_to_speed(self, value):
-        """ Takes an axis value and uses it to determine how the how fast the servos should move
-            Movement speed is directly proportional to joystick value
-        """
-
-        # Value is effectively a %, so can use this to lerp between our min/max times
-        percentage = abs(value)
-        return round((percentage * self._max_move_speed) + ((1-percentage) * self._min_move_speed), 2)
-
     def _control_time_offset(self, round_digits=2):
         """ Returns the number of seconds we've been running this program execution
         """
 
         return round(time.time() - self._control_time_start, round_digits)
-
 
     # CSV WRITING
     # =========================================================================
