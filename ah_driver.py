@@ -43,8 +43,8 @@ class AHDriver:
         try:
             # TEST: Triggers a single sound + set of instructions to play for testing
             # self.playback_controller.play_content('Mod1.ogg', 'position_speed_test_min.csv')
-            self.playback_controller.play_content('Mod1.ogg', 'position_test.csv')
-            # self.playback_controller.play_content('Mod1.ogg', 'Mod1.csv')
+            # self.playback_controller.play_content('Mod1.ogg', 'recorded_2017-12-08_20:57:41.csv')
+            self.playback_controller.play_content('Mod1.ogg', 'Mod1_tweaked.csv', True)
             self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")
