@@ -24,7 +24,6 @@ class JoystickServoController:
         self._control_time_start = time.time()
         self._servo_communicator = servo_communicator
         self._should_quit = False
-        self._controller = xbox360_controller.Controller(0)
         self._map = JoystickServoMap()
         self._limits = ServoLimits()
         config = DeviceConfig.Instance()
@@ -36,7 +35,10 @@ class JoystickServoController:
         self._fixed_move_speed = joystick_config.getint('MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
         self._position_threshold = joystick_config.getint('POSITION_DEDUPLICATE_THRESHOLD')
-        # Default to not overriding control with
+        self._deadzone = joystick_config.getfloat('STICK_DEADZONE')
+        self._controller = xbox360_controller.Controller(0, self._deadzone)
+
+        # Default to not overwrite control if we're playing back existing instructions
         self._use_left_stick = (playback_controller is None)
         self._use_right_stick = (playback_controller is None)
         self._axis_stop_sent = {}
@@ -89,7 +91,7 @@ class JoystickServoController:
             self._use_right_stick = not self._use_right_stick
             self._logger.info("Processing Right Stick Events: %s", self._use_right_stick)
 
-        # Cache previous pressed states so we can detect when buttons are first pressed
+        # Cache current pressed states so we can detect when buttons are first pressed
         self._last_pressed_states = pressed_buttons
 
     def _just_pressed(self, pressed_buttons, button_id):
