@@ -69,15 +69,6 @@ class JoystickServoPositions:
 
         self.controlled_servos = set(all_servos)
 
-    def for_value(self, value):
-        """ Returns the single JoystickServoPosition based on whether the value is +ve or -ve
-        """
-
-        if value > 0:
-            return self.positive
-        elif value < 0:
-            return self.negative
-
     def interpolated_position_for_percentage(self, percentage):
         """ Returns a new JoystickServoPosition object with target positions between the +ve and -ve mapped positions
             -1 <= percentage <= 1
