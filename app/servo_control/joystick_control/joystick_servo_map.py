@@ -46,7 +46,6 @@ class JoystickServoPosition:
 
         interpolated_positions = {}
         for pin, position_info in servo_positions_1.positions.items():
-            # TODO: Handle pin not found in second positions object
             pos_1 = position_info['position']
             pos_2 = servo_positions_2.positions[pin]['position']
 
@@ -59,12 +58,12 @@ class JoystickServoPositions:
     """ Stores joystick control target positions in the positive and negative directions
     """
     def __init__(self, positive_positions, negative_positions):
+        self._validate_servos(positive_positions, negative_positions)
+
         self.positive = JoystickServoPosition(positive_positions)
         self.negative = JoystickServoPosition(negative_positions)
         self.neutral = JoystickServoPosition.interpolate_positions(self.negative, self.positive, 0.5)
-
-        all_servos = list(positive_positions.keys()) + list(negative_positions.keys())
-        self.controlled_servos = set(all_servos)
+        self.controlled_servos = list(positive_positions.keys())
 
     def interpolated_position_for_percentage(self, percentage):
         """ Returns a new JoystickServoPosition object with target positions between the +ve and -ve mapped positions
@@ -75,9 +74,13 @@ class JoystickServoPositions:
         percentage = max(min(abs(percentage), 1), 0)
         return JoystickServoPosition.interpolate_positions(self.neutral, end_point, percentage)
 
-# TODO: Will need to be able to easily alter position config for animation recording
-# Probably just create separate classes (e.g. JoystickServoMouthMap, JoystickServoEyesMap, etc.)
-# Could use config or command line args to specify which map to use
+    def _validate_servos(self, positive, negative):
+        """ Ensures both +ve and -ve position maps have identical keys
+        """
+
+        if list(positive.keys()) != list(negative.keys()):
+            raise KeyError('Joystick Servo Positions must drive the same servos in both positive and negative directions')
+
 class JoystickServoMap(dict):
     def __init__(self):
         self._build_map()
