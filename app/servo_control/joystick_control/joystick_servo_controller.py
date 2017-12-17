@@ -102,7 +102,6 @@ class JoystickServoController:
         return pressed_buttons[button_id] and \
             not self._last_pressed_states[button_id]
 
-
     def _process_joystick_axes(self):
         left_x, left_y = self._controller.get_left_stick()
         right_x, right_y = self._controller.get_right_stick()
@@ -114,9 +113,6 @@ class JoystickServoController:
         if self._use_right_stick:
             self._handle_axis_position(JoystickAxes.RIGHT_STICK_X, right_x)
             self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
-
-        # TODO: Probably need to unmap these for recording/re-recording, or will need to add another toggle
-        # self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
 
     def _handle_axis_position(self, axis, value):
         pos_dict = self._to_position_dict(axis, value)

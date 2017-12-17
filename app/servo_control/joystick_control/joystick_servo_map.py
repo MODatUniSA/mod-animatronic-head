@@ -146,12 +146,3 @@ class JoystickServoMap(dict):
                 ServoMap.JAW.value : { 'position' : 2200 }
             }
         )
-
-        self[JoystickAxes.TRIGGERS] = JoystickServoPositions(
-            {
-                ServoMap.JAW.value : { 'position' : 2200 },
-            },
-            {
-                ServoMap.JAW.value : { 'position' : 1200 },
-            }
-        )
