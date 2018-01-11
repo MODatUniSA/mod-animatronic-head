@@ -13,6 +13,8 @@ class ServoPositionMap(dict):
 
     @staticmethod
     def mapping_to_servo_positions(total_map):
+        """ Converts a mapping of Servo Enum : Positions Dictionary -> Pin : ServoPosition
+        """
         ret = {}
         for key, positions in total_map.items():
             ret[key] = ServoPositions(ServoPositionMap.positions_to_pin_numbers(positions))

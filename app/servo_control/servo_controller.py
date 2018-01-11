@@ -19,6 +19,9 @@ class ServoController:
         self._phoneme_map = PhonemeMap()
         self._expression_map = ExpressionMap()
         self.phonemes_override_expression = False
+        self._overridden_servo_positions = None
+        self._move_instruction_callback = None
+        self._stop_instruction_callback = None
 
         # REVISE: Do we need to distinguish between main and nested iterators?
         self._main_instruction_iterator = self._create_instruction_iterator()
@@ -45,6 +48,54 @@ class ServoController:
         # TODO: Stop any instruction iterators, including nested ones
         self._servo_communicator.stop()
 
+    def override_control(self, servo_positions):
+        """ Provides a way to override the playback instructions from file based playback
+        """
+
+        self._logger.debug("Overriding control with %s", servo_positions.positions)
+
+        # REVISE: I believe we need to merge control overrides here, as we send
+        #           the overrides separately per axis/control
+        # Needs more testing.
+        if self._overridden_servo_positions is None:
+            self._overridden_servo_positions = servo_positions
+        else:
+            self._overridden_servo_positions = self._overridden_servo_positions.merge(servo_positions)
+
+        self._logger.debug("Final Override: %s", self._overridden_servo_positions.positions)
+
+        # Immediately send override positions through to communicator and notify
+        self._servo_communicator.move_to(self._overridden_servo_positions)
+        self._notify_move_instruction(self._overridden_servo_positions.positions)
+
+    def clear_control_override(self, servos):
+        """ Clears the argument servos out of any set servo control override
+        """
+
+        self._logger.debug("Clearing position override for: %s", servos)
+        if self._overridden_servo_positions is None:
+                return
+
+        self._overridden_servo_positions.clear_servos(servos)
+
+    def set_move_instruction_callback(self, to_call):
+        """ Assigns a callback for whenever a move instruction is issued
+        """
+
+        if not self._check_callable(to_call):
+            return
+
+        self._move_instruction_callback = to_call
+
+    def set_stop_instruction_callback(self, to_call):
+        """ Assigns a callback for whenever a stop instruction is issued
+        """
+
+        if not self._check_callable(to_call):
+            return
+
+        self._stop_instruction_callback = to_call
+
     # CALLBACKS
     # =========================================================================
 
@@ -61,6 +112,8 @@ class ServoController:
             self._execute_parallel_sequence_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.POSITION:
             self._execute_position_instruction(instruction)
+        elif instruction.instruction_type == InstructionTypes.STOP:
+            self._execute_stop_instruction(instruction)
         else:
             self._logger.error("Unhandled instruction type: %s. Cannot execute!", instruction.instruction_type)
 
@@ -90,29 +143,37 @@ class ServoController:
         """
 
         # TODO: Gracefully handle phoneme not mapped
-        servo_positions = self._phoneme_map['pins'][instruction.phoneme].positions_str
-        self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
-        self._logger.debug("Sending servo positions: %s",servo_positions)
+        servo_positions = self._phoneme_map['pins'][instruction.phoneme]
 
-        # TODO: Support different movement speeds?
-        self._servo_communicator.move_to(servo_positions, 200)
+        if self._overridden_servo_positions is not None:
+            servo_positions = servo_positions.merge(self._overridden_servo_positions)
+
+        self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
+
+        self._notify_move_instruction(servo_positions.positions)
+        self._servo_communicator.move_to(servo_positions, instruction.move_time)
 
     def _execute_expression_instruction(self, instruction):
         """ Executes a single expression instruction, which sends a message to the face servos to move
         """
 
         servo_positions = self._expression_map['pins'][instruction.expression]
+        if self._overridden_servo_positions is not None:
+            servo_positions = servo_positions.merge(self._overridden_servo_positions)
+
         if self.phonemes_override_expression:
             self._logger.debug("Sending expression w/o mouth")
             position_to_send = servo_positions.positions_without_mouth_str
+            self._notify_move_instruction(servo_positions.positions_without_mouth)
         else:
             self._logger.debug("Sending expression w/ mouth")
             position_to_send = servo_positions.positions_str
+            self._notify_move_instruction(servo_positions.positions)
 
         self._logger.debug("Sending Expression: %s", instruction.expression)
         self._logger.debug("Sending servo positions: %s", position_to_send)
 
-        self._servo_communicator.move_to(position_to_send, 200)
+        self._servo_communicator.move_to(position_to_send, instruction.move_time)
 
     # TODO: Loading and executing nested instructions is rather dangerous, as files could contain loops/self references that cause infinite loops. Should guard against this.
     def _execute_parallel_sequence_instruction(self, instruction):
@@ -131,7 +192,7 @@ class ServoController:
         self._nested_instruction_iterators[id(nested_iterator)] = nested_iterator
 
     def _execute_position_instruction(self, instruction):
-        """ Send a position directly from the CSV to the servos. Still applies limiting, and allows phonemes to override mouth servos
+        """ Send a position directly from the CSV to the servos. Applies limiting, and allows phonemes to override mouth servos
         """
 
         if instruction.position is None:
@@ -140,12 +201,58 @@ class ServoController:
 
         positions = ServoPositions(instruction.position)
 
+        if self._overridden_servo_positions is not None:
+            positions = positions.merge(self._overridden_servo_positions)
+
         if self.phonemes_override_expression:
             self._logger.debug("Sending raw positions w/o mouth")
             positions_to_send = positions.positions_without_mouth_str
+            self._notify_move_instruction(positions.positions_without_mouth)
         else:
             self._logger.debug("Sending raw positions w/ mouth")
             positions_to_send = positions.positions_str
+            self._notify_move_instruction(positions.positions)
 
-        # TODO: Support different movement speeds per position?
-        self._servo_communicator.move_to(positions_to_send, 200)
+        # Only send move time if individual servo speeds aren't specified
+        move_time = None if positions.speed_specified else instruction.move_time
+        self._servo_communicator.move_to(positions_to_send, move_time)
+
+    def _execute_stop_instruction(self, instruction):
+        """ Stops the servos specified by the instruction
+        """
+
+        # Don't stop servos whose control we're currently overriding
+        to_stop = instruction.servos
+        if self._overridden_servo_positions is not None:
+            to_stop -= self._overridden_servo_positions.positions.keys()
+
+        self._servo_communicator.stop_servos(instruction.servos)
+        self._notify_stop_instruction(to_stop)
+
+    # CALLBACK TRIGGERING
+    # =========================================================================
+
+    def _notify_move_instruction(self, servo_position_dict):
+        """ Triggers callback for when a move instruction is issued
+        """
+
+        if self._move_instruction_callback is None:
+            return
+
+        self._move_instruction_callback(servo_position_dict)
+
+    def _notify_stop_instruction(self, servos):
+        """ Triggers callback for when a stop instruction is issued
+        """
+
+        if self._stop_instruction_callback is None:
+            return
+
+        self._stop_instruction_callback(servos)
+
+    def _check_callable(self, to_call):
+        if not callable(to_call):
+            self._logger.error("Error! Variable passed is not callable! Ignoring.")
+            return False
+
+        return True

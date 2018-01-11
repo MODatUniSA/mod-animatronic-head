@@ -15,10 +15,17 @@ class PlaybackController:
         self._audio_playback_controller.set_sound_prepared_callback(self._on_sound_prepared)
         self._audio_playback_controller.set_post_playback_callback(self._on_playback_complete)
 
-    def play_content(self, audio_file, instructions_file):
+        self._audio_file = None
+        self._instructions_file = None
+        self._looping = False
+
+    def play_content(self, audio_file, instructions_file, looping=False):
         """ Plays an audio file in time with the servo instructions
         """
 
+        self._audio_file = audio_file
+        self._instructions_file = instructions_file
+        self._looping = looping
         self._servo_controller.prepare_instructions(instructions_file)
         self._audio_playback_controller.prepare_sound(audio_file)
 
@@ -41,7 +48,7 @@ class PlaybackController:
 
         self._logger.info("Sound loaded. Playing sound and instructions.")
         self._audio_playback_controller.play_sound()
-        self._servo_controller.phonemes_override_expression = True
+        self._servo_controller.phonemes_override_expression = False
         self._servo_controller.execute_instructions()
 
     def _on_playback_complete(self):
@@ -51,6 +58,6 @@ class PlaybackController:
         self._logger.info("Playback complete!")
         self._servo_controller.phonemes_override_expression = False
 
-        # TEST: Trigger self again after playback complete for testing
-        # time.sleep(1)
-        # self.play_content('Mod1.ogg', 'Mod1.csv')
+        if self._looping:
+            time.sleep(1)
+            self.play_content(self._audio_file, self._instructions_file, self._looping)

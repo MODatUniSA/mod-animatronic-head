@@ -8,16 +8,14 @@ import argparse
 import os
 import random
 
-from libs.logging.logger_creator import LoggerCreator
+import pygame
 
-from app.playback.audio.audio_playback_controller import AudioPlaybackController
-from app.playback.playback_controller import PlaybackController
+from libs.logging.logger_creator import LoggerCreator
+from app.servo_control.joystick_control.joystick_servo_controller import JoystickServoController
 from app.servo_control.servo_controller import ServoController
 
-class AHDriver:
+class JoystickControlDriver:
     def __init__(self, args):
-        self._should_quit              = False
-        self._shutdown_on_complete     = False
         self.args                      = args
         LoggerCreator().create_logger()
         self._logger                   = LoggerCreator.logger_for('driver')
@@ -29,35 +27,39 @@ class AHDriver:
             self._logger.info("Running Almost Human with mocked hardware")
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
-        self.loop                      = asyncio.get_event_loop()
-        self.audio_playback_controller = AudioPlaybackController()
-        self.servo_communicator        = ServoCommunicator()
-        self.servo_controller          = ServoController(self.servo_communicator)
-        self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
+        pygame.init()
+
+        self.loop                = asyncio.get_event_loop()
+        self.servo_communicator  = ServoCommunicator()
+        self.playback_controller = None
+
+        if args.input_file is not None:
+            self.playback = True
+            self.playback_filename = args.input_file
+            self.playback_controller = ServoController(self.servo_communicator)
+            self.playback_controller.prepare_instructions(self.playback_filename)
+
+        self.servo_controller = JoystickServoController(self.servo_communicator, self.playback_controller)
+        if args.output_file is not None:
+            self.servo_controller.record_to_file(args.output_file)
 
     def run(self):
-        self._logger.info("Almost Human driver starting.")
+        self._logger.info("Almost Human Joystick Control driver starting.")
 
         self._assign_interrupt_handler()
 
+        tasks = [
+            self.servo_controller.run(),
+        ]
+
         try:
-            # TEST: Triggers a single sound + set of instructions to play for testing
-            # self.playback_controller.play_content('Mod1.ogg', 'position_speed_test_min.csv')
-            # self.playback_controller.play_content('Mod1.ogg', 'recorded_2017-12-08_20:57:41.csv')
-            self.playback_controller.play_content('Mod1.ogg', 'Mod1_tweaked.csv', True)
-            self.loop.run_forever()
+            self.loop.run_until_complete(asyncio.wait(tasks))
         finally:
             self._logger.debug("Closing Event Loop")
             self.loop.close()
 
-            if self._shutdown_on_complete:
-                self._logger.info("Initiating System Shutdown!")
-                os.system('shutdown now')
-
     def stop(self):
-        self.playback_controller.stop()
-        self._should_quit = True
-        self.loop.stop()
+        self.servo_controller.stop()
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================
@@ -73,17 +75,22 @@ class AHDriver:
         self._logger.info("Got signal %s: Stopping Execution", signame)
         self.stop()
 
-    def trigger_shutdown(self):
-        self._shutdown_on_complete = True
-        self.stop()
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--no-hw", dest='hardware_present', action='store_false', help="Don't attempt to communicate with hardware. Used to test behaviour when no serial device connected")
     parser.set_defaults(hardware_present=True)
 
-    parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output all logged info to the console")
+    parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output errors and warnings to the console")
+    parser.add_argument("-vv", dest='very_verbose_output', action='store_true', help="Output all logged output to the console")
     parser.set_defaults(verbose_output=False)
 
-    AHDriver(parser.parse_args()).run()
+
+    parser.add_argument("--playback", dest='input_file', help="Instruction file to execute")
+    parser.set_defaults(input_file=None)
+
+    # TODO: Consider adding arg to record to default file
+    parser.add_argument("--record", dest='output_file', help="File to write joystick control + playback instructions to.")
+    parser.set_defaults(output_file=None)
+
+    JoystickControlDriver(parser.parse_args()).run()
