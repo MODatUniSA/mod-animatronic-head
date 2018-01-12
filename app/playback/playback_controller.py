@@ -12,8 +12,8 @@ class PlaybackController:
         self._audio_playback_controller = audio_playback_controller
         self._servo_controller = servo_controller
 
-        self._audio_playback_controller.set_sound_prepared_callback(self._on_sound_prepared)
-        self._audio_playback_controller.set_post_playback_callback(self._on_playback_complete)
+        self._audio_playback_controller.add_sound_prepared_callback(self._on_sound_prepared)
+        self._audio_playback_controller.add_post_playback_callback(self._on_playback_complete)
 
         self._audio_file = None
         self._instructions_file = None

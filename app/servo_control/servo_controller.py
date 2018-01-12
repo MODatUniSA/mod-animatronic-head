@@ -4,6 +4,7 @@
 import logging
 
 from libs.config.path_helper import PathHelper
+from libs.callback_handling.callback_manager import CallbackManager
 
 from app.servo_control.instruction_iterator import InstructionIterator
 from app.servo_control.instruction_list import InstructionList, InstructionTypes
@@ -20,10 +21,10 @@ class ServoController:
         self._expression_map = ExpressionMap()
         self.phonemes_override_expression = False
         self._overridden_servo_positions = None
-        self._move_instruction_callback = None
-        self._stop_instruction_callback = None
+        self._callback_manager = CallbackManager(['move_instruction', 'stop_instruction'], self)
 
         # REVISE: Do we need to distinguish between main and nested iterators?
+        #           Can all iterators be treated equally?
         self._main_instruction_iterator = self._create_instruction_iterator()
         # Iterators for any nested instruction sequences
         self._nested_instruction_iterators = {}
@@ -66,7 +67,7 @@ class ServoController:
 
         # Immediately send override positions through to communicator and notify
         self._servo_communicator.move_to(self._overridden_servo_positions)
-        self._notify_move_instruction(self._overridden_servo_positions.positions)
+        self._callback_manager.trigger_move_instruction_callback(self._overridden_servo_positions.positions)
 
     def clear_control_override(self, servos):
         """ Clears the argument servos out of any set servo control override
@@ -77,24 +78,6 @@ class ServoController:
                 return
 
         self._overridden_servo_positions.clear_servos(servos)
-
-    def set_move_instruction_callback(self, to_call):
-        """ Assigns a callback for whenever a move instruction is issued
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._move_instruction_callback = to_call
-
-    def set_stop_instruction_callback(self, to_call):
-        """ Assigns a callback for whenever a stop instruction is issued
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._stop_instruction_callback = to_call
 
     # CALLBACKS
     # =========================================================================
@@ -131,8 +114,8 @@ class ServoController:
 
     def _create_instruction_iterator(self):
         instruction_iterator = InstructionIterator()
-        instruction_iterator.set_intruction_callback(self._execute_instruction)
-        instruction_iterator.set_complete_callback(self._instructions_complete)
+        instruction_iterator.add_instruction_callback(self._execute_instruction)
+        instruction_iterator.add_complete_callback(self._instructions_complete)
         return instruction_iterator
 
     # INSTRUCTION EXECUTION
@@ -150,7 +133,7 @@ class ServoController:
 
         self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
 
-        self._notify_move_instruction(servo_positions.positions)
+        self._callback_manager.trigger_move_instruction_callback(servo_positions.positions)
         self._servo_communicator.move_to(servo_positions, instruction.move_time)
 
     def _execute_expression_instruction(self, instruction):
@@ -164,11 +147,11 @@ class ServoController:
         if self.phonemes_override_expression:
             self._logger.debug("Sending expression w/o mouth")
             position_to_send = servo_positions.positions_without_mouth_str
-            self._notify_move_instruction(servo_positions.positions_without_mouth)
+            self._callback_manager.trigger_move_instruction_callback(servo_positions.positions_without_mouth)
         else:
             self._logger.debug("Sending expression w/ mouth")
             position_to_send = servo_positions.positions_str
-            self._notify_move_instruction(servo_positions.positions)
+            self._callback_manager.trigger_move_instruction_callback(servo_positions.positions)
 
         self._logger.debug("Sending Expression: %s", instruction.expression)
         self._logger.debug("Sending servo positions: %s", position_to_send)
@@ -207,11 +190,11 @@ class ServoController:
         if self.phonemes_override_expression:
             self._logger.debug("Sending raw positions w/o mouth")
             positions_to_send = positions.positions_without_mouth_str
-            self._notify_move_instruction(positions.positions_without_mouth)
+            self._callback_manager.trigger_move_instruction_callback(positions.positions_without_mouth)
         else:
             self._logger.debug("Sending raw positions w/ mouth")
             positions_to_send = positions.positions_str
-            self._notify_move_instruction(positions.positions)
+            self._callback_manager.trigger_move_instruction_callback(positions.positions)
 
         # Only send move time if individual servo speeds aren't specified
         move_time = None if positions.speed_specified else instruction.move_time
@@ -227,32 +210,4 @@ class ServoController:
             to_stop -= self._overridden_servo_positions.positions.keys()
 
         self._servo_communicator.stop_servos(instruction.servos)
-        self._notify_stop_instruction(to_stop)
-
-    # CALLBACK TRIGGERING
-    # =========================================================================
-
-    def _notify_move_instruction(self, servo_position_dict):
-        """ Triggers callback for when a move instruction is issued
-        """
-
-        if self._move_instruction_callback is None:
-            return
-
-        self._move_instruction_callback(servo_position_dict)
-
-    def _notify_stop_instruction(self, servos):
-        """ Triggers callback for when a stop instruction is issued
-        """
-
-        if self._stop_instruction_callback is None:
-            return
-
-        self._stop_instruction_callback(servos)
-
-    def _check_callable(self, to_call):
-        if not callable(to_call):
-            self._logger.error("Error! Variable passed is not callable! Ignoring.")
-            return False
-
-        return True
+        self._callback_manager.trigger_stop_instruction_callback(to_stop)

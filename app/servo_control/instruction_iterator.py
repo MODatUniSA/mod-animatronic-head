@@ -5,6 +5,8 @@ import logging
 import asyncio
 import time
 
+from libs.callback_handling.callback_manager import CallbackManager
+
 # TODO: Provide a way to put a delay/pre-delay on instructions
 
 class InstructionIterator:
@@ -13,31 +15,7 @@ class InstructionIterator:
         self._iteration_routine = None
         self._iterating = False
         self._instruction_list = None
-        self._instruction_callback = None
-        self._complete_callback = None
-
-    # TODO: Generalise callback setting/triggering/handling
-    # Can either create service class to handle, which this class creates/calls
-    # OR create base class for this. Probably needs metaprogramming.
-    def set_intruction_callback(self, to_call):
-        """ Accepts a callable, which will be passed each instruction when it is time to be executed.
-            Should be called before iterate_instructions.
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._instruction_callback = to_call
-
-    def set_complete_callback(self, to_call):
-        """ Accepts a callable, which will be passed each instruction when it is time to be executed.
-            Should be called before iterate_instructions.
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._complete_callback = to_call
+        self._callback_manager = CallbackManager(['instruction', 'complete'], self)
 
     def iterate_instructions(self, instruction_list):
         """ Accepts an instruction list and iterates over all stored instructions
@@ -91,25 +69,15 @@ class InstructionIterator:
             if self._iterating:
                 self._logger.debug("Executing instruction with time offset %.2f at %.2f seconds after iteration start", instruction.time_offset, time_passed)
 
-                self._trigger_instruction_callback(instruction)
+                self._callback_manager.trigger_instruction_callback(instruction)
 
         self._logger.info("Finished iterating instructions")
-        self._trigger_complete_callback()
+        self._callback_manager.trigger_complete_callback(id(self))
         self._iterating = False
         self._iteration_routine = None
 
     # INTERNAL METHODS
     # =========================================================================
-
-    def _trigger_instruction_callback(self, instruction):
-        if self._instruction_callback is not None:
-            self._logger.info("Triggering instruction callback")
-            self._instruction_callback(instruction)
-
-    def _trigger_complete_callback(self):
-        if self._complete_callback is not None:
-            self._logger.info("Triggering complete callback")
-            self._complete_callback(id(self))
 
     def _stop_running_routines(self):
         """ Stops the coroutine that executes the instruction iteration
@@ -121,14 +89,3 @@ class InstructionIterator:
             # TODO: Test this. May not actually be able to cancel a coroutine except from  another coroutine
             self._iteration_routine.cancel()
             self._iteration_routine = None
-
-    # TODO: Duplicate code. Generalise callback handling
-    def _check_callable(self, to_call):
-        """ Checks whether to_call is a valid callable
-        """
-
-        if not callable(to_call):
-            self._logger.error("Error! Variable passed is not callable! Ignoring.")
-            return False
-
-        return True

@@ -51,8 +51,8 @@ class JoystickServoController:
         self._write_csv = True
         self._instruction_writer = InstructionWriter(output_filename)
         if self._playback_controller is not None:
-            self._playback_controller.set_move_instruction_callback(self._write_position_instruction)
-            self._playback_controller.set_stop_instruction_callback(self._write_stop_instruction)
+            self._playback_controller.add_move_instruction_callback(self._write_position_instruction)
+            self._playback_controller.add_stop_instruction_callback(self._write_stop_instruction)
 
     @asyncio.coroutine
     def run(self):

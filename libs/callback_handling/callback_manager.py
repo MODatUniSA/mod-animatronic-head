@@ -18,7 +18,7 @@ class CallbackManager:
         self._callbacks = { name: [] for name in callback_list }
         self._create_all_callback_methods()
 
-    # FUNCTION CREATION - Creates the dynamic functions and adds to this class
+    # FUNCTION CREATION - Creates the dynamic functions and adds to this class and the caller
     # =========================================================================
     def _create_callback_methods(self, callback_name):
         # TEMPLATE FUNCTIONS - Used to generate callback functions

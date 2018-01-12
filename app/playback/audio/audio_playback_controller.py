@@ -10,6 +10,7 @@ import pygame.mixer
 from libs.config.path_helper import PathHelper
 from libs.logging.logger_creator import LoggerCreator
 from app.playback.audio.audio_cache import AudioCache
+from libs.callback_handling.callback_manager import CallbackManager
 
 class AudioPlaybackController:
     def __init__(self):
@@ -18,8 +19,7 @@ class AudioPlaybackController:
         self._audio_cache                    = AudioCache()
         self._audio_filename                 = None
         self._delayed_post_playback_callback = None
-        self._post_playback_callback         = None
-        self._sound_prepared_callback        = None
+        self._callback_manager = CallbackManager(['post_playback', 'sound_prepared'], self)
         self._loop                           = asyncio.get_event_loop()
 
     def prepare_sound(self, audio_file, callback=None):
@@ -38,7 +38,7 @@ class AudioPlaybackController:
         # calling _sound() after setting the filename causes us to load it
         if self._sound():
             self._logger.info("Sound prepared. Triggering callback")
-            self._trigger_sound_prepared_callback()
+            self._callback_manager.trigger_sound_prepared_callback()
         else:
             self._logger.info("Failed to load sound. Not triggering callback")
             self._audio_filename = None
@@ -60,24 +60,6 @@ class AudioPlaybackController:
 
         self._cancel_delayed_callbacks()
 
-    def set_post_playback_callback(self, to_call):
-        """ Set the method to call once audio playback complete
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._post_playback_callback = to_call
-
-    def set_sound_prepared_callback(self, to_call):
-        """ Set the method to call once audio has loaded
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._sound_prepared_callback = to_call
-
     # INTERNAL METHODS
     # =========================================================================``
 
@@ -86,10 +68,6 @@ class AudioPlaybackController:
         pygame.mixer.init(frequency=48000, size=-16, channels=2)
         # Only need to play 1 sound at a time
         pygame.mixer.set_num_channels(1)
-
-    def _trigger_sound_prepared_callback(self):
-        if self._sound_prepared_callback is not None:
-            self._sound_prepared_callback()
 
     def _cancel_delayed_callbacks(self):
         self._logger.debug("Cancelling delayed callbacks")
@@ -102,11 +80,7 @@ class AudioPlaybackController:
     def _trigger_callback_on_playback_complete(self):
         sound_length = self._sound().get_length()
         self._logger.debug("Waiting %.2f seconds for sound to finish playback", sound_length)
-        self._delayed_post_playback_callback = self._loop.call_later(sound_length, self._trigger_post_playback_callback)
-
-    def _trigger_post_playback_callback(self):
-        if self._post_playback_callback is not None:
-            self._post_playback_callback()
+        self._delayed_post_playback_callback = self._loop.call_later(sound_length, self._callback_manager.trigger_post_playback_callback)
 
     def _sound(self):
         """ Sound that has most recently been requested for playback. Causes the sound to be loaded into the audio cache if it isn't already cached.
@@ -116,10 +90,3 @@ class AudioPlaybackController:
             return None
 
         return self._audio_cache.get_sound(self._audio_filename)
-
-    def _check_callable(self, to_call):
-        if not callable(to_call):
-            self._logger.error("Error! Variable passed is not callable! Ignoring.")
-            return False
-
-        return True
