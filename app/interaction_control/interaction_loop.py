@@ -18,6 +18,8 @@ from app.interaction_control.interaction_map import InteractionMap
 #         or need to create an InteractionLoopList class with a random() method
 class InteractionLoop:
     def __init__(self, loop_file):
+        self._current_interaction_type = None
+        self._iterator = None
         self._interactions = {
             InteractionType.IDLE : [],
             InteractionType.ACTIVATING : [],
@@ -27,24 +29,21 @@ class InteractionLoop:
         self._interaction_map = InteractionMap.Instance()
         self._build_interactions(loop_file)
 
-    # REVISE: Do we need to define this for every interaction type?
-    #         Can we just define them in a dict, then define these methods with metaprogramming?
-    # OR can we just use next(InteractionType.IDLE)
-    def next_idle(self):
-        """ Returns the next idle interaction
+    def next(self, interaction_type):
+        """ Returns the next interaction of the argument interaction type, or
+            None if no next element present
         """
-        pass
 
-    def next_idle_available(self):
-        """ Returns whether there is another idle interaction available
-        """
-        pass
+        self._ensure_iterator_current(interaction_type)
+        next(self._iterator, None)
+
+    # INTERAL HELPERS
+    # =========================================================================
 
     def _build_interactions(self, loop_file):
         with open(loop_file, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                print("Interaction: {}".format(row))
                 self._build_interaction(row)
 
     def _build_interaction(self, interaction_info):
@@ -55,3 +54,7 @@ class InteractionLoop:
         interaction = self._interaction_map.get(interaction_info['interaction_name'])
         if interaction is not None:
             self._interactions[interaction_type].append(interaction)
+
+    def _ensure_iterator_current(self, interaction_type):
+        if self._current_interaction_type != interaction_type:
+            self._iterator = iter(self._interactions[interaction_type])

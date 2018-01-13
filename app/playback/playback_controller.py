@@ -4,10 +4,12 @@
 import time
 
 from libs.logging.logger_creator import LoggerCreator
+from libs.callback_handling.callback_manager import CallbackManager
 
 class PlaybackController:
     def __init__(self, audio_playback_controller, servo_controller):
         self._logger = LoggerCreator.logger_for('playback_controller')
+        self._cbm = CallbackManager(['interaction_complete'], self)
 
         self._audio_playback_controller = audio_playback_controller
         self._servo_controller = servo_controller
@@ -25,8 +27,9 @@ class PlaybackController:
 
         self._logger.info("Playing Interaction: {}".format(interaction.name))
 
-        # TODO: Setup and Play interaction
-        # TODO: Notify on completion
+        # TODO: Setup and trigger playback of interaction
+        # TODO: Notify on completion, rather than as soon as we've called
+        self._cbm.trigger_interaction_complete_callback()
 
     def play_content(self, audio_file, instructions_file, looping=False):
         """ Plays an audio file in time with the servo instructions
@@ -60,6 +63,7 @@ class PlaybackController:
         self._servo_controller.phonemes_override_expression = False
         self._servo_controller.execute_instructions()
 
+    # REVISE: Need to know when both audio _and_ animation playback complete, in case they're a different length
     def _on_playback_complete(self):
         """ Called by the audio_playback_controller when playback has completed
         """

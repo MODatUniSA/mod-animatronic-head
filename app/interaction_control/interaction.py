@@ -3,17 +3,15 @@
 
 # REVISE: Should this class validate/load the referenced files?
 
-from app.interaction_control.interaction_type import InteractionType
 from app.interaction_control.eye_control_type import EyeControlType
 
 class Interaction:
-    def __init__(self, name, voice_file=None, phoneme_file=None, animation_file=None, interaction_type=InteractionType.NONE, eye_control_type=EyeControlType.NONE):
+    def __init__(self, name, voice_file=None, phoneme_file=None, animation_file=None, eye_control_type=EyeControlType.NONE):
         self.name = name
         self.voice_file = voice_file
         self.phoneme_file = phoneme_file
         self.animation_file = animation_file
-        self.interaction_type = InteractionType.NONE
-        self.eye_control = EyeControlType.NONE
+        self.eye_control = eye_control_type
 
     @classmethod
     def from_dict(cls, attrs):
@@ -22,6 +20,5 @@ class Interaction:
             attrs.get('voice_file'),
             attrs.get('phoneme_file'),
             attrs.get('animation_file'),
-            InteractionType[str(attrs.get('interaction_type')).upper()],
             EyeControlType[str(attrs.get('eye_control_type')).upper()]
         )

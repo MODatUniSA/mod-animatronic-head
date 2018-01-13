@@ -5,7 +5,6 @@ import csv
 
 from libs.patterns.singleton import Singleton
 
-from app.interaction_control.interaction_type import InteractionType
 from app.interaction_control.interaction import Interaction
 
 @Singleton

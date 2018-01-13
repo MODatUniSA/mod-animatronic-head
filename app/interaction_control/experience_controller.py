@@ -13,6 +13,8 @@
 #       At this stage, only a single loop will be fetched and executed, regardless of
 #       completion or state changes
 
+import logging
+
 from transitions import Machine
 
 from app.interaction_control.interaction_type
@@ -21,6 +23,7 @@ class ExperienceController:
     states = ['idle', 'activating', 'active', 'deactivating']
 
     def __init__(self, interaction_loop_executor, camera):
+        self._logger = logging.getLogger('experience_controller')
         self._machine = None
         self._executor = interaction_loop_executor
         self._camera = camera
@@ -42,13 +45,15 @@ class ExperienceController:
         """ Executes the idle part of the current interaction loop
         """
 
-        self._executor.execute(InteractionType.IDLE)
+        self._logger.info("Executing Idle State")
+        self._executor.start_execution(InteractionType.IDLE)
 
     def _execute_activating(self):
         """ Executes the default activating interaction
         """
 
-        self._executor.execute(InteractionType.ACTIVATING)
+        self._logger.info("Executing Activating State")
+        self._executor.start_execution(InteractionType.ACTIVATING)
 
     def _execute_activating_from_deactivating(self):
         """ Execute the activating interaction from the deactivating state
@@ -58,10 +63,12 @@ class ExperienceController:
         self._execute_activating()
 
     def _execute_active(self):
-        self._executor.execute(InteractionType.ACTIVE)
+        self._logger.info("Executing Active State")
+        self._executor.start_execution(InteractionType.ACTIVE)
 
     def _execute_deactivating(self):
-        self._executor.execute(InteractionType.DEACTIVATING)
+        self._logger.info("Executing Deactivating State")
+        self._executor.start_execution(InteractionType.DEACTIVATING)
 
     def _execute_deactivating_from_activating(self):
         #TODO: Handle this differently if needed

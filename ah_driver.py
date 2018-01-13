@@ -41,10 +41,13 @@ class AHDriver:
         self._assign_interrupt_handler()
 
         try:
+            # TODO: Create ExperienceController and dependencies and trigger. No longer need to call playback controller directly from here
+
             # TEST: Triggers a single sound + set of instructions to play for testing
             # self.playback_controller.play_content('Mod1.ogg', 'position_speed_test_min.csv')
             # self.playback_controller.play_content('Mod1.ogg', 'recorded_2017-12-08_20:57:41.csv')
-            self.playback_controller.play_content('Mod1.ogg', 'Mod1_tweaked.csv', True)
+            # self.playback_controller.play_content('Mod1.ogg', 'Mod1_tweaked.csv', True)
+
             self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")
