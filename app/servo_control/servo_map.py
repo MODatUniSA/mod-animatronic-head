@@ -6,9 +6,9 @@ from enum import Enum
 class ServoMap(Enum):
     JAW = 0
     LIPS_UPPER = 1
-    LIPS_LOWER = 2
-    LIPS_RIGHT = 3
-    LIPS_LEFT = 4
+    LIPS_LOWER = 4
+    LIPS_RIGHT = 2
+    LIPS_LEFT = 3
     EYEBROW_LEFT = 5
     EYEBROW_RIGHT = 6
 

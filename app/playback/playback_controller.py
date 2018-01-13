@@ -19,6 +19,15 @@ class PlaybackController:
         self._instructions_file = None
         self._looping = False
 
+    def play_interaction(self, interaction):
+        """ Plays content for a single interaction and notifies when complete
+        """
+
+        self._logger.info("Playing Interaction: {}".format(interaction.name))
+
+        # TODO: Setup and Play interaction
+        # TODO: Notify on completion
+
     def play_content(self, audio_file, instructions_file, looping=False):
         """ Plays an audio file in time with the servo instructions
         """

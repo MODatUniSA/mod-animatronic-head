@@ -21,7 +21,7 @@ class ServoController:
         self._expression_map = ExpressionMap()
         self.phonemes_override_expression = False
         self._overridden_servo_positions = None
-        self._callback_manager = CallbackManager(['move_instruction', 'stop_instruction'], self)
+        self._cbm = CallbackManager(['move_instruction', 'stop_instruction'], self)
 
         # REVISE: Do we need to distinguish between main and nested iterators?
         #           Can all iterators be treated equally?
@@ -67,7 +67,7 @@ class ServoController:
 
         # Immediately send override positions through to communicator and notify
         self._servo_communicator.move_to(self._overridden_servo_positions)
-        self._callback_manager.trigger_move_instruction_callback(self._overridden_servo_positions.positions)
+        self._cbm.trigger_move_instruction_callback(self._overridden_servo_positions.positions)
 
     def clear_control_override(self, servos):
         """ Clears the argument servos out of any set servo control override
@@ -133,7 +133,7 @@ class ServoController:
 
         self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
 
-        self._callback_manager.trigger_move_instruction_callback(servo_positions.positions)
+        self._cbm.trigger_move_instruction_callback(servo_positions.positions)
         self._servo_communicator.move_to(servo_positions, instruction.move_time)
 
     def _execute_expression_instruction(self, instruction):
@@ -147,11 +147,11 @@ class ServoController:
         if self.phonemes_override_expression:
             self._logger.debug("Sending expression w/o mouth")
             position_to_send = servo_positions.positions_without_mouth_str
-            self._callback_manager.trigger_move_instruction_callback(servo_positions.positions_without_mouth)
+            self._cbm.trigger_move_instruction_callback(servo_positions.positions_without_mouth)
         else:
             self._logger.debug("Sending expression w/ mouth")
             position_to_send = servo_positions.positions_str
-            self._callback_manager.trigger_move_instruction_callback(servo_positions.positions)
+            self._cbm.trigger_move_instruction_callback(servo_positions.positions)
 
         self._logger.debug("Sending Expression: %s", instruction.expression)
         self._logger.debug("Sending servo positions: %s", position_to_send)
@@ -190,11 +190,11 @@ class ServoController:
         if self.phonemes_override_expression:
             self._logger.debug("Sending raw positions w/o mouth")
             positions_to_send = positions.positions_without_mouth_str
-            self._callback_manager.trigger_move_instruction_callback(positions.positions_without_mouth)
+            self._cbm.trigger_move_instruction_callback(positions.positions_without_mouth)
         else:
             self._logger.debug("Sending raw positions w/ mouth")
             positions_to_send = positions.positions_str
-            self._callback_manager.trigger_move_instruction_callback(positions.positions)
+            self._cbm.trigger_move_instruction_callback(positions.positions)
 
         # Only send move time if individual servo speeds aren't specified
         move_time = None if positions.speed_specified else instruction.move_time
@@ -210,4 +210,4 @@ class ServoController:
             to_stop -= self._overridden_servo_positions.positions.keys()
 
         self._servo_communicator.stop_servos(instruction.servos)
-        self._callback_manager.trigger_stop_instruction_callback(to_stop)
+        self._cbm.trigger_stop_instruction_callback(to_stop)

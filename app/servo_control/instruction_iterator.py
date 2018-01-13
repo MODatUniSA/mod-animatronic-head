@@ -15,7 +15,7 @@ class InstructionIterator:
         self._iteration_routine = None
         self._iterating = False
         self._instruction_list = None
-        self._callback_manager = CallbackManager(['instruction', 'complete'], self)
+        self._cbm = CallbackManager(['instruction', 'complete'], self)
 
     def iterate_instructions(self, instruction_list):
         """ Accepts an instruction list and iterates over all stored instructions
@@ -69,10 +69,10 @@ class InstructionIterator:
             if self._iterating:
                 self._logger.debug("Executing instruction with time offset %.2f at %.2f seconds after iteration start", instruction.time_offset, time_passed)
 
-                self._callback_manager.trigger_instruction_callback(instruction)
+                self._cbm.trigger_instruction_callback(instruction)
 
         self._logger.info("Finished iterating instructions")
-        self._callback_manager.trigger_complete_callback(id(self))
+        self._cbm.trigger_complete_callback(id(self))
         self._iterating = False
         self._iteration_routine = None
 

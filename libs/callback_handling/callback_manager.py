@@ -3,6 +3,9 @@ import logging
 
 class CallbackManager:
     """ Allows classes to define the callbacks that can be triggered in that class
+        Creating with cbm = CallbackManager(['thing_happened'], an_object) will leave
+        cbm responding to add_thing_happened_callback(), trigger_thing_happened_callback().
+        an_object will respond to trigger_thing_happened_callback().
     """
 
     def __init__(self, callback_list, for_instance=None):
