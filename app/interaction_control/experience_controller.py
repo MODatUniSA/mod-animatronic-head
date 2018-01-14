@@ -17,19 +17,18 @@ import logging
 
 from transitions import Machine
 
-from app.interaction_control.interaction_type
+from app.interaction_control.interaction_type import InteractionType
+from app.interaction_control.interaction_loop import InteractionLoop
 
 class ExperienceController:
     states = ['idle', 'activating', 'active', 'deactivating']
 
-    def __init__(self, interaction_loop_executor, camera):
+    def __init__(self, interaction_loop_executor):
         self._logger = logging.getLogger('experience_controller')
         self._machine = None
         self._executor = interaction_loop_executor
-        self._camera = camera
         self._build_state_machine()
         self._add_executor_callbacks()
-        self._add_camera_callbacks()
 
     def run(self):
         """ Starts the experience. Kicks everything off in idle.
@@ -84,7 +83,7 @@ class ExperienceController:
     def _build_state_machine(self):
         """ Builds the state machine and adds all state transitions
         """
-        # REVISE ignoring invalid triggers. May want to check in caller if transition valid.
+        # REVISE: ignoring invalid triggers. May want to check in caller if transition valid.
         self._machine = Machine(model=self, states=type(self).states, initial='idle', ignore_invalid_triggers=True)
         self._machine.add_transition('complete_idle', 'idle', 'idle', after='_execute_idle')
         self._machine.add_transition('activate', 'idle', 'activating', after='_execute_activating')

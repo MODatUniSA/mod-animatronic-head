@@ -29,13 +29,20 @@ class InteractionLoop:
         self._interaction_map = InteractionMap.Instance()
         self._build_interactions(loop_file)
 
+    def reset(self):
+        """ Resets the state of this loop. Allows us to iterate over a single interaction type multiple times
+        """
+
+        self._current_interaction_type = None
+        self._iterator = None
+
     def next(self, interaction_type):
         """ Returns the next interaction of the argument interaction type, or
             None if no next element present
         """
 
         self._ensure_iterator_current(interaction_type)
-        next(self._iterator, None)
+        return next(self._iterator, None)
 
     # INTERAL HELPERS
     # =========================================================================
@@ -57,4 +64,5 @@ class InteractionLoop:
 
     def _ensure_iterator_current(self, interaction_type):
         if self._current_interaction_type != interaction_type:
+            self._current_interaction_type = interaction_type
             self._iterator = iter(self._interactions[interaction_type])

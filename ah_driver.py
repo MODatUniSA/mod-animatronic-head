@@ -13,6 +13,8 @@ from libs.logging.logger_creator import LoggerCreator
 from app.playback.audio.audio_playback_controller import AudioPlaybackController
 from app.playback.playback_controller import PlaybackController
 from app.servo_control.servo_controller import ServoController
+from app.interaction_control.experience_controller import ExperienceController
+from app.interaction_control.interaction_loop_executor import InteractionLoopExecutor
 
 class AHDriver:
     def __init__(self, args):
@@ -34,6 +36,9 @@ class AHDriver:
         self.servo_communicator        = ServoCommunicator()
         self.servo_controller          = ServoController(self.servo_communicator)
         self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
+        # TODO: Create a camera object and pass to the experience controller
+        interaction_loop_executor      = InteractionLoopExecutor(self.playback_controller)
+        self.experience_controller     = ExperienceController(interaction_loop_executor)
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
@@ -41,13 +46,7 @@ class AHDriver:
         self._assign_interrupt_handler()
 
         try:
-            # TODO: Create ExperienceController and dependencies and trigger. No longer need to call playback controller directly from here
-
-            # TEST: Triggers a single sound + set of instructions to play for testing
-            # self.playback_controller.play_content('Mod1.ogg', 'position_speed_test_min.csv')
-            # self.playback_controller.play_content('Mod1.ogg', 'recorded_2017-12-08_20:57:41.csv')
-            # self.playback_controller.play_content('Mod1.ogg', 'Mod1_tweaked.csv', True)
-
+            self.experience_controller.run()
             self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")

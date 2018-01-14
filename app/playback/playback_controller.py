@@ -29,6 +29,7 @@ class PlaybackController:
 
         # TODO: Setup and trigger playback of interaction
         # TODO: Notify on completion, rather than as soon as we've called
+        time.sleep(2)
         self._cbm.trigger_interaction_complete_callback()
 
     def play_content(self, audio_file, instructions_file, looping=False):

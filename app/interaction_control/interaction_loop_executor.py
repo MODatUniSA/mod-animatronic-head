@@ -1,5 +1,6 @@
 """ Interaction loop executor executes interaction loops
 """
+import logging
 
 from libs.callback_handling.callback_manager import CallbackManager
 from app.interaction_control.interaction_type import InteractionType
@@ -10,6 +11,7 @@ class InteractionLoopExecutor:
     callbacks = ['idle_complete', 'activation_complete', 'active_complete', 'deactivation_complete']
 
     def __init__(self, playback_controller):
+        self._logger = logging.getLogger('interaction_loop_executor')
         self._playback_controller = playback_controller
         # Execute the next step each time an interaction is completed
         self._playback_controller.add_interaction_complete_callback(self.continue_execution)
@@ -32,6 +34,8 @@ class InteractionLoopExecutor:
         """ Starts execution of all interactions of the argument type, triggering a callback when all are complete
         """
 
+        self._logger.info("Starting Execution of {} interactions".format(interaction_type.name))
+        self._interaction_loop.reset()
         self._current_interaction_type = interaction_type
         self._execute_step_or_finish()
 
@@ -45,8 +49,8 @@ class InteractionLoopExecutor:
         """ Executes the next step in the current interaction type if present, or flags it as complete otherwise
         """
 
-        interaction = self._interaction_loop.next(self._current_interaction_type):
-        if interaction is not None
+        interaction = self._interaction_loop.next(self._current_interaction_type)
+        if interaction is not None:
             self._playback_controller.play_interaction(interaction)
         else:
             # Notify of completion of current interaction type
