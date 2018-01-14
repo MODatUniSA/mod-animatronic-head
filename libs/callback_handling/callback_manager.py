@@ -1,5 +1,7 @@
 import types
 import logging
+import asyncio
+import functools
 
 class CallbackManager:
     """ Allows classes to define the callbacks that can be triggered in that class
@@ -18,6 +20,7 @@ class CallbackManager:
         self._logger = logging.getLogger(logger_name)
         self._callback_list = callback_list
         self._for_instance = for_instance
+        self._loop = asyncio.get_event_loop()
         self._callbacks = { name: [] for name in callback_list }
         self._create_all_callback_methods()
 
@@ -26,16 +29,18 @@ class CallbackManager:
     def _create_callback_methods(self, callback_name):
         # TEMPLATE FUNCTIONS - Used to generate callback functions
         def _add_callback(self, to_call):
-            print("Adding callback for {}".format(callback_name))
+            self._logger.debug("Adding callback for {}".format(callback_name))
 
             if self._check_callable(to_call):
                 self._callbacks[callback_name].append(to_call)
 
         def _trigger_callback(self, *args, **kwargs):
-            print("Triggering callback for {}".format(callback_name))
+            self._logger.debug("Triggering callback for {}".format(callback_name))
 
             for to_call in self._callbacks[callback_name]:
-                to_call(*args, **kwargs)
+                wrapped_call = functools.partial(to_call, *args, **kwargs)
+                self._loop.call_soon(wrapped_call)
+                # to_call(*args, **kwargs)
 
         # Create add_callback method on this instance and delegate on caller (if provided)
         add_cb_name = "add_{}_callback".format(callback_name)
