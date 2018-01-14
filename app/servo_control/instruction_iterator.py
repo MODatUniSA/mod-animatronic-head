@@ -17,15 +17,24 @@ class InstructionIterator:
         self._instruction_list = None
         self._cbm = CallbackManager(['instruction', 'complete'], self)
 
-    def iterate_instructions(self, instruction_list):
+    def set_instruction_list(self, instruction_list):
+        self._instruction_list = instruction_list
+
+    def iterate_instructions(self, instruction_list=None):
         """ Accepts an instruction list and iterates over all stored instructions
         """
 
-        self._instruction_list = instruction_list
+        if instruction_list is not None:
+            self._instruction_list = instruction_list
 
-        if len(instruction_list.instructions) == 0:
-            self._logger.error("No instructions available to iterate!")
+        if self._instruction_list is None:
             # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
+            self._logger.error("No instruction list to iterate!")
+            return
+
+        if len(self._instruction_list.instructions) == 0:
+            # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
+            self._logger.error("No instructions in list to iterate!")
             return
 
         self._iterating = True

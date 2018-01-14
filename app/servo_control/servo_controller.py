@@ -12,44 +12,38 @@ from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
 from app.servo_control.servo_positions import ServoPositions
 
-# TODO: Send complete callback on completion of all iterators (including nested)
-
 class ServoController:
     def __init__(self, servo_communicator):
         self._logger = logging.getLogger('servo_controller')
         self._servo_communicator = servo_communicator
-        self._instruction_list = None
         self._phoneme_map = PhonemeMap()
         self._expression_map = ExpressionMap()
         self.phonemes_override_expression = False
         self._overridden_servo_positions = None
         self._cbm = CallbackManager(['move_instruction', 'stop_instruction'], self)
+        self._instruction_iterators = {}
 
-        # REVISE: Do we need to distinguish between main and nested iterators?
-        #           Can all iterators be treated equally?
-        self._main_instruction_iterator = self._create_instruction_iterator()
-        # Iterators for any nested instruction sequences
-        self._nested_instruction_iterators = {}
-
-    # TODO: Need to be able to prepare mulitple sets of instructions for concurrent execution
+    # TODO: Need to specify the servo sets to pay attention to for this set of instructions.
+    #       This will allow phoneme files to override control set in main animation
     def prepare_instructions(self, instructions_filename):
         """ Prepares a list of instructions for executing from the argument file
         """
 
-        self._instruction_list = InstructionList(instructions_filename)
+        instruction_list = InstructionList(instructions_filename)
+        instruction_iterator = self._create_instruction_iterator(instruction_list)
+        self._instruction_iterators[id(instruction_iterator)] = instruction_iterator
+        return (id(instruction_iterator), instruction_iterator)
 
     def execute_instructions(self):
-        if self._instruction_list is None:
-            self._logger.error("No instructions loaded. Cannot execute")
-
-        self._logger.info("Executing Servo Instructions")
-        self._main_instruction_iterator.iterate_instructions(self._instruction_list)
+        self._logger.info("Executing all loaded servo instructions")
+        for instruction_iterator in self._instruction_iterators:
+            instruction_iterator.iterate_instructions()
 
     def stop(self):
         """ Stop the servo controller and any dependent object
         """
 
-        # TODO: Stop any instruction iterators, including nested ones
+        # TODO: Stop any instruction iterators
         self._servo_communicator.stop()
 
     def override_control(self, servo_positions):
@@ -107,18 +101,24 @@ class ServoController:
         """ Called by the instruction iterator when iteration complete
         """
 
+        # TODO: Notify when iterator list empty
+        # REVISE: This may cause an edge case, where final instruction is to load parallel sequence. Could notify of completion _then_ start execution of final parallel sequence
+
         self._logger.info("Instruction execution complete for iterator: %s", iterator_id)
         if iterator_id in self._nested_instruction_iterators:
-            self._logger.info("Clearing nested instruction iterator")
-            del(self._nested_instruction_iterators[iterator_id])
+            self._logger.info("Clearing instruction iterator")
+            del(self._instruction_iterators[iterator_id])
 
     # INTERNAL METHODS
     # =========================================================================
 
-    def _create_instruction_iterator(self):
+    def _create_instruction_iterator(self, instruction_list=None):
         instruction_iterator = InstructionIterator()
         instruction_iterator.add_instruction_callback(self._execute_instruction)
         instruction_iterator.add_complete_callback(self._instructions_complete)
+        if instruction_list is not None:
+            instruction_iterator.set_instruction_list(instruction_list)
+
         return instruction_iterator
 
     # INSTRUCTION EXECUTION
@@ -172,10 +172,8 @@ class ServoController:
             return
 
         self._logger.info("Loading nested instruction sequence: %s", instruction.filename)
-        instruction_list = InstructionList(instruction.filename)
-        nested_iterator = self._create_instruction_iterator()
-        nested_iterator.iterate_instructions(instruction_list)
-        self._nested_instruction_iterators[id(nested_iterator)] = nested_iterator
+        iterator_id,instruction_iterator = self.prepare_instructions(instruction.filename)
+        instruction_iterator.iterate_instructions()
 
     def _execute_position_instruction(self, instruction):
         """ Send a position directly from the CSV to the servos. Applies limiting, and allows phonemes to override mouth servos
