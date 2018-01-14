@@ -1,10 +1,13 @@
 """ Entry point for playing back a single audio file with servo instructions
 """
 
+import asyncio
 import time
 
 from libs.logging.logger_creator import LoggerCreator
 from libs.callback_handling.callback_manager import CallbackManager
+
+# TODO: Need to be able to interrupt interactions
 
 class PlaybackController:
     def __init__(self, audio_playback_controller, servo_controller):
@@ -29,7 +32,15 @@ class PlaybackController:
 
         # TODO: Setup and trigger playback of interaction
         # TODO: Notify on completion, rather than as soon as we've called
-        time.sleep(2)
+        asyncio.async(self._execute_play_interaction())
+
+    @asyncio.coroutine
+    def _execute_play_interaction(self):
+        """ DEBUG: Waits asyncronously, then triggers interaction complete callback
+            Will probably be removed when actually executing interactions
+        """
+
+        yield from asyncio.sleep(2)
         self._cbm.trigger_interaction_complete_callback()
 
     def play_content(self, audio_file, instructions_file, looping=False):

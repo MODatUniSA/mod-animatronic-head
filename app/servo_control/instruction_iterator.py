@@ -33,7 +33,8 @@ class InstructionIterator:
 
     def stop(self):
         self._iterating = False
-        # TODO: See if we can also stop self._iteration_routine without waiting on sleeps
+        # TODO: See if we can also stop self._iteration_routine without waiting on sleeps.
+        #       Otherwise, could hang code shutdown with long delay between instructions
 
     # INTERNAL COROUTINES
     # =========================================================================

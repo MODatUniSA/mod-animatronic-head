@@ -12,6 +12,8 @@ from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
 from app.servo_control.servo_positions import ServoPositions
 
+# TODO: Send complete callback on completion of all iterators (including nested)
+
 class ServoController:
     def __init__(self, servo_communicator):
         self._logger = logging.getLogger('servo_controller')
@@ -29,6 +31,7 @@ class ServoController:
         # Iterators for any nested instruction sequences
         self._nested_instruction_iterators = {}
 
+    # TODO: Need to be able to prepare mulitple sets of instructions for concurrent execution
     def prepare_instructions(self, instructions_filename):
         """ Prepares a list of instructions for executing from the argument file
         """

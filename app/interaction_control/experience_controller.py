@@ -14,6 +14,7 @@
 #       completion or state changes
 
 import logging
+import asyncio
 
 from transitions import Machine
 
@@ -23,13 +24,16 @@ from app.interaction_control.interaction_loop import InteractionLoop
 class ExperienceController:
     states = ['idle', 'activating', 'active', 'deactivating']
 
-    def __init__(self, interaction_loop_executor):
+    def __init__(self, interaction_loop_executor, user_detector):
         self._logger = logging.getLogger('experience_controller')
         self._machine = None
         self._executor = interaction_loop_executor
+        self._user_detector = user_detector
         self._build_state_machine()
         self._add_executor_callbacks()
+        self._add_user_detector_callbacks()
 
+    @asyncio.coroutine
     def run(self):
         """ Starts the experience. Kicks everything off in idle.
         """
@@ -45,14 +49,16 @@ class ExperienceController:
         """
 
         self._logger.info("Executing Idle State")
-        self._executor.start_execution(InteractionType.IDLE)
+        self._executor.queue_execution(InteractionType.IDLE)
 
     def _execute_activating(self):
         """ Executes the default activating interaction
         """
 
+        # REVISE: Do we need to tell the loop executor to interrupt its current behvaiour?
+
         self._logger.info("Executing Activating State")
-        self._executor.start_execution(InteractionType.ACTIVATING)
+        self._executor.queue_execution(InteractionType.ACTIVATING)
 
     def _execute_activating_from_deactivating(self):
         """ Execute the activating interaction from the deactivating state
@@ -63,11 +69,11 @@ class ExperienceController:
 
     def _execute_active(self):
         self._logger.info("Executing Active State")
-        self._executor.start_execution(InteractionType.ACTIVE)
+        self._executor.queue_execution(InteractionType.ACTIVE)
 
     def _execute_deactivating(self):
         self._logger.info("Executing Deactivating State")
-        self._executor.start_execution(InteractionType.DEACTIVATING)
+        self._executor.queue_execution(InteractionType.DEACTIVATING)
 
     def _execute_deactivating_from_activating(self):
         #TODO: Handle this differently if needed
@@ -102,9 +108,9 @@ class ExperienceController:
         self._executor.add_active_complete_callback(self.deactivate)
         self._executor.add_deactivation_complete_callback(self.complete_deactivation)
 
-    def _add_camera_callbacks(self):
-        """ Sets callbacks on camera controller, so it can tell us when users enter/leave
+    def _add_user_detector_callbacks(self):
+        """ Sets callbacks on user detector, so it can tell us when users enter/leave
         """
 
-        self._camera.add_first_user_enter_callback(self.activate)
-        self._camera.add_all_users_leave_callback(self.deactivate)
+        self._user_detector.add_first_user_entered_callback(self.activate)
+        self._user_detector.add_all_users_left_callback(self.deactivate)
