@@ -7,7 +7,7 @@ class CallbackManager:
     """ Allows classes to define the callbacks that can be triggered in that class
         Creating with cbm = CallbackManager(['thing_happened'], an_object) will leave
         cbm responding to add_thing_happened_callback(), trigger_thing_happened_callback().
-        an_object will respond to trigger_thing_happened_callback().
+        an_object will respond to add_thing_happened_callback() if passed.
     """
 
     def __init__(self, callback_list, for_instance=None):
@@ -38,9 +38,9 @@ class CallbackManager:
             self._logger.debug("Triggering callback for {}".format(callback_name))
 
             for to_call in self._callbacks[callback_name]:
+                # Call via asyncio to avoid the call stack getting too deep
                 wrapped_call = functools.partial(to_call, *args, **kwargs)
                 self._loop.call_soon(wrapped_call)
-                # to_call(*args, **kwargs)
 
         # Create add_callback method on this instance and delegate on caller (if provided)
         add_cb_name = "add_{}_callback".format(callback_name)

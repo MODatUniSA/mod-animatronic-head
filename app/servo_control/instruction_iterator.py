@@ -79,7 +79,7 @@ class InstructionIterator:
             if self._iterating:
                 self._logger.debug("Executing instruction with time offset %.2f at %.2f seconds after iteration start", instruction.time_offset, time_passed)
 
-                self._cbm.trigger_instruction_callback(instruction)
+                self._cbm.trigger_instruction_callback(instruction, id(self))
 
         self._logger.info("Finished iterating instructions")
         self._cbm.trigger_complete_callback(id(self))

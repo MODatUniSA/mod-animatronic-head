@@ -7,8 +7,6 @@
 # LIPS_RIGHT = 2
 # LIPS_LEFT = 3
 
-
-
 from enum import Enum
 
 class ServoMap(Enum):
