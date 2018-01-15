@@ -13,12 +13,10 @@ class ServoPositions:
         """
         self._logger = logging.getLogger('servo_positions')
         self.speed_specified = False
-        self._servo_limits = ServoLimits()
+        self._servo_limits = ServoLimits.Instance()
         self.positions = type(self)._uniform_position_structure(positions_dict)
         self.positions = self._to_limited_positions(self.positions)
         self.positions_str = self._to_positions_string(self.positions)
-        self.positions_without_mouth = type(self)._to_positions_without_mouth(self.positions)
-        self.positions_without_mouth_str = self._to_positions_string(self.positions_without_mouth)
 
     @classmethod
     def _uniform_position_structure(cls, positions_dict):
@@ -35,6 +33,21 @@ class ServoPositions:
 
         return positions
 
+    def positions_without(self, without):
+        """ Returns the positions, except for those servos specified in the args
+        """
+
+        return { pin : value for pin, value in self.positions.items() if pin not in without }
+
+    def to_str(self, without=None):
+        """ Returns a string of positions, except those specified in the args if provided
+        """
+
+        if without is None or len(without) == 0:
+            return self.positions_str
+
+        return self._to_positions_string(self.positions_without(without))
+
     def merge(self, servo_positions):
         """ Merge this servo positions object with another servo_positions object.
             Positions in the other object take priority over this one.
@@ -46,6 +59,7 @@ class ServoPositions:
         return type(self)(merged_positions)
 
 
+    # REVISE: I don't know if we need this anymore.
     def clear_servos(self, servos):
         """ Clears the argument servos out of our positions
         """
@@ -74,6 +88,9 @@ class ServoPositions:
 
         return True
 
+    # INTERNAL HELPERS
+    # =========================================================================
+
     def _to_positions_string(self, positions):
         return ''.join("#{!s}P{!s}".format(pin,self._to_position_string(pos)) for (pin,pos) in positions.items())
 
@@ -84,9 +101,6 @@ class ServoPositions:
                 self.speed_specified = True
                 pos_str = '{}S{}'.format(pos_str, position['speed'])
             return pos_str
-
-    def _to_positions_without_mouth(positions):
-        return {servo: position for servo, position in positions.items() if servo not in MOUTH_SERVO_PINS}
 
     def _to_limited_positions(self, positions):
         """ Accepts a dict of positions and ensures each servo is within the acceptable position limits

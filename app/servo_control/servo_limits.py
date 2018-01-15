@@ -1,6 +1,7 @@
 """ Defines upper and lower limits of servos
 """
 
+from libs.patterns.singleton import Singleton
 from app.servo_control.servo_map import ServoMap
 
 class ServoLimit:
@@ -15,6 +16,7 @@ class ServoLimit:
 
         return max(self.lower, min(position, self.upper))
 
+@Singleton
 class ServoLimits(dict):
     def __init__(self):
         self._build_limit_map()

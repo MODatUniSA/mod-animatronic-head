@@ -1,14 +1,22 @@
 """ Provides mapping from servo names to harware pins
 """
 
+# Values for new head
+# LIPS_UPPER = 1
+# LIPS_LOWER = 4
+# LIPS_RIGHT = 2
+# LIPS_LEFT = 3
+
+
+
 from enum import Enum
 
 class ServoMap(Enum):
     JAW = 0
     LIPS_UPPER = 1
-    LIPS_LOWER = 4
-    LIPS_RIGHT = 2
-    LIPS_LEFT = 3
+    LIPS_LOWER = 2
+    LIPS_RIGHT = 3
+    LIPS_LEFT = 4
     EYEBROW_LEFT = 5
     EYEBROW_RIGHT = 6
 
