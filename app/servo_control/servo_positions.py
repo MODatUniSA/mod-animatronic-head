@@ -59,7 +59,6 @@ class ServoPositions:
         return type(self)(merged_positions)
 
 
-    # REVISE: I don't know if we need this anymore.
     def clear_servos(self, servos):
         """ Clears the argument servos out of our positions
         """

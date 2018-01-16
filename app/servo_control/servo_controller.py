@@ -70,9 +70,8 @@ class ServoController:
         self._servo_communicator.move_to(self._overridden_servo_positions)
         self._cbm.trigger_move_instruction_callback(self._overridden_servo_positions.positions)
 
-    # REVISE: I don't think we need this anymore? Doesn't seem to be referenced.
     def clear_control_override(self, servos):
-        """ Clears the argument servos out of any set servo control override
+        """ Clears the argument servos out of any set servo control override. Expects list/set of servo pins
         """
 
         self._logger.debug("Clearing position override for: %s", servos)
