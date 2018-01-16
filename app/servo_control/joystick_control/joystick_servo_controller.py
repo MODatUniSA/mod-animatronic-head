@@ -11,7 +11,6 @@ import pygame
 import libs.input.xbox360_controller as xbox360_controller
 from libs.config.device_config import DeviceConfig
 from app.servo_control.joystick_control.joystick_servo_map import JoystickServoMap, JoystickAxes
-from app.servo_control.servo_limits import ServoLimits
 from app.servo_control.servo_positions import ServoPositions
 from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
@@ -25,13 +24,8 @@ class JoystickServoController:
         self._servo_communicator = servo_communicator
         self._should_quit = False
         self._map = JoystickServoMap()
-        self._limits = ServoLimits()
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
-        self._min_move_time_ms = joystick_config.getint('MIN_MOVE_TIME_MS')
-        self._max_move_time_ms = joystick_config.getint('MAX_MOVE_TIME_MS')
-        self._min_move_speed = joystick_config.getint('MIN_MOVE_SPEED')
-        self._max_move_speed = joystick_config.getint('MAX_MOVE_SPEED')
         self._fixed_move_speed = joystick_config.getint('MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
         self._position_threshold = joystick_config.getint('POSITION_DEDUPLICATE_THRESHOLD')
@@ -93,12 +87,28 @@ class JoystickServoController:
         if self._just_pressed(pressed_buttons, xbox360_controller.LEFT_BUMP):
             self._use_left_stick = not self._use_left_stick
             self._logger.info("Processing Left Stick Events: %s", self._use_left_stick)
+            if not self._use_left_stick:
+                self._clear_control_override([JoystickAxes.LEFT_STICK_X, JoystickAxes.LEFT_STICK_Y])
+
         if self._just_pressed(pressed_buttons, xbox360_controller.RIGHT_BUMP):
             self._use_right_stick = not self._use_right_stick
             self._logger.info("Processing Right Stick Events: %s", self._use_right_stick)
 
+            if not self._use_right_stick:
+                self._clear_control_override([JoystickAxes.RIGHT_STICK_X, JoystickAxes.RIGHT_STICK_Y])
+
         # Cache current pressed states so we can detect when buttons are first pressed
         self._last_pressed_states = pressed_buttons
+
+    def _clear_control_override(self, axes):
+        if self._playback_controller is None:
+            return
+
+        # Uncache the last positions sent for these axes
+        for axis in axes:
+            self._last_sent.pop(axis, None)
+
+        self._playback_controller.clear_control_override(self._map.controlled_servos(axes))
 
     def _just_pressed(self, pressed_buttons, button_id):
         """ Returns whether this button was just pressed. Useful when we want to take an action
@@ -136,7 +146,6 @@ class JoystickServoController:
 
         # If we have a playback controller, pass it position overrides for any
         # control it is performing independently
-        # TODO: Only want to override playback if toggled (on bumpers?)
         if self._playback_controller is not None:
             self._playback_controller.override_control(servo_positions)
             return
