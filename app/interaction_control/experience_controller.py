@@ -32,6 +32,7 @@ class ExperienceController:
         self._build_state_machine()
         self._add_executor_callbacks()
         self._add_user_detector_callbacks()
+        self._should_quit = False
 
     @asyncio.coroutine
     def run(self):
@@ -41,12 +42,19 @@ class ExperienceController:
         self._executor.set_interaction_loop(self._random_interaction_loop())
         self._execute_idle()
 
+    def stop(self):
+        self._should_quit = True
+        self._executor.stop()
+
     # INTERACTION EXECUTION
     # =========================================================================
 
     def _execute_idle(self):
         """ Executes the idle part of the current interaction loop
         """
+
+        if self._should_quit:
+            return
 
         self._logger.info("Executing Idle State")
         self._executor.queue_execution(InteractionType.IDLE)
@@ -55,7 +63,8 @@ class ExperienceController:
         """ Executes the default activating interaction
         """
 
-        # REVISE: Do we need to tell the loop executor to interrupt its current behvaiour?
+        if self._should_quit:
+            return
 
         self._logger.info("Executing Activating State")
         self._executor.queue_execution(InteractionType.ACTIVATING, interrupt)
@@ -64,17 +73,29 @@ class ExperienceController:
         """ Execute the activating interaction from the deactivating state
         """
 
+        if self._should_quit:
+            return
+
         self._execute_activating(interrupt=False)
 
     def _execute_active(self):
+        if self._should_quit:
+            return
+
         self._logger.info("Executing Active State")
         self._executor.queue_execution(InteractionType.ACTIVE)
 
     def _execute_deactivating(self):
+        if self._should_quit:
+            return
+
         self._logger.info("Executing Deactivating State")
         self._executor.queue_execution(InteractionType.DEACTIVATING)
 
     def _execute_deactivating_from_activating(self):
+        if self._should_quit:
+            return
+
         #TODO: Handle this differently if needed
         self._execute_deactivating()
 

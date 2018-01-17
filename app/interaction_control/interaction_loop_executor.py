@@ -16,6 +16,7 @@ class InteractionLoopExecutor:
         # Execute the next step each time an interaction is completed
         self._playback_controller.add_interaction_complete_callback(self.handle_execution_complete)
 
+        self._should_quit = False
         self._executing = False
         self._interaction_loop = None
         self._current_interaction_type = None
@@ -27,6 +28,10 @@ class InteractionLoopExecutor:
             InteractionType.ACTIVE : self._cbm.trigger_active_complete_callback,
             InteractionType.DEACTIVATING : self._cbm.trigger_deactivation_complete_callback
         }
+
+    def stop(self):
+        self._should_quit = True
+        self._playback_controller.stop()
 
     def set_interaction_loop(self, interaction_loop):
         self._interaction_loop = interaction_loop
@@ -53,6 +58,9 @@ class InteractionLoopExecutor:
     def handle_execution_complete(self):
         """ Called when execution of an interaction is complete
         """
+
+        if self._should_quit:
+            return
 
         self._execute_step_or_finish()
 

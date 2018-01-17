@@ -20,7 +20,6 @@ from app.user_detection.user_detector import UserDetector
 
 class AHDriver:
     def __init__(self, args):
-        self._should_quit              = False
         self._shutdown_on_complete     = False
         self.args                      = args
         LoggerCreator().create_logger()
@@ -63,12 +62,8 @@ class AHDriver:
                 os.system('shutdown now')
 
     def stop(self):
-        self.playback_controller.stop()
+        self.experience_controller.stop()
         self._user_detector.stop()
-        self._should_quit = True
-
-        # FIXME: Shouldn't need to call this once all dependent classes stop correctly
-        self.loop.stop()
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================
