@@ -63,9 +63,11 @@ class AHDriver:
                 os.system('shutdown now')
 
     def stop(self):
-        # FIXME: Should make stop corouines and yield from to ensure they all clean up properly
         self.playback_controller.stop()
+        self._user_detector.stop()
         self._should_quit = True
+
+        # FIXME: Shouldn't need to call this once all dependent classes stop correctly
         self.loop.stop()
 
     # EVENT LOOP SIGNAL HANDLING

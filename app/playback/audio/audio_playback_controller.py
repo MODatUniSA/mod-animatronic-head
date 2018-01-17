@@ -77,10 +77,18 @@ class AudioPlaybackController:
             self._delayed_post_playback_callback.cancel()
             self._delayed_post_playback_callback = None
 
+            # Still actually trigger the callback from here so listeners know we're no longer playing audio
+            self._cbm.trigger_post_playback_callback()
+
+
     def _trigger_callback_on_playback_complete(self):
         sound_length = self._sound().get_length()
         self._logger.debug("Waiting %.2f seconds for sound to finish playback", sound_length)
-        self._delayed_post_playback_callback = self._loop.call_later(sound_length, self._cbm.trigger_post_playback_callback)
+        self._delayed_post_playback_callback = self._loop.call_later(sound_length, self._trigger_post_playback_callback)
+
+    def _trigger_post_playback_callback(self):
+        self._cbm.trigger_post_playback_callback()
+        self._delayed_post_playback_callback = None
 
     def _sound(self):
         """ Sound that has most recently been requested for playback. Causes the sound to be loaded into the audio cache if it isn't already cached.

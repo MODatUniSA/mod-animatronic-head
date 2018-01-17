@@ -41,9 +41,7 @@ class InstructionIterator:
         self._iteration_routine = asyncio.async(self._iterate_instructions())
 
     def stop(self):
-        self._iterating = False
-        # TODO: See if we can also stop self._iteration_routine without waiting on sleeps.
-        #       Otherwise, could hang code shutdown with long delay between instructions
+        self._stop_running_routines()
 
     # INTERNAL COROUTINES
     # =========================================================================
@@ -61,9 +59,8 @@ class InstructionIterator:
 
         for instruction in self._instruction_list.instructions:
             if not self._iterating:
-                self._logger.info("Stopping instruction iteration")
-                self._iteration_routine = None
-                return
+                self._logger.info("Interrupting instruction iteration")
+                break
 
             self._logger.debug("Reading instruction")
             self._logger.debug("%.2f seconds have passed since start of instruction iteration", time_passed)
@@ -95,7 +92,7 @@ class InstructionIterator:
 
         if self._iteration_routine is not None:
             self._logger.debug("Killing running instruction execution routine")
-            self._iterating = False
-            # TODO: Test this. May not actually be able to cancel a coroutine except from  another coroutine
             self._iteration_routine.cancel()
+            self._iterating = False
             self._iteration_routine = None
+            self._cbm.trigger_complete_callback(id(self))

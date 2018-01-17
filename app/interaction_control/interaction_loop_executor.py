@@ -31,18 +31,19 @@ class InteractionLoopExecutor:
     def set_interaction_loop(self, interaction_loop):
         self._interaction_loop = interaction_loop
 
-    def queue_execution(self, interaction_type):
+    def queue_execution(self, interaction_type, interrupt=False):
         """ Queues execution of all interactions of the argument type, triggering a callback when all are complete
             If nothing is currently executing, execution is started immediately, otherwise we wait for the
             completion of the current interaction
+            If interrupt is True, we stop the currently executing interaction executing immediately
         """
-
-        # TODO: On being told to start execution of a stage, cancel currently executing interaction if present
-        # REVISE: Should interruption of currently executing stage be optional arg? Currently will wait for executing interaction to finish
 
         self._logger.info("Queuing Execution of {} interactions".format(interaction_type.name))
         self._interaction_loop.reset()
         self._current_interaction_type = interaction_type
+
+        if interrupt:
+            self._playback_controller.stop_interaction()
 
         # Start executing first step of interaction if we're not already running
         if not self._executing:

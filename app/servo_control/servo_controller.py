@@ -43,11 +43,18 @@ class ServoController:
         for iterator_info in self._instruction_iterators.values():
             iterator_info['iterator'].iterate_instructions()
 
+    def stop_execution(self):
+        """ Stops any instruction execution
+        """
+
+        for iterator_info in self._instruction_iterators.values():
+            iterator_info['iterator'].stop()
+
     def stop(self):
         """ Stop the servo controller and any dependent object
         """
 
-        # TODO: Stop any instruction iterators
+        self.stop_execution()
         self._servo_communicator.stop()
 
     def override_control(self, servo_positions):
@@ -56,9 +63,6 @@ class ServoController:
 
         self._logger.debug("Overriding control with %s", servo_positions.positions)
 
-        # REVISE: I believe we need to merge control overrides here, as we send
-        #           the overrides separately per axis/control
-        # Needs more testing.
         if self._overridden_servo_positions is None:
             self._overridden_servo_positions = servo_positions
         else:

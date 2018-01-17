@@ -8,8 +8,6 @@ import logging
 from libs.callback_handling.callback_manager import CallbackManager
 from app.servo_control.servo_map import MOUTH_SERVO_PINS
 
-# TODO: Need to be able to interrupt interactions
-
 class PlaybackController:
     def __init__(self, audio_playback_controller, servo_controller):
         self._logger = logging.getLogger('playback_controller')
@@ -52,6 +50,16 @@ class PlaybackController:
             self._servo_controller.execute_instructions()
             self._servo_instructions_running = True
 
+    def stop_interaction(self):
+        """ Stop any audio and instructions of the currently playing interaction
+        """
+
+        # REVISE: Do we need to know anything about the interaction at this stage? Need to pass/cache if so
+
+        self._logger.info("Stopping currently executing interaction")
+        self._servo_controller.stop_execution()
+        self._audio_playback_controller.stop_sound()
+
     def play_content(self, audio_file, instructions_file):
         """ Plays an audio file in time with the servo instructions
         """
@@ -63,7 +71,7 @@ class PlaybackController:
         """ Stops any playback in preparation for code shutdown
         """
 
-        self._audio_playback_controller.stop_sound()
+        self.stop_interaction()
         self._servo_controller.stop()
 
     # CALLBACKS

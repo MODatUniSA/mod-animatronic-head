@@ -51,21 +51,20 @@ class ExperienceController:
         self._logger.info("Executing Idle State")
         self._executor.queue_execution(InteractionType.IDLE)
 
-    def _execute_activating(self):
+    def _execute_activating(self,interrupt=True):
         """ Executes the default activating interaction
         """
 
         # REVISE: Do we need to tell the loop executor to interrupt its current behvaiour?
 
         self._logger.info("Executing Activating State")
-        self._executor.queue_execution(InteractionType.ACTIVATING)
+        self._executor.queue_execution(InteractionType.ACTIVATING, interrupt)
 
     def _execute_activating_from_deactivating(self):
         """ Execute the activating interaction from the deactivating state
         """
 
-        #TODO: Handle this differently if needed
-        self._execute_activating()
+        self._execute_activating(interrupt=False)
 
     def _execute_active(self):
         self._logger.info("Executing Active State")
