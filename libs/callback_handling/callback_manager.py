@@ -40,7 +40,7 @@ class CallbackManager:
             for to_call in self._callbacks[callback_name]:
                 # Call via asyncio to avoid the call stack getting too deep
                 wrapped_call = functools.partial(to_call, *args, **kwargs)
-                self._loop.call_soon(wrapped_call)
+                self._loop.call_soon_threadsafe(wrapped_call)
 
         # Create add_callback method on this instance and delegate on caller (if provided)
         add_cb_name = "add_{}_callback".format(callback_name)

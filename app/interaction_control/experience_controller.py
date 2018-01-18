@@ -2,11 +2,6 @@
     based on this state
 """
 
-# REVISE: Does this class do anything useful? This functionality could exist on
-#         the InteractionLoopExecutor as initially planned. At present, this
-#         class will mostly just delegate and handle callbacks from the
-#         InteractionLoopExecutor.
-
 # TODO: Figure out when to fetch a new interaction loop and pass it to the executor.
 #       After we return to idle? After we're told to activate while idle?
 #       May also need to account for activating/deactivating loops that skip idle
@@ -34,7 +29,6 @@ class ExperienceController:
         self._add_user_detector_callbacks()
         self._should_quit = False
 
-    @asyncio.coroutine
     def run(self):
         """ Starts the experience. Kicks everything off in idle.
         """
