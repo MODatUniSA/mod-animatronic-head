@@ -1,6 +1,8 @@
 """ Maps named expressions to servo positions. Currently static, will later be sequences/animations.
 """
 
+# REIVSE: May not use static expressions anymore, as we'll be using moving animations for expression control
+
 from enum import Enum, auto
 
 from app.servo_control.servo_map import ServoMap

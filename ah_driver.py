@@ -9,14 +9,17 @@ import os
 import random
 
 from libs.logging.logger_creator import LoggerCreator
+from libs.asyncio.test_functions import AsyncioTestFunctions
 
 from app.playback.audio.audio_playback_controller import AudioPlaybackController
 from app.playback.playback_controller import PlaybackController
 from app.servo_control.servo_controller import ServoController
+from app.interaction_control.experience_controller import ExperienceController
+from app.interaction_control.interaction_loop_executor import InteractionLoopExecutor
+from app.user_detection.user_detector import UserDetector
 
 class AHDriver:
     def __init__(self, args):
-        self._should_quit              = False
         self._shutdown_on_complete     = False
         self.args                      = args
         LoggerCreator().create_logger()
@@ -34,18 +37,22 @@ class AHDriver:
         self.servo_communicator        = ServoCommunicator()
         self.servo_controller          = ServoController(self.servo_communicator)
         self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
+        self._user_detector            = UserDetector()
+        interaction_loop_executor      = InteractionLoopExecutor(self.playback_controller)
+        self.experience_controller     = ExperienceController(interaction_loop_executor, self._user_detector)
+        self._tf = AsyncioTestFunctions()
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
 
         self._assign_interrupt_handler()
+        tasks = [
+            self.experience_controller.run(),
+            self._user_detector.run(),
+        ]
 
         try:
-            # TEST: Triggers a single sound + set of instructions to play for testing
-            # self.playback_controller.play_content('Mod1.ogg', 'position_speed_test_min.csv')
-            # self.playback_controller.play_content('Mod1.ogg', 'recorded_2017-12-08_20:57:41.csv')
-            self.playback_controller.play_content('Mod1.ogg', 'Mod1_tweaked.csv', True)
-            self.loop.run_forever()
+            self.loop.run_until_complete(asyncio.wait(tasks))
         finally:
             self._logger.debug("Closing Event Loop")
             self.loop.close()
@@ -55,9 +62,8 @@ class AHDriver:
                 os.system('shutdown now')
 
     def stop(self):
-        self.playback_controller.stop()
-        self._should_quit = True
-        self.loop.stop()
+        self.experience_controller.stop()
+        self._user_detector.stop()
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================

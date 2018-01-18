@@ -5,6 +5,8 @@ import logging
 import asyncio
 import time
 
+from libs.callback_handling.callback_manager import CallbackManager
+
 # TODO: Provide a way to put a delay/pre-delay on instructions
 
 class InstructionIterator:
@@ -13,49 +15,33 @@ class InstructionIterator:
         self._iteration_routine = None
         self._iterating = False
         self._instruction_list = None
-        self._instruction_callback = None
-        self._complete_callback = None
+        self._cbm = CallbackManager(['instruction', 'complete'], self)
 
-    # TODO: Generalise callback setting/triggering/handling
-    # Can either create service class to handle, which this class creates/calls
-    # OR create base class for this. Probably needs metaprogramming.
-    def set_intruction_callback(self, to_call):
-        """ Accepts a callable, which will be passed each instruction when it is time to be executed.
-            Should be called before iterate_instructions.
-        """
+    def set_instruction_list(self, instruction_list):
+        self._instruction_list = instruction_list
 
-        if not self._check_callable(to_call):
-            return
-
-        self._instruction_callback = to_call
-
-    def set_complete_callback(self, to_call):
-        """ Accepts a callable, which will be passed each instruction when it is time to be executed.
-            Should be called before iterate_instructions.
-        """
-
-        if not self._check_callable(to_call):
-            return
-
-        self._complete_callback = to_call
-
-    def iterate_instructions(self, instruction_list):
+    def iterate_instructions(self, instruction_list=None):
         """ Accepts an instruction list and iterates over all stored instructions
         """
 
-        self._instruction_list = instruction_list
+        if instruction_list is not None:
+            self._instruction_list = instruction_list
 
-        if len(instruction_list.instructions) == 0:
-            self._logger.error("No instructions available to iterate!")
+        if self._instruction_list is None:
             # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
+            self._logger.error("No instruction list to iterate!")
+            return
+
+        if len(self._instruction_list.instructions) == 0:
+            # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
+            self._logger.error("No instructions in list to iterate!")
             return
 
         self._iterating = True
         self._iteration_routine = asyncio.async(self._iterate_instructions())
 
     def stop(self):
-        self._iterating = False
-        # TODO: See if we can also stop self._iteration_routine without waiting on sleeps
+        self._stop_running_routines()
 
     # INTERNAL COROUTINES
     # =========================================================================
@@ -73,9 +59,8 @@ class InstructionIterator:
 
         for instruction in self._instruction_list.instructions:
             if not self._iterating:
-                self._logger.info("Stopping instruction iteration")
-                self._iteration_routine = None
-                return
+                self._logger.info("Interrupting instruction iteration")
+                break
 
             self._logger.debug("Reading instruction")
             self._logger.debug("%.2f seconds have passed since start of instruction iteration", time_passed)
@@ -91,25 +76,15 @@ class InstructionIterator:
             if self._iterating:
                 self._logger.debug("Executing instruction with time offset %.2f at %.2f seconds after iteration start", instruction.time_offset, time_passed)
 
-                self._trigger_instruction_callback(instruction)
+                self._cbm.trigger_instruction_callback(instruction, id(self))
 
         self._logger.info("Finished iterating instructions")
-        self._trigger_complete_callback()
+        self._cbm.trigger_complete_callback(id(self))
         self._iterating = False
         self._iteration_routine = None
 
     # INTERNAL METHODS
     # =========================================================================
-
-    def _trigger_instruction_callback(self, instruction):
-        if self._instruction_callback is not None:
-            self._logger.info("Triggering instruction callback")
-            self._instruction_callback(instruction)
-
-    def _trigger_complete_callback(self):
-        if self._complete_callback is not None:
-            self._logger.info("Triggering complete callback")
-            self._complete_callback(id(self))
 
     def _stop_running_routines(self):
         """ Stops the coroutine that executes the instruction iteration
@@ -117,18 +92,7 @@ class InstructionIterator:
 
         if self._iteration_routine is not None:
             self._logger.debug("Killing running instruction execution routine")
-            self._iterating = False
-            # TODO: Test this. May not actually be able to cancel a coroutine except from  another coroutine
             self._iteration_routine.cancel()
+            self._iterating = False
             self._iteration_routine = None
-
-    # TODO: Duplicate code. Generalise callback handling
-    def _check_callable(self, to_call):
-        """ Checks whether to_call is a valid callable
-        """
-
-        if not callable(to_call):
-            self._logger.error("Error! Variable passed is not callable! Ignoring.")
-            return False
-
-        return True
+            self._cbm.trigger_complete_callback(id(self))

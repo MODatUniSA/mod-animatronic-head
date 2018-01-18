@@ -2,6 +2,7 @@
 """
 
 from enum import Enum, auto
+from itertools import chain
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_limits import ServoLimits
@@ -54,6 +55,12 @@ class JoystickServoPosition:
 
         return cls(interpolated_positions)
 
+class NullJoystickServoPositions:
+    """ Joystick servo position returned if axis unmapped
+    """
+    def __init__(self):
+        self.controlled_servos = []
+
 class JoystickServoPositions:
     """ Stores joystick control target positions in the positive and negative directions
     """
@@ -85,6 +92,17 @@ class JoystickServoMap(dict):
     def __init__(self):
         self._build_map()
 
+    def controlled_servos(self, axes):
+        """ Returns the set of servos that are controlled by the argument axes
+        """
+
+        controlled = []
+        for axis in axes:
+            controlled.append(self.get(axis, NullJoystickServoPositions()).controlled_servos)
+        # Flatten nested servo lists
+        controlled = list(chain.from_iterable(controlled))
+        return set(controlled)
+
     def _build_map(self):
         # LEFT STICK Y Controls Upper + Lower Lips
         # NOTE: For position based control, we need the same servos to be referenced in both the +ve and -ve directions,
@@ -101,7 +119,7 @@ class JoystickServoMap(dict):
         )
 
         # RIGHT STICK X controls Left and Right Servos to pinch/spread
-        self[JoystickAxes.RIGHT_STICK_X] = JoystickServoPositions(
+        self[JoystickAxes.LEFT_STICK_X] = JoystickServoPositions(
             {
                 ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
                 ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
@@ -112,16 +130,12 @@ class JoystickServoMap(dict):
             }
         )
 
-        # RIGHT STICK Y Controls Upper/Lower Lips + Jaw
+        # RIGHT STICK Y Controls Jaw
         self[JoystickAxes.RIGHT_STICK_Y] = JoystickServoPositions(
             {
-                ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1700 },
                 ServoMap.JAW.value : { 'position' : 2200 }
             },
             {
-                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1800 },
                 ServoMap.JAW.value : { 'position' : 1200 }
             }
         )
