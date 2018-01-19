@@ -51,8 +51,6 @@ class UserDetector:
         self._face_detected_count = min(self._face_detected_count, self._max_face_detected_count)
         self._logger.debug("User in front of device: %d", self._face_detected_count)
 
-        # REVISE: Probably also want to debounce this, as we may erroneously detect a face for a single frame
-        # Consider a state machine that requires 2 triggers within x seconds to consider a user present
         if self._face_detected_count >= self._activate_at_face_detected_count \
             and not self._user_present:
             self._logger.info("First user present. Triggering callback.")
@@ -67,12 +65,12 @@ class UserDetector:
         self._logger.debug("No users detected for %s seconds: %d", self._user_absent_timeout, self._face_detected_count)
 
         if self._user_present:
-            self._queue_delayed_users_left_trigger()
-
             if self._face_detected_count <= self._deactivate_at_face_detected_count:
                 self._logger.info("Flagging all users absent")
                 self._user_present = False
                 self._cbm.trigger_all_users_left_callback()
+            else:
+                self._queue_delayed_users_left_trigger()
 
     # INTERNAL HELPERS
     # =========================================================================
