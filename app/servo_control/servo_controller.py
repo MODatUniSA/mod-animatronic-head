@@ -91,7 +91,7 @@ class ServoController:
         """ Called by the instruction iterator each time an instruction should be executed
         """
 
-        self._logger.info("Executing %s Instruction from iterator %s", instruction.instruction_type.name, iterator_id)
+        self._logger.debug("Executing %s Instruction from iterator %s", instruction.instruction_type.name, iterator_id)
         servos_to_exclude = self._instruction_iterators[iterator_id]['without_servos']
         self._logger.debug("Excluding Servos: %s", servos_to_exclude)
 
@@ -114,11 +114,11 @@ class ServoController:
 
         self._logger.info("Instruction execution complete for iterator: %s", iterator_id)
         if iterator_id in self._instruction_iterators:
-            self._logger.info("Clearing instruction iterator")
+            self._logger.debug("Clearing instruction iterator")
             del(self._instruction_iterators[iterator_id])
 
         if len(self._instruction_iterators) == 0:
-            self._logger.debug("Notifying all instructions executed")
+            self._logger.info("Notifying all instructions executed")
             self._cbm.trigger_instructions_complete_callback()
 
 
