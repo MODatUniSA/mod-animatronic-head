@@ -7,6 +7,7 @@ import logging
 import time
 
 from libs.callback_handling.callback_manager import CallbackManager
+from libs.config.device_config import DeviceConfig
 
 class UserDetector:
     def __init__(self, camera_processor):
@@ -14,22 +15,27 @@ class UserDetector:
         self._camera_processor = camera_processor
         self._camera_processor.add_face_detected_callback(self._handle_face_found)
         self._loop = asyncio.get_event_loop()
-
         self._logger = logging.getLogger('user_detector')
-        # How long should we wait without seeing a user's face before deciding there are no users present?
-        # TODO: Extract to config
-        self._user_absent_timeout = 5
+
+        config = DeviceConfig.Instance()
+        user_detection_config = config.options['USER_DETECTION']
+        self._activate_at_face_detected_count = user_detection_config.getint('ACTIVATE_AT_FACE_DETECTED_COUNT')
+        self._deactivate_at_face_detected_count = user_detection_config.getint('DEACTIVATE_AT_FACE_DETECTED_COUNT')
+        self._max_face_detected_count = user_detection_config.getint('MAX_FACE_DETECTED_COUNT')
+        self._user_absent_timeout = user_detection_config.getfloat('USER_ABSENT_TIMEOUT')
+
         self._delayed_all_users_left_trigger = None
+        self._face_detected_count = 0
         self._should_quit = False
         self._user_present = False
-        self._logger.debug("User Detector Initted")
+        self._logger.info("User Detector Initted")
 
     def run(self):
-        self._logger.debug("User Detector Running")
+        self._logger.info("User Detector Running")
         self._camera_processor.run()
 
     def stop(self):
-        self._logger.debug("User Detector Stopping")
+        self._logger.info("User Detector Stopping")
         self._cancel_delayed_callbacks()
         self._camera_processor.stop()
         self._should_quit = True
@@ -41,16 +47,35 @@ class UserDetector:
         """ Handles any faces/eyes being found by the camera processor
         """
 
-        self._logger.info("User in front of device.")
+        self._face_detected_count += 1
+        self._face_detected_count = min(self._face_detected_count, self._max_face_detected_count)
+        self._logger.debug("User in front of device: %d", self._face_detected_count)
 
         # REVISE: Probably also want to debounce this, as we may erroneously detect a face for a single frame
         # Consider a state machine that requires 2 triggers within x seconds to consider a user present
-        if not self._user_present:
+        if self._face_detected_count >= self._activate_at_face_detected_count \
+            and not self._user_present:
             self._logger.info("First user present. Triggering callback.")
             self._cbm.trigger_first_user_entered_callback()
             self._user_present = True
 
         self._reset_delayed_users_left_trigger()
+
+    def _handle_face_absent(self):
+        self._face_detected_count -= 1
+        self._face_detected_count = max(self._face_detected_count, 0)
+        self._logger.debug("No users detected for %s seconds: %d", self._user_absent_timeout, self._face_detected_count)
+
+        if self._user_present:
+            self._queue_delayed_users_left_trigger()
+
+            if self._face_detected_count <= self._deactivate_at_face_detected_count:
+                self._logger.info("Flagging all users absent")
+                self._user_present = False
+                self._cbm.trigger_all_users_left_callback()
+
+    # INTERNAL HELPERS
+    # =========================================================================
 
     def _reset_delayed_users_left_trigger(self):
         """ Cancels any scheduled call to the all_users_left callback and creates
@@ -58,15 +83,15 @@ class UserDetector:
         """
 
         self._cancel_delayed_callbacks()
-        self._delayed_all_users_left_trigger = self._loop.call_later(self._user_absent_timeout, self._notify_all_users_left)
+        self._queue_delayed_users_left_trigger()
+
+    def _queue_delayed_users_left_trigger(self):
+        """ Queues up a delayed call to handle user absence if we don't see one for an amount of time
+        """
+
+        self._delayed_all_users_left_trigger = self._loop.call_later(self._user_absent_timeout, self._handle_face_absent)
 
     def _cancel_delayed_callbacks(self):
         if self._delayed_all_users_left_trigger is not None:
             self._logger.debug("Cancelling existing delayed notification callback")
             self._delayed_all_users_left_trigger.cancel()
-
-    def _notify_all_users_left(self):
-        self._logger.info("No users detected for %s seconds. Assuming all users left.", self._user_absent_timeout)
-        self._user_present = False
-        self._cbm.trigger_all_users_left_callback()
-        self._delayed_all_users_left_trigger = None

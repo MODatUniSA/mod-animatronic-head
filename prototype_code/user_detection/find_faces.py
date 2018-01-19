@@ -15,7 +15,7 @@ eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
 profile_face_cascade = cv2.CascadeClassifier('haarcascade_profileface.xml')
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 while 1:
     start = time.time()
@@ -27,7 +27,7 @@ while 1:
     eyes_found = False
 
     for (x,y,w,h) in faces:
-        # cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+        cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
         face_found = True
         roi_gray = gray[y:y+h, x:x+w]
         roi_color = img[y:y+h, x:x+w]
@@ -35,26 +35,26 @@ while 1:
         eyes = eye_cascade.detectMultiScale(roi_gray,1.3,20)
         if len(eyes) > 0:
             eyes_found = True
-        # for (ex,ey,ew,eh) in eyes:
-        #     cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+        for (ex,ey,ew,eh) in eyes:
+            cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
     if len(faces) == 0:
         profile_faces = profile_face_cascade.detectMultiScale(gray, 1.3, 5)
         for (x,y,w,h) in profile_faces:
-            # cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),2)
+            cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),2)
             face_found = True
 
 
     print("Frame processing took {} seconds".format(time.time() - start))
     print("Face Found: {}. Eyes Found: {}".format(face_found, eyes_found))
 
-    # cv2.imshow('img',img)
+    cv2.imshow('img',img)
     k = cv2.waitKey(30) & 0xff
     if k == 27:
         break
 
     # Just to limit CPU usage
-    time.sleep(1)
+    # time.sleep(1)
 
 cap.release()
 cv2.destroyAllWindows()

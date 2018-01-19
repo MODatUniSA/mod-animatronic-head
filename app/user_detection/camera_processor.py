@@ -9,19 +9,18 @@ import logging
 import functools
 
 from libs.callback_handling.callback_manager import CallbackManager
+from libs.config.device_config import DeviceConfig
 
 class CameraProcessor:
     def __init__(self):
         self._logger = logging.getLogger('camera_processor')
         self._cbm = CallbackManager(['face_detected'], self)
         self._loop = asyncio.get_event_loop()
-        # Min time between frames
-        # TODO: Extract to config
-        self._frame_period_seconds = 1
-        # TODO: Extract to config
-        self._camera_id = 1
-        # TODO: Extract to config
-        self._display_frames = True
+        config = DeviceConfig.Instance()
+        user_detection_config = config.options['USER_DETECTION']
+        self._frame_period_seconds = user_detection_config.getfloat('FRAME_PERIOD_SECONDS')
+        self._camera_id = user_detection_config.getint('CAMERA_ID')
+
         self._camera = None
         self._should_quit = False
         self._running_routine = None
@@ -36,7 +35,6 @@ class CameraProcessor:
         """
 
         self._camera = cv2.VideoCapture(self._camera_id)
-        # REVISE: Does this need to be triggered from a coroutine? Can make run() a coroutine if needed.
         self._running_routine = self._loop.run_in_executor(None, self._process_camera_feed)
 
     def stop(self):
