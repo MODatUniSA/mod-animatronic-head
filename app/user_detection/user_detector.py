@@ -1,5 +1,5 @@
 """ Uses the camera to determine when users are present in front of the head.
-    Currently completely mocked behaviour.
+    Triggers state changes in the overall experience based on whether users are present
 """
 
 import asyncio
@@ -43,7 +43,7 @@ class UserDetector:
     # CALLBACKS
     # =========================================================================
 
-    def _handle_face_found(self, faces, eyes):
+    def _handle_face_found(self, results):
         """ Handles any faces/eyes being found by the camera processor
         """
 

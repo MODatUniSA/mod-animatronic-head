@@ -59,6 +59,8 @@ class ServoController:
 
     def override_control(self, servo_positions):
         """ Provides a way to override the playback instructions from file based playback
+            We use this to override any instruction based control with the current
+            joystick control
         """
 
         self._logger.debug("Overriding control with %s", servo_positions.positions)
@@ -75,7 +77,8 @@ class ServoController:
         self._cbm.trigger_move_instruction_callback(self._overridden_servo_positions.positions)
 
     def clear_control_override(self, servos):
-        """ Clears the argument servos out of any set servo control override. Expects list/set of servo pins
+        """ Clears the argument servos out of any set servo control override. Expects list/set
+            of servo pins
         """
 
         self._logger.debug("Clearing position override for: %s", servos)

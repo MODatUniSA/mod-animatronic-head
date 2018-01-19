@@ -19,6 +19,7 @@ from app.interaction_control.experience_controller import ExperienceController
 from app.interaction_control.interaction_loop_executor import InteractionLoopExecutor
 from app.user_detection.user_detector import UserDetector
 from app.user_detection.camera_processor import CameraProcessor
+from app.servo_control.eye_controller import EyeController
 
 class AHDriver:
     def __init__(self, args):
@@ -34,15 +35,16 @@ class AHDriver:
             self._logger.info("Running Almost Human with mocked hardware")
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
-        self.loop                      = asyncio.get_event_loop()
-        self.audio_playback_controller = AudioPlaybackController()
-        self.servo_communicator        = ServoCommunicator()
-        self.servo_controller          = ServoController(self.servo_communicator)
-        self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
-        camera_processor               = CameraProcessor()
-        self._user_detector            = UserDetector(camera_processor)
-        interaction_loop_executor      = InteractionLoopExecutor(self.playback_controller)
-        self.experience_controller     = ExperienceController(interaction_loop_executor, self._user_detector)
+        self.loop                  = asyncio.get_event_loop()
+        audio_playback_controller  = AudioPlaybackController()
+        servo_communicator         = ServoCommunicator()
+        servo_controller           = ServoController(servo_communicator)
+        camera_processor           = CameraProcessor()
+        eye_controller             = EyeController(camera_processor, servo_communicator)
+        playback_controller        = PlaybackController(audio_playback_controller, servo_controller, eye_controller)
+        interaction_loop_executor  = InteractionLoopExecutor(playback_controller)
+        self._user_detector        = UserDetector(camera_processor)
+        self.experience_controller = ExperienceController(interaction_loop_executor, self._user_detector)
         self._tf = AsyncioTestFunctions()
 
     def run(self):

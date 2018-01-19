@@ -30,9 +30,21 @@ def inner_point(rect, x_percent, y_percent):
     y_val = int(lerped(y, y+h, y_percent))
     return (x_val, y_val)
 
+all_start = time.time()
+frame_count = 0
 while 1:
     start = time.time()
     ret, img = cap.read()
+    frame_count += 1
+
+    print("Image: {}x{}".format(img.shape[1], img.shape[0]))
+    # img = cv2.resize(img,(640,480),interpolation=cv2.INTER_AREA)
+    # img = cv2.resize(img,(0,0),fx=0.75, fy=0.75, interpolation=cv2.INTER_AREA)
+    # img = cv2.resize(img,(0,0),fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+    # print("Resized: {}x{}".format(resized.shape[1], resized.shape[0]))
+
+    # import pdb; pdb.set_trace()
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
@@ -74,6 +86,8 @@ while 1:
 
     # Just to limit CPU usage
     # time.sleep(1)
+
+    print("Processed {0} frames in {1:0.2f} seconds".format(frame_count, time.time() - all_start))
 
 cap.release()
 cv2.destroyAllWindows()

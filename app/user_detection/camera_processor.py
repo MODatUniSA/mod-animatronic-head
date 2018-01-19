@@ -59,12 +59,12 @@ class CameraProcessor:
             if captured:
                 grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                faces, eyes = self._process_frame(frame)
+                results = self._process_frame(frame)
 
-                self._logger.info("Faces Found: {}".format(len(faces)))
+                self._logger.info("Faces Found: {}".format(len(results)))
 
-                if len(faces) > 0:
-                    self._cbm.trigger_face_detected_callback(faces, eyes)
+                if len(results) > 0:
+                    self._cbm.trigger_face_detected_callback(results)
 
             # REVISE: Should our wait time be based on how long the frame processing took?
             # Takes at least 2x as long to process if we can't find any front on faces and need to look for profile faces
@@ -76,18 +76,24 @@ class CameraProcessor:
 
     def _process_frame(self, frame):
         """ Processes a single image/frame from the camera
+            If we find a front face, we try to find eyes in it. We don't try to
+            find eyes in profile faces as we're much less likely to do so.
         """
-
+        ret = []
         faces = self._find_front_faces(frame)
-        eyes = []
 
         if len(faces) > 0:
             for face_coordinates in faces:
-                eyes.append(self._find_eyes_in_face(frame, face_coordinates))
+                ret.append({
+                    'face' : face_coordinates,
+                    'eyes' : self._find_eyes_in_face(frame, face_coordinates)
+                })
         else:
             faces = self._find_profile_faces(frame)
+            for face_coordinates in faces:
+                ret.append({'face' : face_coordinates, 'eyes' : []})
 
-        return faces, eyes
+        return ret
 
     # FIXME: cv2.imshow can only be called from the main thread, so we can't just call this from our
     #           BG thread running the frame processing. Need to pass data between BG and main thread via a Queue.
