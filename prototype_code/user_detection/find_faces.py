@@ -37,6 +37,7 @@ while 1:
     ret, img = cap.read()
     frame_count += 1
 
+    # img.shape is heightxwidth
     print("Image: {}x{}".format(img.shape[1], img.shape[0]))
     # img = cv2.resize(img,(640,480),interpolation=cv2.INTER_AREA)
     # img = cv2.resize(img,(0,0),fx=0.75, fy=0.75, interpolation=cv2.INTER_AREA)

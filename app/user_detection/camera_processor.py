@@ -57,9 +57,10 @@ class CameraProcessor:
             captured, frame = self._camera.read()
 
             if captured:
-                grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # TODO: Set image size in ImageToServoPositionConverter on first frame captured
 
-                results = self._process_frame(frame)
+                grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                results = self._process_frame(grayscale_frame)
 
                 self._logger.info("Faces Found: {}".format(len(results)))
 
@@ -79,6 +80,7 @@ class CameraProcessor:
             If we find a front face, we try to find eyes in it. We don't try to
             find eyes in profile faces as we're much less likely to do so.
         """
+
         ret = []
         faces = self._find_front_faces(frame)
 

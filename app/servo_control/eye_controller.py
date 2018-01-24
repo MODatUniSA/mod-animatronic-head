@@ -68,5 +68,5 @@ class EyeController:
         """
 
         self._logger.debug('Moving eyes to point: %s', point)
-        positions = self._to_servo_position(point)
-        self._servo_communicator.move_to(positions, 1)
+        # positions = ImageToServoPositionConverter._to_servo_positions(point)
+        # self._servo_communicator.move_to(positions, 1)
