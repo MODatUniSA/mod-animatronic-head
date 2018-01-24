@@ -36,7 +36,7 @@ class PlaybackController:
         # Used to stop the animation file driving certain servo pins if they're
         # to be driven by another source (e.g. procedural face tracking)
         animation_excluded_servo_pins = []
-        if interaction.eye_control == EyeControlType.INHERIT:
+        if interaction.eye_control == EyeControlType.TRACK:
             animation_excluded_servo_pins = EYE_SERVO_PINS
             self._eye_controller.start_tracking()
         else:
