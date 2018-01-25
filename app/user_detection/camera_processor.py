@@ -20,6 +20,7 @@ class CameraProcessor:
         user_detection_config = config.options['USER_DETECTION']
         self._frame_period_seconds = user_detection_config.getfloat('FRAME_PERIOD_SECONDS')
         self._camera_id = user_detection_config.getint('CAMERA_ID')
+        self._locate_eyes = user_detection_config.getboolean('LOCATE_EYES')
 
         self._camera = None
         self._should_quit = False
@@ -135,6 +136,9 @@ class CameraProcessor:
     def _find_eyes_in_face(self, image, face_coordinates):
         """ Find any eyes within the face corodinates of the image. Used to find eyes in fronton faces
         """
+
+        if not self._locate_eyes:
+            return
 
         (x,y,w,h) = face_coordinates
         image_face_region = image[y:y+h, x:x+w]
