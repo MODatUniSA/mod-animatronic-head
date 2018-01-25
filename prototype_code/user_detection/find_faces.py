@@ -15,7 +15,7 @@ eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
 profile_face_cascade = cv2.CascadeClassifier('haarcascade_profileface.xml')
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 def center_point(x,y,w,h):
     return inner_point((x,y,w,h), 0.5, 0.5)
@@ -61,14 +61,14 @@ while 1:
         roi_gray = gray[y:y+h, x:x+w]
         roi_color = img[y:y+h, x:x+w]
 
-        eyes = eye_cascade.detectMultiScale(roi_gray,1.3,20)
-        if len(eyes) > 0:
-            eyes_found = True
-        for (ex,ey,ew,eh) in eyes:
-            cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-            eye_center = center_point(ex,ey,ew,eh)
-            print("Eye Center: {}".format(eye_center))
-            cv2.circle(roi_color, eye_center, 5, (255,255,255), 4)
+        # eyes = eye_cascade.detectMultiScale(roi_gray,1.3,20)
+        # if len(eyes) > 0:
+        #     eyes_found = True
+        # for (ex,ey,ew,eh) in eyes:
+        #     cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+        #     eye_center = center_point(ex,ey,ew,eh)
+        #     print("Eye Center: {}".format(eye_center))
+        #     cv2.circle(roi_color, eye_center, 5, (255,255,255), 4)
 
     if len(faces) == 0:
         profile_faces = profile_face_cascade.detectMultiScale(gray, 1.3, 5)
