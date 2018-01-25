@@ -1,6 +1,9 @@
 """ Maps phonemes to mouth shape positions. Phonemes/Positions taken from http://www.garycmartin.com/phoneme_examples.html and output of Papagayo.
 """
 
+# TODO: All phonemes currently match the prototype mouth. Update for new head.
+# IDEA: Take mapping from CSV
+
 from enum import Enum, auto
 
 from app.servo_control.servo_map import ServoMap
