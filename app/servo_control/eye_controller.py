@@ -6,7 +6,7 @@
 
 import logging
 
-from libs.maths.math_helper import lerp
+from libs.helpers.math_helpers import lerp
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_positions import ServoPositions

@@ -1,6 +1,6 @@
 import pytest
 
-from libs.maths import math_helper as mh
+from libs.helpers import math_helpers as mh
 
 class TestLerp:
     def test_lerp_start(self):

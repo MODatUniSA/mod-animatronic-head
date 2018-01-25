@@ -3,7 +3,7 @@
 """
 
 from app.servo_control.servo_map import ServoMap
-from libs.maths.math_helper import lerp
+from libs.helpers.math_helpers import lerp
 
 class ImageToServoPositionConverter:
     # TODO: Pull out to config, or take dynamically from captured frame
