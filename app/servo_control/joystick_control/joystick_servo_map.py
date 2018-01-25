@@ -131,10 +131,10 @@ class ServoControlSets:
 
     eyes_x = JoystickServoPositions(
         {
-            ServoMap.EYES_X.value : { 'position' : 1380 },
+            ServoMap.EYES_X.value : { 'position' : 1550 },
         },
         {
-            ServoMap.EYES_X.value : { 'position' : 1550 },
+            ServoMap.EYES_X.value : { 'position' : 1380 },
         }
     )
 
