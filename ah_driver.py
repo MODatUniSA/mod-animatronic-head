@@ -7,6 +7,7 @@ import functools
 import argparse
 import os
 import random
+import time
 
 from libs.logging.logger_creator import LoggerCreator
 from libs.asyncio.test_functions import AsyncioTestFunctions
@@ -17,6 +18,8 @@ from app.servo_control.servo_controller import ServoController
 from app.interaction_control.experience_controller import ExperienceController
 from app.interaction_control.interaction_loop_executor import InteractionLoopExecutor
 from app.user_detection.user_detector import UserDetector
+from app.user_detection.camera_processor import CameraProcessor
+from app.servo_control.eye_controller import EyeController
 
 class AHDriver:
     def __init__(self, args):
@@ -32,27 +35,27 @@ class AHDriver:
             self._logger.info("Running Almost Human with mocked hardware")
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
-        self.loop                      = asyncio.get_event_loop()
-        self.audio_playback_controller = AudioPlaybackController()
-        self.servo_communicator        = ServoCommunicator()
-        self.servo_controller          = ServoController(self.servo_communicator)
-        self.playback_controller       = PlaybackController(self.audio_playback_controller, self.servo_controller)
-        self._user_detector            = UserDetector()
-        interaction_loop_executor      = InteractionLoopExecutor(self.playback_controller)
-        self.experience_controller     = ExperienceController(interaction_loop_executor, self._user_detector)
+        self.loop                  = asyncio.get_event_loop()
+        audio_playback_controller  = AudioPlaybackController()
+        servo_communicator         = ServoCommunicator()
+        servo_controller           = ServoController(servo_communicator)
+        camera_processor           = CameraProcessor()
+        eye_controller             = EyeController(camera_processor, servo_communicator)
+        playback_controller        = PlaybackController(audio_playback_controller, servo_controller, eye_controller)
+        interaction_loop_executor  = InteractionLoopExecutor(playback_controller)
+        self._user_detector        = UserDetector(camera_processor)
+        self.experience_controller = ExperienceController(interaction_loop_executor, self._user_detector)
         self._tf = AsyncioTestFunctions()
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
 
         self._assign_interrupt_handler()
-        tasks = [
-            self.experience_controller.run(),
-            self._user_detector.run(),
-        ]
 
         try:
-            self.loop.run_until_complete(asyncio.wait(tasks))
+            self._user_detector.run()
+            self.experience_controller.run()
+            self.loop.run_forever()
         finally:
             self._logger.debug("Closing Event Loop")
             self.loop.close()
@@ -64,6 +67,9 @@ class AHDriver:
     def stop(self):
         self.experience_controller.stop()
         self._user_detector.stop()
+        # HACK: Give things time to exit gracefully. Should make the stop() functions coroutines and wait on them to complete
+        time.sleep(1)
+        self.loop.stop()
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================

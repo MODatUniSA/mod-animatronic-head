@@ -29,7 +29,7 @@ class CallbackManager:
     def _create_callback_methods(self, callback_name):
         # TEMPLATE FUNCTIONS - Used to generate callback functions
         def _add_callback(self, to_call):
-            self._logger.debug("Adding callback for {}".format(callback_name))
+            self._logger.debug("Adding callback for %s", callback_name)
 
             if self._check_callable(to_call):
                 self._callbacks[callback_name].append(to_call)
@@ -40,7 +40,7 @@ class CallbackManager:
             for to_call in self._callbacks[callback_name]:
                 # Call via asyncio to avoid the call stack getting too deep
                 wrapped_call = functools.partial(to_call, *args, **kwargs)
-                self._loop.call_soon(wrapped_call)
+                self._loop.call_soon_threadsafe(wrapped_call)
 
         # Create add_callback method on this instance and delegate on caller (if provided)
         add_cb_name = "add_{}_callback".format(callback_name)

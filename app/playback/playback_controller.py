@@ -6,15 +6,18 @@ import time
 import logging
 
 from libs.callback_handling.callback_manager import CallbackManager
-from app.servo_control.servo_map import MOUTH_SERVO_PINS
+
+from app.interaction_control.eye_control_type import EyeControlType
+from app.servo_control.servo_map import MOUTH_SERVO_PINS, EYE_SERVO_PINS
 
 class PlaybackController:
-    def __init__(self, audio_playback_controller, servo_controller):
+    def __init__(self, audio_playback_controller, servo_controller, eye_controller):
         self._logger = logging.getLogger('playback_controller')
         self._cbm = CallbackManager(['interaction_complete'], self)
 
         self._audio_playback_controller = audio_playback_controller
         self._servo_controller = servo_controller
+        self._eye_controller = eye_controller
 
         self._audio_playback_controller.add_sound_prepared_callback(self._on_sound_prepared)
         self._audio_playback_controller.add_post_playback_callback(self._on_playback_complete)
@@ -28,20 +31,29 @@ class PlaybackController:
         """
 
         self._logger.info("Playing Interaction: {}".format(interaction.name))
-        # TODO: Handle Eye Control Type
-
         empty = [None, '']
 
+        # Used to stop the animation file driving certain servo pins if they're
+        # to be driven by another source (e.g. procedural face tracking)
+        animation_excluded_servo_pins = []
+        if interaction.eye_control == EyeControlType.TRACK:
+            animation_excluded_servo_pins = EYE_SERVO_PINS
+            self._eye_controller.start_tracking()
+        else:
+            self._eye_controller.stop_tracking()
+
+        # Prepare phoneme file instructions if present
         if interaction.phoneme_file not in empty:
-            iterator_id,iterator = self._servo_controller.prepare_instructions(interaction.phoneme_file)
-            self._logger.debug("Preparing phoneme instructions from %s. Iterator ID: %s", interaction.phoneme_file, iterator_id)
-            if interaction.animation_file not in empty:
-                iterator_id,iterator = self._servo_controller.prepare_instructions(interaction.animation_file, without_servos=MOUTH_SERVO_PINS)
-                self._logger.debug("Preparing animation instructions from %s. Iterator ID: %s", interaction.animation_file, iterator_id)
-        elif interaction.animation_file not in empty:
-            iterator_id,iterator = self._servo_controller.prepare_instructions(interaction.animation_file)
+            self._servo_controller.prepare_instructions(interaction.phoneme_file)
+            self._logger.debug("Preparing phoneme instructions from %s.", interaction.phoneme_file)
+            animation_excluded_servo_pins += MOUTH_SERVO_PINS
+
+        # prepare animation file instructions if present
+        if interaction.animation_file not in empty:
+            self._servo_controller.prepare_instructions(interaction.animation_file, without_servos=animation_excluded_servo_pins)
             self._logger.debug("Preparing animation instructions from %s", interaction.animation_file)
 
+        # prepare voice file if present (kick off instruction execution otherwise)
         if interaction.voice_file not in empty:
             self._logger.debug("Preparing audio file: %s", interaction.voice_file)
             # Instructions will be executed once the audio file has been loaded

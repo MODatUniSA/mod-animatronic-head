@@ -2,7 +2,9 @@
 """
 
 from enum import Enum, auto
-from itertools import chain
+
+from libs.config.device_config import DeviceConfig
+from libs.helpers.list_helpers import flatten
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_limits import ServoLimits
@@ -99,43 +101,102 @@ class JoystickServoMap(dict):
         controlled = []
         for axis in axes:
             controlled.append(self.get(axis, NullJoystickServoPositions()).controlled_servos)
-        # Flatten nested servo lists
-        controlled = list(chain.from_iterable(controlled))
+        controlled = list(flatten(controlled))
         return set(controlled)
 
     def _build_map(self):
-        # LEFT STICK Y Controls Upper + Lower Lips
-        # NOTE: For position based control, we need the same servos to be referenced in both the +ve and -ve directions,
-        #       otherwise we can't interpolate the target position
-        self[JoystickAxes.LEFT_STICK_Y] = JoystickServoPositions(
-            {
-                ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1700 }
-            },
-            {
-                ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
-                ServoMap.LIPS_UPPER.value : { 'position' : 1800 }
-            }
-        )
+        config = DeviceConfig.Instance()
+        joystick_control_config = config.options['JOYSTICK_CONTROL']
 
-        # RIGHT STICK X controls Left and Right Servos to pinch/spread
-        self[JoystickAxes.LEFT_STICK_X] = JoystickServoPositions(
-            {
-                ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
-                ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
-            },
-            {
-                ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
-                ServoMap.LIPS_RIGHT.value : { 'position' : 1200 }
-            }
-        )
+        for axis in JoystickAxes:
+            servo_set_name = joystick_control_config.get(axis.name)
+            if servo_set_name is not None:
+                print("Axis: {}. Servo Set Name: {}".format(axis.name, servo_set_name))
+                try:
+                    self[axis] = getattr(ServoControlSets, servo_set_name)
+                except AttributeError as err:
+                    print("ERROR - Unknown Servo Set: {}. Skipping mapping for {}.".format(servo_set_name, axis.name))
 
-        # RIGHT STICK Y Controls Jaw
-        self[JoystickAxes.RIGHT_STICK_Y] = JoystickServoPositions(
-            {
-                ServoMap.JAW.value : { 'position' : 2200 }
-            },
-            {
-                ServoMap.JAW.value : { 'position' : 1200 }
-            }
-        )
+class ServoControlSets:
+    """ Holds common sets of servos for mapping to joystick axes
+    """
+
+    # NOTE: For position based control, we need the same servos to be referenced in both the +ve and -ve directions,
+    #       otherwise we can't interpolate the target position
+
+    EYES_Y = JoystickServoPositions(
+        {
+            ServoMap.EYE_LEFT_Y.value : { 'position' : 1440 },
+            ServoMap.EYE_RIGHT_Y.value : { 'position' : 1630 }
+        },
+        {
+            ServoMap.EYE_LEFT_Y.value : { 'position' : 1600 },
+            ServoMap.EYE_RIGHT_Y.value : { 'position' : 1510 }
+        }
+    )
+
+    EYES_X = JoystickServoPositions(
+        {
+            ServoMap.EYES_X.value : { 'position' : 1550 },
+        },
+        {
+            ServoMap.EYES_X.value : { 'position' : 1380 },
+        }
+    )
+
+    EYELIDS = JoystickServoPositions(
+        {
+            ServoMap.EYELID_RIGHT_UPPER.value : { 'position' : 1650 },
+            ServoMap.EYELID_RIGHT_LOWER.value : { 'position' : 1430 },
+            ServoMap.EYELID_LEFT_UPPER.value : { 'position' : 1400 },
+            ServoMap.EYELID_LEFT_LOWER.value : { 'position' : 1500 }
+        },
+        {
+            ServoMap.EYELID_RIGHT_UPPER.value : { 'position' : 1790 },
+            ServoMap.EYELID_RIGHT_LOWER.value : { 'position' : 1250 },
+            ServoMap.EYELID_LEFT_UPPER.value : { 'position' : 1260 },
+            ServoMap.EYELID_LEFT_LOWER.value : { 'position' : 1720 }
+        }
+    )
+
+    EYEBROWS = JoystickServoPositions(
+        {
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1570 },
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 1570 },
+        },
+        {
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1600 },
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 1520 },
+        }
+    )
+
+    JAW = JoystickServoPositions(
+        {
+            ServoMap.JAW.value : { 'position' : 1440 },
+        },
+        {
+            ServoMap.JAW.value : { 'position' : 1600 },
+        }
+    )
+
+    LIPS_VERTICAL = JoystickServoPositions(
+        {
+            ServoMap.LIPS_LOWER.value : { 'position' : 1750 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1530 },
+        },
+        {
+            ServoMap.LIPS_LOWER.value : { 'position' : 1550 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1430 },
+        }
+    )
+
+    LIPS_HORIZONTAL = JoystickServoPositions(
+        {
+            ServoMap.LIPS_RIGHT.value : { 'position' : 1220 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 1850 },
+        },
+        {
+            ServoMap.LIPS_RIGHT.value : { 'position' : 1550 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 1530 },
+        }
+    )
