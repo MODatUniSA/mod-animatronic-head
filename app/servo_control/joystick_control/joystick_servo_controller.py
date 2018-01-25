@@ -130,6 +130,8 @@ class JoystickServoController:
             self._handle_axis_position(JoystickAxes.RIGHT_STICK_X, right_x)
             self._handle_axis_position(JoystickAxes.RIGHT_STICK_Y, right_y)
 
+        self._handle_axis_position(JoystickAxes.TRIGGERS, triggers)
+
     def _handle_axis_position(self, axis, value):
         pos_dict = self._to_position_dict(axis, value)
 
