@@ -29,7 +29,7 @@ class CallbackManager:
     def _create_callback_methods(self, callback_name):
         # TEMPLATE FUNCTIONS - Used to generate callback functions
         def _add_callback(self, to_call):
-            self._logger.debug("Adding callback for {}".format(callback_name))
+            self._logger.debug("Adding callback for %s", callback_name)
 
             if self._check_callable(to_call):
                 self._callbacks[callback_name].append(to_call)

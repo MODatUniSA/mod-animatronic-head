@@ -7,15 +7,22 @@
 import logging
 
 from libs.helpers.math_helpers import lerp
+from libs.config.device_config import DeviceConfig
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_positions import ServoPositions
+from app.servo_control.image_to_servo_position_converter import ImageToServoPositionConverter
 
 class EyeController:
     def __init__(self, camera_processor, servo_communicator):
         self._camera_processor = camera_processor
         self._servo_communicator = servo_communicator
+        self._image_to_servo_position_converter = ImageToServoPositionConverter()
         self._logger = logging.getLogger('eye_controller')
+        config = DeviceConfig.Instance()
+        user_detection_config = config.options['USER_DETECTION']
+        self._eye_track_time = user_detection_config.getint('EYE_TRACK_TIME')
+
         self._tracking = False
 
         self._camera_processor.add_face_detected_callback(self._on_face_detected)
@@ -29,18 +36,20 @@ class EyeController:
     # CALLBACKS
     # =========================================================================
 
-    def _on_face_detected(self, results):
+    def _on_face_detected(self, results, frame):
         """ Called by the camera processor every time it finds at least 1 face
         """
 
         if not self._tracking:
             return
 
+        self._image_to_servo_position_converter.set_image_dimensions(frame.shape[0:2])
+
         # Initially just targeting first found eyes/face
         eyes = results[0]['eyes']
         face = results[0]['face']
 
-        if len(eyes) > 0:
+        if eyes is not None and len(eyes) > 0:
             self._target_coordinates(eyes[0])
         else:
             self._target_coordinates(face, 0.5, 0.4)
@@ -68,5 +77,5 @@ class EyeController:
         """
 
         self._logger.debug('Moving eyes to point: %s', point)
-        # positions = ImageToServoPositionConverter._to_servo_positions(point)
-        # self._servo_communicator.move_to(positions, 1)
+        positions = self._image_to_servo_position_converter.to_servo_positions(point)
+        self._servo_communicator.move_to(positions, self._eye_track_time)

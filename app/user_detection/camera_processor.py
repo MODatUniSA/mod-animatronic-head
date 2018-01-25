@@ -36,6 +36,7 @@ class CameraProcessor:
         """
 
         self._camera = cv2.VideoCapture(self._camera_id)
+        # Fetching and processing the camera feed is a heavy, blocking operation, so we run it in a separate thread
         self._running_routine = self._loop.run_in_executor(None, self._process_camera_feed)
 
     def stop(self):
@@ -56,17 +57,18 @@ class CameraProcessor:
 
         while not self._should_quit:
             captured, frame = self._camera.read()
+            # Scale image down to decrease processing time
+            # TODO: Add to config
+            frame = cv2.resize(frame,(0,0),fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
 
             if captured:
-                # TODO: Set image size in ImageToServoPositionConverter on first frame captured
-
                 grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 results = self._process_frame(grayscale_frame)
 
                 self._logger.info("Faces Found: {}".format(len(results)))
 
                 if len(results) > 0:
-                    self._cbm.trigger_face_detected_callback(results)
+                    self._cbm.trigger_face_detected_callback(results, frame)
 
             # REVISE: Should our wait time be based on how long the frame processing took?
             # Takes at least 2x as long to process if we can't find any front on faces and need to look for profile faces

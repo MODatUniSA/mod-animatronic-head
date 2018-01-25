@@ -43,7 +43,7 @@ class UserDetector:
     # CALLBACKS
     # =========================================================================
 
-    def _handle_face_found(self, results):
+    def _handle_face_found(self, results, frame):
         """ Handles any faces/eyes being found by the camera processor
         """
 
