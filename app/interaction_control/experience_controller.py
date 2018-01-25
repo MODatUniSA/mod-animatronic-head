@@ -84,7 +84,7 @@ class ExperienceController:
             return
 
         self._logger.info("Executing Deactivating State")
-        self._executor.queue_execution(InteractionType.DEACTIVATING)
+        self._executor.queue_execution(InteractionType.DEACTIVATING,True)
 
     def _execute_deactivating_from_activating(self):
         if self._should_quit:
