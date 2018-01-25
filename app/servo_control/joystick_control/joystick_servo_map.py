@@ -2,9 +2,9 @@
 """
 
 from enum import Enum, auto
-from itertools import chain
 
 from libs.config.device_config import DeviceConfig
+from libs.helpers.list_helpers import flatten
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_limits import ServoLimits
@@ -101,8 +101,7 @@ class JoystickServoMap(dict):
         controlled = []
         for axis in axes:
             controlled.append(self.get(axis, NullJoystickServoPositions()).controlled_servos)
-        # Flatten nested servo lists
-        controlled = list(chain.from_iterable(controlled))
+        controlled = list(flatten(controlled))
         return set(controlled)
 
     def _build_map(self):
