@@ -44,7 +44,7 @@ class ServoPositions:
         """
 
         if without is None or len(without) == 0:
-            return self.positions_str
+            return self._to_positions_string(self.positions)
 
         return self._to_positions_string(self.positions_without(without))
 
@@ -58,6 +58,10 @@ class ServoPositions:
         merged_positions.update(servo_positions.positions)
         return type(self)(merged_positions)
 
+
+    def set_speeds(self, speed):
+        for pin, position_info in self.positions.items():
+            position_info['speed'] = speed
 
     def clear_servos(self, servos):
         """ Clears the argument servos out of our positions

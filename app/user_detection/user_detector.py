@@ -49,7 +49,7 @@ class UserDetector:
 
         self._face_detected_count += 1
         self._face_detected_count = min(self._face_detected_count, self._max_face_detected_count)
-        self._logger.debug("User in front of device: %d", self._face_detected_count)
+        self._logger.debug("Users in front of device: %d", self._face_detected_count)
 
         if self._face_detected_count >= self._activate_at_face_detected_count \
             and not self._user_present:
