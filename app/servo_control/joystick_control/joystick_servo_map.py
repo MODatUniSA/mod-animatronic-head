@@ -110,12 +110,14 @@ class JoystickServoMap(dict):
 
         for axis in JoystickAxes:
             servo_set_name = joystick_control_config.get(axis.name)
-            if servo_set_name is not None:
+            if servo_set_name not in [None, 'NONE']:
                 print("Axis: {}. Servo Set Name: {}".format(axis.name, servo_set_name))
                 try:
                     self[axis] = getattr(ServoControlSets, servo_set_name)
                 except AttributeError as err:
                     print("ERROR - Unknown Servo Set: {}. Skipping mapping for {}.".format(servo_set_name, axis.name))
+            else:
+                print("No servo set mapped for {}".format(axis))
 
 class ServoControlSets:
     """ Holds common sets of servos for mapping to joystick axes
