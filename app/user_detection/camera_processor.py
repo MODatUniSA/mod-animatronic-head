@@ -28,6 +28,7 @@ class CameraProcessor:
         self._locate_eyes = user_detection_config.getboolean('LOCATE_EYES')
         self._face_detection_frame_interval = user_detection_config.getint('FACE_DETECTION_FRAME_INTERVAL')
         self._min_tracking_quality = user_detection_config.getint('MIN_TRACKING_QUALITY')
+        self._frame_scale = user_detection_config.getfloat('FRAME_SCALE')
 
         self._camera = None
         self._should_quit = False
@@ -78,8 +79,7 @@ class CameraProcessor:
         while not self._should_quit:
             captured, frame = self._camera.read()
             # Scale image down to decrease processing time
-            # TODO: Add resize % to config
-            frame = cv2.resize(frame,(0,0),fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+            frame = cv2.resize(frame,(0,0),fx=self._frame_scale, fy=self._frame_scale, interpolation=cv2.INTER_AREA)
             self._frame_count += 1
 
             if captured:
