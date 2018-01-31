@@ -172,6 +172,24 @@ class ServoControlSets:
         }
     )
 
+    EYEBROW_LEFT = JoystickServoPositions(
+        {
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 1570 },
+        },
+        {
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 1520 },
+        }
+    )
+
+    EYEBROW_RIGHT = JoystickServoPositions(
+        {
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1570 },
+        },
+        {
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1600 },
+        }
+    )
+
     JAW = JoystickServoPositions(
         {
             ServoMap.JAW.value : { 'position' : 1440 },
