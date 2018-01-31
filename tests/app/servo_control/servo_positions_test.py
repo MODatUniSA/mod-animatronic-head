@@ -76,7 +76,6 @@ class TestToStr:
             ServoMap.LIPS_UPPER.value : { 'position' : 1, 'speed' : 10 }
         }
 
-
     def test_with_no_servos_specified(self, mocker):
         """ Ensures normal string for all servos returned
         """
@@ -94,3 +93,30 @@ class TestToStr:
         sp = ServoPositions(copy.deepcopy(self.pos_dict))
 
         assert sp.to_str(without=[ServoMap.JAW.value]) == '#1P1S10'
+
+class TestSetSpeed:
+    def setup_method(self, fn):
+        self.pos_dict = {
+            ServoMap.JAW.value : { 'position' : 1, 'speed' : 5 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1, 'speed' : 10 }
+        }
+
+    def test_value_passed(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+        sp.set_speeds(50)
+
+        expected = {
+            ServoMap.JAW.value : { 'position' : 1, 'speed' : 50 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1, 'speed' : 50 }
+        }
+
+        assert sp.positions == expected
+
+    def test_positions_string_updated(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+        sp.set_speeds(50)
+        expected = "#{}P1S50#{}P1S50".format(ServoMap.JAW.value, ServoMap.LIPS_UPPER.value)
+
+        assert sp.to_str() == expected

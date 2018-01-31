@@ -21,7 +21,7 @@ class EyeController:
         self._logger = logging.getLogger('eye_controller')
         config = DeviceConfig.Instance()
         user_detection_config = config.options['USER_DETECTION']
-        self._eye_track_time = user_detection_config.getint('EYE_TRACK_TIME')
+        self._eye_track_speed = user_detection_config.getint('EYE_TRACK_SPEED')
 
         self._tracking = False
 
@@ -36,23 +36,27 @@ class EyeController:
     # CALLBACKS
     # =========================================================================
 
-    def _on_face_detected(self, results, frame):
+    def _on_face_detected(self, faces, frame):
         """ Called by the camera processor every time it finds at least 1 face
         """
 
         if not self._tracking:
             return
 
+        # Make sure the servo position converter makes calculations with the correct image dimensions
         self._image_to_servo_position_converter.set_image_dimensions(frame.shape[0:2])
 
-        # Initially just targeting first found eyes/face
-        eyes = results[0]['eyes']
-        face = results[0]['face']
+        # Results are ordered by the time they were detected, so using the first should keep us
+        # looking at the same face while it is detected
+        position = next(iter(faces.values())).get_position()
+        coordinates = [
+            int(position.left()),
+            int(position.top()),
+            int(position.width()),
+            int(position.height())
+        ]
 
-        if eyes is not None and len(eyes) > 0:
-            self._target_coordinates(eyes[0])
-        else:
-            self._target_coordinates(face, 0.5, 0.4)
+        self._target_coordinates(coordinates, 0.5, 0.4)
 
     # INTERNAL HELPERS
     # =========================================================================
@@ -78,4 +82,5 @@ class EyeController:
 
         self._logger.debug('Moving eyes to point: %s', point)
         positions = self._image_to_servo_position_converter.to_servo_positions(point)
-        self._servo_communicator.move_to(positions, self._eye_track_time)
+        positions.set_speeds(self._eye_track_speed)
+        self._servo_communicator.move_to(positions)

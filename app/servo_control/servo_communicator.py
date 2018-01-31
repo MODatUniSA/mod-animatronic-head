@@ -80,10 +80,11 @@ class ServoCommunicator:
         """
 
         if isinstance(positions, ServoPositions):
-            return positions.positions_str
+            return positions.to_str()
         if isinstance(positions, dict):
-            return ServoPositions(positions).positions_str
+            return ServoPositions(positions).to_str()
         elif isinstance(positions, str):
+            # WARNING: No limit clamping is performed if a string is passed directly!
             return positions
         else:
             self._logger.error("Unexpected object passed to move_to. Can't convert to positions string.")
