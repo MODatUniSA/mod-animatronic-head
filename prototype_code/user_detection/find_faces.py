@@ -17,8 +17,8 @@ eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
 profile_face_cascade = cv2.CascadeClassifier('haarcascade_profileface.xml')
 font = cv2.FONT_HERSHEY_SIMPLEX
-# cap = cv2.VideoCapture(1)
-cap = cv2.VideoCapture('dave_faces.mp4')
+cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture('dave_faces.mp4')
 
 if write:
     fps = 15
@@ -63,12 +63,12 @@ while 1:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
     # Sort faces by where they start on the x-axis
-    sorted_faces = faces[faces[:,0].argsort()]
+    # sorted_faces = faces[faces[:,0].argsort()]
 
     if len(faces) > 1:
         # import pdb; pdb.set_trace()
         print("Faces: {}".format(faces))
-        print("Sorted Faces: {}".format(sorted_faces))
+        print("Sorted Faces: {}".format(faces))
 
     after_face_detection = time.time()
     print("Face detection took {} seconds".format(after_face_detection - after_frame_read))
@@ -77,7 +77,7 @@ while 1:
     eyes_found = False
 
 
-    for face_index, (x,y,w,h) in enumerate(sorted_faces):
+    for face_index, (x,y,w,h) in enumerate(faces):
         cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
         between_eyes = inner_point((x,y,w,h), 0.5, 0.4)
         print("Between Eyes: {}".format(between_eyes))

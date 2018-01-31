@@ -1,0 +1,52 @@
+# Mapping
+JAW = 0
+LIPS_UPPER = 1
+LIPS_LOWER = 2
+LIPS_RIGHT = 3
+LIPS_LEFT = 4
+
+# Limits
+self[ServoMap.JAW] = ServoLimit(1200, 1500, 2200)
+self[ServoMap.LIPS_UPPER] = ServoLimit(1200, 1500, 1800)
+self[ServoMap.LIPS_LOWER] = ServoLimit(1200, 1500, 1800)
+self[ServoMap.LIPS_LEFT] = ServoLimit(1300, 1500, 1700)
+self[ServoMap.LIPS_RIGHT] = ServoLimit(1300, 1500, 1700)
+
+# Joystick Servo Map
+
+def _build_map(self):
+    # LEFT STICK Y Controls Upper + Lower Lips
+    # NOTE: For position based control, we need the same servos to be referenced in both the +ve and -ve directions,
+    #       otherwise we can't interpolate the target position
+    self[JoystickAxes.LEFT_STICK_Y] = JoystickServoPositions(
+        {
+            ServoMap.LIPS_LOWER.value : { 'position' : 1800 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1700 }
+        },
+        {
+            ServoMap.LIPS_LOWER.value : { 'position' : 1200 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1800 }
+        }
+    )
+
+    # RIGHT STICK X controls Left and Right Servos to pinch/spread
+    self[JoystickAxes.LEFT_STICK_X] = JoystickServoPositions(
+        {
+            ServoMap.LIPS_LEFT.value : { 'position' : 1200 },
+            ServoMap.LIPS_RIGHT.value : { 'position' : 1800 }
+        },
+        {
+            ServoMap.LIPS_LEFT.value : { 'position' : 1800 },
+            ServoMap.LIPS_RIGHT.value : { 'position' : 1200 }
+        }
+    )
+
+    # RIGHT STICK Y Controls Jaw
+    self[JoystickAxes.RIGHT_STICK_Y] = JoystickServoPositions(
+        {
+            ServoMap.JAW.value : { 'position' : 2200 }
+        },
+        {
+            ServoMap.JAW.value : { 'position' : 1200 }
+        }
+    )

@@ -38,7 +38,6 @@ class CameraProcessor:
         self._display_frames = False
         self._font = cv2.FONT_HERSHEY_SIMPLEX
 
-
         self._frame_count = 0
         self._current_face_id = 0
         self._currently_tracked_count = 0
