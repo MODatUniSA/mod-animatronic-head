@@ -120,3 +120,17 @@ class TestSetSpeed:
         expected = "#{}P1S50#{}P1S50".format(ServoMap.JAW.value, ServoMap.LIPS_UPPER.value)
 
         assert sp.to_str() == expected
+
+class TestControlledServos:
+    def test_servo_keys(self, mocker):
+        pos_dict = {
+            ServoMap.JAW.value : { 'position' : 1, 'speed' : 5 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1, 'speed' : 10 }
+        }
+
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(pos_dict))
+
+        expected = [ServoMap.JAW.value, ServoMap.LIPS_UPPER.value]
+
+        assert list(sp.controlled_servos()) == expected

@@ -31,17 +31,16 @@ class JoystickControlDriver:
 
         self.loop                = asyncio.get_event_loop()
         self.servo_communicator  = ServoCommunicator()
-        self.playback_controller = None
+        self.servo_controller = ServoController(self.servo_communicator)
 
         if args.input_file is not None:
             self.playback = True
             self.playback_filename = args.input_file
-            self.playback_controller = ServoController(self.servo_communicator)
-            self.playback_controller.prepare_instructions(self.playback_filename)
+            self.servo_controller.prepare_instructions(self.playback_filename)
 
-        self.servo_controller = JoystickServoController(self.servo_communicator, self.playback_controller)
+        self.joystick_controller = JoystickServoController(self.servo_communicator, self.servo_controller)
         if args.output_file is not None:
-            self.servo_controller.record_to_file(args.output_file)
+            self.joystick_controller.record_to_file(args.output_file)
 
     def run(self):
         self._logger.info("Almost Human Joystick Control driver starting.")
@@ -49,7 +48,7 @@ class JoystickControlDriver:
         self._assign_interrupt_handler()
 
         tasks = [
-            self.servo_controller.run(),
+            self.joystick_controller.run(),
         ]
 
         try:
@@ -59,7 +58,7 @@ class JoystickControlDriver:
             self.loop.close()
 
     def stop(self):
-        self.servo_controller.stop()
+        self.joystick_controller.stop()
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================
