@@ -22,15 +22,19 @@ class ServoController:
         self._cbm = CallbackManager(['move_instruction', 'stop_instruction', 'instructions_complete'], self)
         self._instruction_iterators = {}
 
-    def prepare_instructions(self, instructions_filename, without_servos=None):
+    def prepare_instructions(self, instructions_filename, without_servos=None, as_override=False):
         """ Prepares a list of instructions for executing from the argument file
+            without_servos defines which servos in this instruction list should be ignored
+            as_override defines whether to override servo positions from other instruction sets
         """
 
         instruction_list = InstructionList(instructions_filename)
         instruction_iterator = self._create_instruction_iterator(instruction_list)
         self._instruction_iterators[id(instruction_iterator)] = {
             'iterator' : instruction_iterator,
-            'without_servos' : without_servos
+            'without_servos' : without_servos,
+            'override' : as_override,
+            'overridden' : set()
         }
         return (id(instruction_iterator), instruction_iterator)
 
@@ -95,17 +99,16 @@ class ServoController:
         """
 
         self._logger.debug("Executing %s Instruction from iterator %s", instruction.instruction_type.name, iterator_id)
-        servos_to_exclude = self._instruction_iterators[iterator_id]['without_servos']
-        self._logger.debug("Excluding Servos: %s", servos_to_exclude)
+        iterator_info = self._instruction_iterators[iterator_id]
 
         if instruction.instruction_type == InstructionTypes.PHONEME:
             self._execute_phoneme_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.EXPRESSION:
-            self._execute_expression_instruction(instruction, servos_to_exclude)
+            self._execute_expression_instruction(instruction, iterator_info)
         elif instruction.instruction_type == InstructionTypes.PARALLEL_SEQUENCE:
             self._execute_parallel_sequence_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.POSITION:
-            self._execute_position_instruction(instruction, servos_to_exclude)
+            self._execute_position_instruction(instruction, iterator_info)
         elif instruction.instruction_type == InstructionTypes.STOP:
             self._execute_stop_instruction(instruction)
         else:
@@ -117,6 +120,11 @@ class ServoController:
 
         self._logger.info("Instruction execution complete for iterator: %s", iterator_id)
         if iterator_id in self._instruction_iterators:
+            iterator_info = self._instruction_iterators[iterator_id]
+            if iterator_info['override']:
+                self._logger.debug("Clearing overrides from instruction iterator")
+                self.clear_control_override(iterator_info['overridden'])
+
             self._logger.debug("Clearing instruction iterator")
             del(self._instruction_iterators[iterator_id])
 
@@ -155,7 +163,7 @@ class ServoController:
         self._cbm.trigger_move_instruction_callback(servo_positions.positions)
         self._servo_communicator.move_to(servo_positions, instruction.move_time)
 
-    def _execute_expression_instruction(self, instruction, without_servos=None):
+    def _execute_expression_instruction(self, instruction, iterator_info):
         """ Executes a single expression instruction, which sends a message to the face servos to move
         """
 
@@ -165,7 +173,7 @@ class ServoController:
 
         self._cbm.trigger_move_instruction_callback(servo_positions.positions)
 
-        positions_to_send = servo_positions.to_str(without=without_servos)
+        positions_to_send = servo_positions.to_str(without=iterator_info['without_servos'])
         self._logger.debug("Sending Expression: %s", instruction.expression)
         self._logger.debug("Sending servo positions: %s", positions_to_send)
 
@@ -185,15 +193,26 @@ class ServoController:
         iterator_id,instruction_iterator = self.prepare_instructions(instruction.filename)
         instruction_iterator.iterate_instructions()
 
-    def _execute_position_instruction(self, instruction, without_servos=None):
-        """ Send a position directly from the CSV to the servos. Applies limiting, and allows phonemes to override mouth servos
+    # FIXME: If overriding control, excluded servos settings are ignored
+    def _execute_position_instruction(self, instruction, iterator_info):
+        """ Send a position directly from the CSV to the servos.
+            Allows servos to be excluded if specified in iterator_info
+            Allows this instruction to override other instructions if specified in iterator_info
         """
+
+        without_servos = iterator_info['without_servos']
+        override = iterator_info['override']
 
         if instruction.position is None:
             self._logger.error("Unable to process POSITION instruction. Ignoring")
             return
 
         positions = ServoPositions(instruction.position)
+
+        if override:
+            iterator_info['overridden'].update(positions.controlled_servos())
+            self.override_control(positions)
+            return
 
         if self._overridden_servo_positions is not None:
             positions = positions.merge(self._overridden_servo_positions)

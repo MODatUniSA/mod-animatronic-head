@@ -33,6 +33,11 @@ class ServoPositions:
 
         return positions
 
+    def controlled_servos(self):
+        """ Returns the servos that are defined in this position
+        """
+        return self.positions.keys()
+
     def positions_without(self, without):
         """ Returns the positions, except for those servos specified in the args
         """
