@@ -19,8 +19,8 @@ import time
 faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 #The deisred output width and height
-OUTPUT_SIZE_WIDTH = 775
-OUTPUT_SIZE_HEIGHT = 600
+OUTPUT_SIZE_WIDTH = 1280
+OUTPUT_SIZE_HEIGHT = 720
 
 
 #We are not doing really face recognition
@@ -31,7 +31,8 @@ def doRecognizePerson(faceNames, fid):
 
 def detectAndTrackMultipleFaces():
     #Open the first webcame device
-    capture = cv2.VideoCapture(1)
+    # capture = cv2.VideoCapture(0)
+    capture = cv2.VideoCapture('dave_faces.mp4')
 
     #Create two opencv named windows
     cv2.namedWindow("base-image", cv2.WINDOW_AUTOSIZE)
@@ -60,8 +61,8 @@ def detectAndTrackMultipleFaces():
             #Retrieve the latest image from the webcam
             rc,fullSizeBaseImage = capture.read()
 
-            #Resize the image to 320x240
-            baseImage = cv2.resize( fullSizeBaseImage, ( 320, 240))
+            baseImage = cv2.resize(fullSizeBaseImage,(0,0),fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+            # baseImage = cv2.resize( fullSizeBaseImage, ( 320, 240))
 
             #Check if a key was pressed and if it was Q, then break
             #from the infinite loop
@@ -250,12 +251,12 @@ def detectAndTrackMultipleFaces():
             #of the baseimage and make the result image a copy of this large
             #base image and use the scaling factor to draw the rectangle
             #at the right coordinates.
-            largeResult = cv2.resize(resultImage,
-                                     (OUTPUT_SIZE_WIDTH,OUTPUT_SIZE_HEIGHT))
+            # largeResult = cv2.resize(resultImage,
+                                     # (OUTPUT_SIZE_WIDTH,OUTPUT_SIZE_HEIGHT))
 
             #Finally, we want to show the images on the screen
             cv2.imshow("base-image", baseImage)
-            cv2.imshow("result-image", largeResult)
+            cv2.imshow("result-image", resultImage)
 
 
 
