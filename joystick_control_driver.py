@@ -38,7 +38,7 @@ class JoystickControlDriver:
             self.playback_filename = args.input_file
             self.servo_controller.prepare_instructions(self.playback_filename)
 
-        self.joystick_controller = JoystickServoController(self.servo_communicator, self.servo_controller)
+        self.joystick_controller = JoystickServoController(self.servo_controller, args.autostop_recording)
         if args.output_file is not None:
             self.joystick_controller.record_to_file(args.output_file)
 
@@ -83,6 +83,9 @@ if __name__ == '__main__':
     parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output errors, warnings, and info to the console")
     parser.add_argument("-vv", dest='very_verbose_output', action='store_true', help="Output all logged output to the console")
     parser.set_defaults(verbose_output=False)
+
+    parser.add_argument("-autostop", dest='autostop_recording', action='store_true', help="Autostop the overdub recording once the input file completes playback")
+    parser.set_defaults(autostop_recording=False)
 
     parser.add_argument("--playback", dest='input_file', help="Instruction file to execute")
     parser.set_defaults(input_file=None)
