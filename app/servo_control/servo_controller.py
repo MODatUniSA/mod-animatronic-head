@@ -12,6 +12,8 @@ from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
 from app.servo_control.servo_positions import ServoPositions
 
+# TODO: Lot of code duplication present in this class. Should be able to reduce with better handling of instruction merging and deduplication
+
 class ServoController:
     def __init__(self, servo_communicator):
         self._logger = logging.getLogger('servo_controller')
