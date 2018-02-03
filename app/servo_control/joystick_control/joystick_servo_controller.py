@@ -23,6 +23,7 @@ class JoystickServoController:
         self._autostop_recording = autostop_recording
         self._control_time_start = None
         self._should_quit = False
+        self._loop = asyncio.get_event_loop()
         self._map = JoystickServoMap()
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
@@ -228,7 +229,7 @@ class JoystickServoController:
             yield from asyncio.sleep(1)
             current_count -= 1
 
-        self._start_recording()
+        self._loop.call_soon(self._start_recording)
 
     def _start_recording(self):
         self._control_time_start = time.time()
