@@ -16,10 +16,11 @@ from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
-    def __init__(self, servo_controller):
+    def __init__(self, servo_controller, autostop_recording=False):
         self._logger = logging.getLogger('joystick_servo_controller')
         self._write_csv = False
         self._servo_controller = servo_controller
+        self._autostop_recording = autostop_recording
         self._control_time_start = None
         self._should_quit = False
         self._map = JoystickServoMap()
@@ -227,20 +228,22 @@ class JoystickServoController:
             yield from asyncio.sleep(1)
             current_count -= 1
 
-        self._logger.info("RECORDING! GO GO GO!!!")
         self._start_recording()
 
     def _start_recording(self):
         self._control_time_start = time.time()
         self._start_playback()
 
-        self._logger.info("Starting Recording!")
+        self._logger.info("RECORDING! GO GO GO!!")
         self._recording = True
 
     def _start_playback(self):
         """ Starts playing back input instructions file if one specified
         """
         if self._servo_controller.any_instructions_loaded():
+            if self._write_csv and self._autostop_recording:
+                self._servo_controller.add_instructions_complete_callback(self._stop_recording)
+
             self._servo_controller.execute_instructions()
 
     # CSV WRITING
