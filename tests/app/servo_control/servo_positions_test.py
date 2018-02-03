@@ -3,12 +3,17 @@ import copy
 
 import pytest
 
+import app.servo_control.servo_positions
 from app.servo_control.servo_positions import ServoPositions
 from app.servo_control.servo_map import ServoMap
 
 def patch_servo_limits(mocker):
-    mocked_servo_limits = mocker.patch('app.servo_control.servo_positions.ServoLimits')
-    mocked_servo_limits.Instance().to_limited_position.return_value = 1
+    # Overwrite method to ensure servo limits don't affect our results
+    if mocker is not None:
+        def to_limited_positions(self, positions):
+            return positions
+
+        mocker.patch.object(app.servo_control.servo_positions.ServoPositions, '_to_limited_positions', to_limited_positions)
 
 # TODO: Test #merge, #within_threshold
 
@@ -29,11 +34,12 @@ class TestPositions:
         assert sp.positions == pos_dict
 
     def test_positions_passed_with_basic_structure(self, mocker):
-        """ Ensures input dict will be convered to the standard structure and given values based on ServoLimits
+        """ Ensures input dict will be convered to the standard structure
         """
+
         patch_servo_limits(mocker)
         in_dict = { ServoMap.JAW.value : 123, ServoMap.LIPS_UPPER.value : 456 }
-        expected_dict = { ServoMap.JAW.value : { 'position' : 1 }, ServoMap.LIPS_UPPER.value : { 'position' : 1 } }
+        expected_dict = { ServoMap.JAW.value : { 'position' : 123 }, ServoMap.LIPS_UPPER.value : { 'position' : 456 } }
 
         sp = ServoPositions(copy.deepcopy(in_dict))
         assert sp.positions == expected_dict
@@ -134,3 +140,57 @@ class TestControlledServos:
         expected = [ServoMap.JAW.value, ServoMap.LIPS_UPPER.value]
 
         assert list(sp.controlled_servos()) == expected
+
+class TestWithoutDuplicates:
+    def setup_method(self, fn):
+        self.pos_dict = {
+            ServoMap.JAW.value : { 'position' : 100, 'speed' : 5 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 200, 'speed' : 10 }
+        }
+
+    def test_none_passed(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+
+        new_sp = sp.without_duplicates(None)
+        assert new_sp.positions == sp.positions
+
+    def test_empty_set_passed(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+        new_sp = sp.without_duplicates(ServoPositions({}))
+        assert new_sp.positions == sp.positions
+
+    def test_passed_without_duplicates(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+
+        previous_positions = {
+            ServoMap.JAW.value : { 'position' : 101, 'speed' : 5 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 200, 'speed' : 11 },
+            ServoMap.LIPS_LOWER.value : { 'position' : 200, 'speed' : 10 }
+        }
+
+        new_sp = sp.without_duplicates(ServoPositions(previous_positions))
+        assert new_sp.positions == sp.positions
+
+    def test_passed_some_duplicates(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+
+        previous_positions = {
+            ServoMap.JAW.value : { 'position' : 100, 'speed' : 5 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 200, 'speed' : 11 },
+            ServoMap.LIPS_LOWER.value : { 'position' : 200, 'speed' : 10 }
+        }
+        expected = { ServoMap.LIPS_UPPER.value : { 'position' : 200, 'speed' : 10 } }
+        new_sp = sp.without_duplicates(ServoPositions(previous_positions))
+        assert new_sp.positions == expected
+
+    def test_passed_all_duplicates(self, mocker):
+        patch_servo_limits(mocker)
+        sp = ServoPositions(copy.deepcopy(self.pos_dict))
+
+        previous_positions = copy.deepcopy(self.pos_dict)
+        new_sp = sp.without_duplicates(ServoPositions(previous_positions))
+        assert new_sp.positions == {}

@@ -63,6 +63,22 @@ class ServoPositions:
         merged_positions.update(servo_positions.positions)
         return type(self)(merged_positions)
 
+    def without_duplicates(self, previous_positions):
+        """ Returns this set of servo positions without any servos that have duplicate
+            positions + speeds of the argument servo positions.
+            Returns a servo positions object without duplicate positions
+        """
+
+        if previous_positions is None or len(previous_positions.positions) == 0:
+            return self
+
+        new_positions = {
+            servo: servo_info
+            for servo, servo_info in self.positions.items()
+            if servo_info != previous_positions.positions.get(servo)
+        }
+
+        return type(self)(new_positions)
 
     def set_speeds(self, speed):
         for pin, position_info in self.positions.items():

@@ -12,6 +12,8 @@ from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
 from app.servo_control.servo_positions import ServoPositions
 
+# TODO: Lot of code duplication present in this class. Should be able to reduce with better handling of instruction merging and deduplication
+
 class ServoController:
     def __init__(self, servo_communicator):
         self._logger = logging.getLogger('servo_controller')
@@ -21,6 +23,7 @@ class ServoController:
         self._overridden_servo_positions = None
         self._cbm = CallbackManager(['move_instruction', 'stop_instruction', 'instructions_complete'], self)
         self._instruction_iterators = {}
+        self._last_sent = ServoPositions({})
 
     def prepare_instructions(self, instructions_filename, without_servos=None, as_override=False):
         """ Prepares a list of instructions for executing from the argument file
@@ -76,9 +79,13 @@ class ServoController:
 
         self._logger.debug("Final Override: %s", self._overridden_servo_positions.positions)
 
+        # Get a set of servo positions without duplicates of what was last sent
+        to_send = self._overridden_servo_positions.without_duplicates(self._last_sent)
+        self._last_sent = self._last_sent.merge(to_send)
+
         # Immediately send override positions through to communicator and notify
-        self._servo_communicator.move_to(self._overridden_servo_positions)
-        self._cbm.trigger_move_instruction_callback(self._overridden_servo_positions.positions)
+        self._servo_communicator.move_to(to_send)
+        self._cbm.trigger_move_instruction_callback(to_send.positions)
 
     def clear_control_override(self, servos):
         """ Clears the argument servos out of any set servo control override. Expects list/set
@@ -160,8 +167,11 @@ class ServoController:
 
         self._logger.debug("Sending Phoneme: %s", instruction.phoneme)
 
-        self._cbm.trigger_move_instruction_callback(servo_positions.positions)
-        self._servo_communicator.move_to(servo_positions, instruction.move_time)
+        to_send = servo_positions.without_duplicates(self._last_sent)
+        self._last_sent = self._last_sent.merge(to_send)
+
+        self._cbm.trigger_move_instruction_callback(to_send.positions)
+        self._servo_communicator.move_to(to_send, instruction.move_time)
 
     def _execute_expression_instruction(self, instruction, iterator_info):
         """ Executes a single expression instruction, which sends a message to the face servos to move
@@ -171,9 +181,13 @@ class ServoController:
         if self._overridden_servo_positions is not None:
             servo_positions = servo_positions.merge(self._overridden_servo_positions)
 
-        self._cbm.trigger_move_instruction_callback(servo_positions.positions)
+        to_send = servo_positions.without_duplicates(self._last_sent)
+        self._last_sent = self._last_sent.merge(to_send)
 
-        positions_to_send = servo_positions.to_str(without=iterator_info['without_servos'])
+        # REVISE: Should we clear the 'without_servos before triggering this callback'?
+        self._cbm.trigger_move_instruction_callback(to_send.positions)
+
+        positions_to_send = to_send.to_str(without=iterator_info['without_servos'])
         self._logger.debug("Sending Expression: %s", instruction.expression)
         self._logger.debug("Sending servo positions: %s", positions_to_send)
 
@@ -217,11 +231,14 @@ class ServoController:
         if self._overridden_servo_positions is not None:
             positions = positions.merge(self._overridden_servo_positions)
 
-        self._cbm.trigger_move_instruction_callback(positions.positions)
+        to_send = positions.without_duplicates(self._last_sent)
+        self._last_sent = self._last_sent.merge(to_send)
 
-        positions_to_send = positions.to_str(without=without_servos)
+        self._cbm.trigger_move_instruction_callback(to_send.positions)
+
+        positions_to_send = to_send.to_str(without=without_servos)
         # Only send move time if individual servo speeds aren't specified
-        move_time = None if positions.speed_specified else instruction.move_time
+        move_time = None if to_send.speed_specified else instruction.move_time
         self._servo_communicator.move_to(positions_to_send, move_time)
 
     def _execute_stop_instruction(self, instruction):

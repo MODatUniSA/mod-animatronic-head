@@ -220,3 +220,18 @@ class ServoControlSets:
             ServoMap.LIPS_LEFT.value : { 'position' : 1530 },
         }
     )
+
+    LIPS_ALL = JoystickServoPositions(
+        {
+            ServoMap.LIPS_LOWER.value : { 'position' : 1750 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1530 },
+            ServoMap.LIPS_RIGHT.value : { 'position' : 1220 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 1850 },
+        },
+        {
+            ServoMap.LIPS_LOWER.value : { 'position' : 1550 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 1430 },
+            ServoMap.LIPS_RIGHT.value : { 'position' : 1550 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 1530 },
+        }
+    )
