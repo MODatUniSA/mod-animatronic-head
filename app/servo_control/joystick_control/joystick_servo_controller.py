@@ -28,6 +28,7 @@ class JoystickServoController:
         self._fixed_move_speed = joystick_config.getint('MOVE_SPEED')
         self._update_period_seconds = joystick_config.getfloat('UPDATE_PERIOD_SECONDS')
         self._position_threshold = joystick_config.getint('POSITION_DEDUPLICATE_THRESHOLD')
+        self._recording_countdown_seconds = joystick_config.getint('RECORDING_COUNTDOWN_SECONDS')
         self._deadzone = joystick_config.getfloat('STICK_DEADZONE')
         self._controller = xbox360_controller.Controller(0, self._deadzone)
 
@@ -55,6 +56,11 @@ class JoystickServoController:
         """ Start processing joystick control.
             If playing back existing instructions, this starts them running.
         """
+
+        # Playback input file Immediately if not recording
+        # Otherwise, we only playback when recording started
+        if not self._write_csv:
+            self._start_playback()
 
         while not self._should_quit:
             self._process_pygame_events()
@@ -106,7 +112,6 @@ class JoystickServoController:
 
             if not self._use_right_stick:
                 self._clear_control_override([JoystickAxes.RIGHT_STICK_X, JoystickAxes.RIGHT_STICK_Y])
-
 
     def _process_digital_buttons(self, pressed):
         """ Process face buttons (A,B,X,Y) and start/back buttons
@@ -175,7 +180,6 @@ class JoystickServoController:
 
         self._servo_controller.override_control(servo_positions)
 
-
     # INTERNAL HELPERS
     # =========================================================================
 
@@ -199,19 +203,36 @@ class JoystickServoController:
         return round(time.time() - self._control_time_start, round_digits)
 
     def _toggle_recording(self):
-        self._stop_recording() if self._recording else self._start_recording()
+        self._stop_recording() if self._recording else self._start_recording_countdown()
 
     def _stop_recording(self):
         self._logger.info("Stopping Recording!")
         self.stop()
 
-    def _start_recording(self):
-        self._control_time_start = time.time()
-        self._start_playback()
-
+    def _start_recording_countdown(self):
         if not self._write_csv:
             self._logger.error("Can't record - No output file specified! Please specify on with --record")
             return
+
+        asyncio.async(self._async_start_recording_countdown())
+
+    @asyncio.coroutine
+    def _async_start_recording_countdown(self):
+        current_count = self._recording_countdown_seconds
+
+        self._logger.info("Recording in: ")
+
+        while current_count > 0:
+            self._logger.info(current_count)
+            yield from asyncio.sleep(1)
+            current_count -= 1
+
+        self._logger.info("RECORDING! GO GO GO!!!")
+        self._start_recording()
+
+    def _start_recording(self):
+        self._control_time_start = time.time()
+        self._start_playback()
 
         self._logger.info("Starting Recording!")
         self._recording = True
@@ -221,8 +242,6 @@ class JoystickServoController:
         """
         if self._servo_controller.any_instructions_loaded():
             self._servo_controller.execute_instructions()
-        else:
-            self._logger.error("Can't playback - No input file specified, or already executed!")
 
     # CSV WRITING
     # =========================================================================
