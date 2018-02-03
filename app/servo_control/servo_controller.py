@@ -50,6 +50,9 @@ class ServoController:
         for iterator_info in self._instruction_iterators.values():
             iterator_info['iterator'].iterate_instructions()
 
+    def any_instructions_loaded(self):
+        return len(self._instruction_iterators) > 0
+
     def stop_execution(self):
         """ Stops any instruction execution
         """

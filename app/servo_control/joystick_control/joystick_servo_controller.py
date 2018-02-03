@@ -20,7 +20,7 @@ class JoystickServoController:
         self._logger = logging.getLogger('joystick_servo_controller')
         self._write_csv = False
         self._servo_controller = servo_controller
-        self._control_time_start = time.time()
+        self._control_time_start = None
         self._should_quit = False
         self._map = JoystickServoMap()
         config = DeviceConfig.Instance()
@@ -31,7 +31,7 @@ class JoystickServoController:
         self._deadzone = joystick_config.getfloat('STICK_DEADZONE')
         self._controller = xbox360_controller.Controller(0, self._deadzone)
 
-        self._buttons = ['A', 'B', 'X', 'Y']
+        self._buttons = ['A', 'B', 'X', 'Y', 'START', 'BACK', 'LEFT_STICK_BTN', 'RIGHT_STICK_BTN']
         self._button_actions = { button: joystick_config.get(button, None) for button in self._buttons }
 
         self._axis_stop_sent = {}
@@ -40,6 +40,7 @@ class JoystickServoController:
 
         self._use_left_stick = False
         self._use_right_stick = False
+        self._recording = False
 
     def record_to_file(self, output_filename):
         """ Tells this class to record servo positions to a file, and which file to write to
@@ -54,8 +55,6 @@ class JoystickServoController:
         """ Start processing joystick control.
             If playing back existing instructions, this starts them running.
         """
-
-        self._servo_controller.execute_instructions()
 
         while not self._should_quit:
             self._process_pygame_events()
@@ -85,8 +84,9 @@ class JoystickServoController:
 
     def _process_buttons(self):
         pressed_buttons = self._controller.get_buttons()
+        # TODO: Should collapse these into a single function so bumper actions aren't hard coded
         self._process_bumpers(pressed_buttons)
-        self._process_face_buttons(pressed_buttons)
+        self._process_digital_buttons(pressed_buttons)
         # Cache current pressed states so we can detect when buttons are first pressed
         self._last_pressed_states = pressed_buttons
 
@@ -108,8 +108,8 @@ class JoystickServoController:
                 self._clear_control_override([JoystickAxes.RIGHT_STICK_X, JoystickAxes.RIGHT_STICK_Y])
 
 
-    def _process_face_buttons(self, pressed):
-        """ Process face buttons (A,B,X,Y).
+    def _process_digital_buttons(self, pressed):
+        """ Process face buttons (A,B,X,Y) and start/back buttons
             Used to trigger a sequence of preprecorded instructions
             Note that instructions triggered this way use the same control overrides
             as the joystick control, so these will fight each other if both control the same servos
@@ -121,8 +121,12 @@ class JoystickServoController:
                 continue
 
             if self._just_pressed(pressed, getattr(xbox360_controller, button)):
-                self._logger.info("%s Button pressed!", button)
-                if self._servo_controller is not None:
+                self._logger.debug("%s Button pressed!", button)
+                if action == 'TOGGLE_RECORDING':
+                    self._toggle_recording()
+                elif action == 'STOP_CODE':
+                    self.stop()
+                else:
                     iid, instruction_iterator  = self._servo_controller.prepare_instructions(action, as_override=True)
                     instruction_iterator.iterate_instructions()
 
@@ -194,11 +198,43 @@ class JoystickServoController:
 
         return round(time.time() - self._control_time_start, round_digits)
 
+    def _toggle_recording(self):
+        self._stop_recording() if self._recording else self._start_recording()
+
+    def _stop_recording(self):
+        self._logger.info("Stopping Recording!")
+        self.stop()
+
+    def _start_recording(self):
+        self._control_time_start = time.time()
+        self._start_playback()
+
+        if not self._write_csv:
+            self._logger.error("Can't record - No output file specified! Please specify on with --record")
+            return
+
+        self._logger.info("Starting Recording!")
+        self._recording = True
+
+    def _start_playback(self):
+        """ Starts playing back input instructions file if one specified
+        """
+        if self._servo_controller.any_instructions_loaded():
+            self._servo_controller.execute_instructions()
+        else:
+            self._logger.error("Can't playback - No input file specified, or already executed!")
+
     # CSV WRITING
     # =========================================================================
 
     def _write_position_instruction(self, positions):
+        if not self._recording:
+            return
+
         self._instruction_writer.write_instruction(self._control_time_offset(), InstructionTypes.POSITION, positions)
 
     def _write_stop_instruction(self, servos):
+        if not self._recording:
+            return
+
         self._instruction_writer.write_instruction(self._control_time_offset(), InstructionTypes.STOP, list(servos))
