@@ -38,7 +38,7 @@ class JoystickControlDriver:
             self.playback_filename = args.input_file
             self.servo_controller.prepare_instructions(self.playback_filename)
 
-        self.joystick_controller = JoystickServoController(self.servo_communicator, self.servo_controller)
+        self.joystick_controller = JoystickServoController(self.servo_controller)
         if args.output_file is not None:
             self.joystick_controller.record_to_file(args.output_file)
 

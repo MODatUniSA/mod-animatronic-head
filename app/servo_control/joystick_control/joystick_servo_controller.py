@@ -16,12 +16,11 @@ from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
-    def __init__(self, servo_communicator, servo_controller=None):
+    def __init__(self, servo_controller):
         self._logger = logging.getLogger('joystick_servo_controller')
         self._write_csv = False
         self._servo_controller = servo_controller
         self._control_time_start = time.time()
-        self._servo_communicator = servo_communicator
         self._should_quit = False
         self._map = JoystickServoMap()
         config = DeviceConfig.Instance()
@@ -39,26 +38,24 @@ class JoystickServoController:
         self._last_sent = {}
         self._last_pressed_states = []
 
-        # Default to not overwrite control if we're playing back existing instructions
-        self._use_left_stick = (servo_controller is None)
-        self._use_right_stick = (servo_controller is None)
+        self._use_left_stick = False
+        self._use_right_stick = False
 
     def record_to_file(self, output_filename):
         """ Tells this class to record servo positions to a file, and which file to write to
         """
         self._write_csv = True
         self._instruction_writer = InstructionWriter(output_filename)
-        if self._servo_controller is not None:
-            self._servo_controller.add_move_instruction_callback(self._write_position_instruction)
-            self._servo_controller.add_stop_instruction_callback(self._write_stop_instruction)
+        self._servo_controller.add_move_instruction_callback(self._write_position_instruction)
+        self._servo_controller.add_stop_instruction_callback(self._write_stop_instruction)
 
     @asyncio.coroutine
     def run(self):
         """ Start processing joystick control.
             If playing back existing instructions, this starts them running.
         """
-        if self._servo_controller is not None:
-            self._servo_controller.execute_instructions()
+
+        self._servo_controller.execute_instructions()
 
         while not self._should_quit:
             self._process_pygame_events()
@@ -130,9 +127,6 @@ class JoystickServoController:
                     instruction_iterator.iterate_instructions()
 
     def _clear_control_override(self, axes):
-        if self._servo_controller is None:
-            return
-
         # Uncache the last positions sent for these axes
         for axis in axes:
             self._last_sent.pop(axis, None)
@@ -175,16 +169,8 @@ class JoystickServoController:
 
         self._last_sent[axis] = servo_positions
 
-        # If we have a playback controller, pass it position overrides for any
-        # control it is performing independently
-        if self._servo_controller is not None:
-            self._servo_controller.override_control(servo_positions)
-            return
+        self._servo_controller.override_control(servo_positions)
 
-        # We only perform movement and writing in here if we don't have a playback controller
-        if self._write_csv:
-            self._write_position_instruction(pos_dict)
-        self._servo_communicator.move_to(servo_positions)
 
     # INTERNAL HELPERS
     # =========================================================================
