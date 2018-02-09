@@ -11,6 +11,8 @@ import time
 
 from libs.logging.logger_creator import LoggerCreator
 from libs.asyncio.test_functions import AsyncioTestFunctions
+from libs.slack_integration.slack_bot import SlackBot
+from libs.config.device_config import DeviceConfig
 
 from app.playback.audio.audio_playback_controller import AudioPlaybackController
 from app.playback.playback_controller import PlaybackController
@@ -36,6 +38,7 @@ class AHDriver:
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
         self.loop                  = asyncio.get_event_loop()
+        config                     = DeviceConfig.Instance()
         audio_playback_controller  = AudioPlaybackController()
         servo_communicator         = ServoCommunicator()
         servo_controller           = ServoController(servo_communicator)
@@ -46,6 +49,8 @@ class AHDriver:
         self._user_detector        = UserDetector(camera_processor)
         self.experience_controller = ExperienceController(interaction_loop_executor, self._user_detector)
         self._tf = AsyncioTestFunctions()
+        token = config.options['SLACK']['TOKEN']
+        self._slack_bot = SlackBot(token)
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
@@ -53,6 +58,7 @@ class AHDriver:
         self._assign_interrupt_handler()
 
         try:
+            self._slack_bot.run()
             self._user_detector.run()
             self.experience_controller.run()
             self.loop.run_forever()
@@ -65,6 +71,7 @@ class AHDriver:
                 os.system('shutdown now')
 
     def stop(self):
+        self._slack_bot.stop()
         self.experience_controller.stop()
         self._user_detector.stop()
         # HACK: Give things time to exit gracefully. Should make the stop() functions coroutines and wait on them to complete
