@@ -8,11 +8,13 @@ import argparse
 import os
 import random
 import time
+from concurrent.futures import CancelledError
 
 from libs.logging.logger_creator import LoggerCreator
 from libs.asyncio.test_functions import AsyncioTestFunctions
 from libs.slack_integration.slack_bot import SlackBot
 from libs.config.device_config import DeviceConfig
+from libs.heartbeat.heartbeater import Heartbeater
 
 from app.playback.audio.audio_playback_controller import AudioPlaybackController
 from app.playback.playback_controller import PlaybackController
@@ -39,6 +41,10 @@ class AHDriver:
 
         self.loop                  = asyncio.get_event_loop()
         config                     = DeviceConfig.Instance()
+        heartbeat_config           = config.options['HEARTBEAT']
+        heartbeat_url              = heartbeat_config['HEARTBEAT_PUSH_URL']
+        heartbeat_period           = heartbeat_config.getfloat('HEARTBEAT_PUSH_PERIOD_SECONDS')
+        self._heartbeater          = Heartbeater(heartbeat_url, heartbeat_period)
         audio_playback_controller  = AudioPlaybackController()
         servo_communicator         = ServoCommunicator()
         servo_controller           = ServoController(servo_communicator)
@@ -47,10 +53,11 @@ class AHDriver:
         playback_controller        = PlaybackController(audio_playback_controller, servo_controller, eye_controller)
         interaction_loop_executor  = InteractionLoopExecutor(playback_controller)
         self._user_detector        = UserDetector(camera_processor)
-        self.experience_controller = ExperienceController(interaction_loop_executor, self._user_detector)
-        self._tf = AsyncioTestFunctions()
+        self._experience_controller = ExperienceController(interaction_loop_executor, self._user_detector)
+        self._tf                   = AsyncioTestFunctions()
         token = config.options['SLACK']['TOKEN']
         self._slack_bot = SlackBot(token)
+        self._tasks = [self._heartbeater.run()]
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
@@ -60,8 +67,10 @@ class AHDriver:
         try:
             self._slack_bot.run()
             self._user_detector.run()
-            self.experience_controller.run()
-            self.loop.run_forever()
+            self._experience_controller.run()
+            self.loop.run_until_complete(asyncio.wait(self._tasks))
+        except CancelledError:
+            self._logger.debug("Event loop tasks have been cancelled!")
         finally:
             self._logger.debug("Closing Event Loop")
             self.loop.close()
@@ -71,12 +80,14 @@ class AHDriver:
                 os.system('shutdown now')
 
     def stop(self):
+        self._heartbeater.stop()
         self._slack_bot.stop()
-        self.experience_controller.stop()
+        self._experience_controller.stop()
         self._user_detector.stop()
+        list(map(lambda task: task.cancel(), asyncio.Task.all_tasks()))
+
         # HACK: Give things time to exit gracefully. Should make the stop() functions coroutines and wait on them to complete
-        time.sleep(1)
-        self.loop.stop()
+        time.sleep(2)
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================
