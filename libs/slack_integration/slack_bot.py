@@ -34,13 +34,16 @@ class SlackBot:
 
     def run(self):
         self._logger.info("Slack Bot Starting")
-        self._running_routine = self._loop.run_in_executor(None, self._run)
+        self._running_routine = self._loop.run_in_executor(None, self._perform_run)
 
     def stop(self):
         self._logger.info("Slack bot stopping")
         self._post_message("OK, shutting down.")
         self._set_presence('away')
         self._should_quit = True
+
+    # INTERNAL METHODS
+    # =========================================================================
 
     def _post_message(self, message_text, channel = None):
         """ Posts a message to slack and returns the API response
@@ -65,6 +68,19 @@ class SlackBot:
             'users.setPresence',
             presence=presence
         )
+
+    def _perform_run(self):
+        """ Executes _run, wrapped in a try/except so errors aren't just squashed automatically by asyncio
+        """
+
+        # IDEA: Should we store the number of exceptions we hit here and automatically crash after a threshold hit?
+        #           Could save us spamming the logs with a single repeated error
+        while not self._should_quit:
+            try:
+                self._run()
+            except RuntimeError as err:
+                self._logger.error("Error caught in SlackBot executor", exc_info=True)
+
 
     def _run(self):
         self._logger.info("Slack Bot Running")
@@ -110,9 +126,9 @@ class SlackBot:
             # IDEA: Would be ideal to know whether all components of the code (experience controller and user detector) are running correctly. This really only tests that the slack integration code is running. But it's a start.
             response = "I'm up and running!"
         elif command.startswith('simulate error'):
-            self._logger.warning("Simulating error!")
+            self._logger.warning("Simulating error!", extra={'stack': True})
             self._post_message("Got it! Crashing!")
-            raise RuntimeError("Error!")
+            raise RuntimeError("Simulated Error!")
 
         # Sends the response back to the channel
         self._post_message(response)
