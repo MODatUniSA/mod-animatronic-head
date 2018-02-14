@@ -56,9 +56,7 @@ class CameraProcessor:
         self._camera = cv2.VideoCapture(self._camera_id)
         # Fetching and processing the camera feed is a heavy, blocking operation, so we run it in a separate thread
         # IDEA: Consider using a ProcessPool to run this in a separate process, which should mean we can offload it to a separate core
-        self._running_routine = self._loop.run_in_executor(None, self._process_camera_feed)
-        # self._process_camera_feed()
-
+        self._running_routine = self._loop.run_in_executor(None, self._perform_run)
 
     def stop(self):
         """ Stops processing the camera and performs any required cleanup
@@ -71,6 +69,13 @@ class CameraProcessor:
 
     # CAMERA PROCESSING
     # =========================================================================
+
+    def _perform_run(self):
+        while not self._should_quit:
+            try:
+                self._process_camera_feed()
+            except RuntimeError as err:
+                self._logger.error("Error caught in CameraProcessor executor", exc_info=True)
 
     def _process_camera_feed(self):
         """ Processes frames from the camera, looking for faces

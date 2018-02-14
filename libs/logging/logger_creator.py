@@ -5,8 +5,16 @@ Driver should call LoggerCreator().create_logger() before any calls to logger_fo
 """
 
 import sys
+import os
 import logging
 from logging.handlers import RotatingFileHandler
+
+# Sentry Integration
+from raven import Client, fetch_git_sha
+from raven.handlers.logging import SentryHandler
+from raven.conf import setup_logging
+
+from libs.config.device_config import DeviceConfig
 
 class LoggerCreator:
     def create_logger(self, path=None):
@@ -47,7 +55,31 @@ class LoggerCreator:
         logger.addHandler(verbose_handler)
         logger.addHandler(console_handler)
 
+        sentry_config = DeviceConfig.Instance().options['SENTRY']
+        if sentry_config.getboolean('ENABLED'):
+            dsn = sentry_config["DSN"]
+            environment = sentry_config["ENVIRONMENT"]
+            type(self)._setup_sentry_integration(dsn, environment, formatter)
+
         return logger
+
+    @classmethod
+    def _setup_sentry_integration(cls, dsn, environment, formatter):
+        # IDEA: May want to create client in singleton proxy, so other parts of the code can access
+        #       Do this if we want to send messages in any other way
+        client = Client(
+            dsn=dsn,
+            environment=environment,
+            include_paths=['app', 'libs'],
+            # FIXME: want to automatically set release by git sha
+            # release=fetch_git_sha(os.path.dirname(__file__)),
+            repos={'raven' : {'name': 'wearesandpit/almost-human'}},
+        )
+
+        handler = SentryHandler(client)
+        handler.setLevel(logging.WARNING)
+        handler.setFormatter(formatter)
+        setup_logging(handler)
 
     @staticmethod
     def logger_for(name):
