@@ -30,9 +30,8 @@ class Heartbeater:
             except CancelledError:
                 self._logger.debug("Task has been cancelled!")
                 break
-            except Exception as err:
-                self._logger.error("Heatbeat ping failed!")
-                self._logger.exception(err)
+            except RuntimeError:
+                self._logger.error("Heatbeat ping failed!", exc_info=True)
 
     def stop(self):
         self._logger.debug("Stopping Heartbeater")

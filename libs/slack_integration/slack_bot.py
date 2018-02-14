@@ -78,7 +78,7 @@ class SlackBot:
         while not self._should_quit:
             try:
                 self._run()
-            except RuntimeError as err:
+            except RuntimeError:
                 self._logger.error("Error caught in SlackBot executor", exc_info=True)
 
 
