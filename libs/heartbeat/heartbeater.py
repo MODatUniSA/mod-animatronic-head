@@ -34,7 +34,6 @@ class Heartbeater:
                 self._logger.error("Heatbeat ping failed!")
                 self._logger.exception(err)
 
-
     def stop(self):
         self._logger.debug("Stopping Heartbeater")
         self._should_quit = True
