@@ -57,7 +57,7 @@ class AHDriver:
         self._tf                   = AsyncioTestFunctions()
         token = config.options['SLACK']['TOKEN']
         self._slack_bot = SlackBot(token)
-        self._tasks = [self._heartbeater.run()]
+        self._tasks = [self._heartbeater.run(), self._tf.output_loop_count()]
 
     def run(self):
         self._logger.info("Almost Human driver starting.")

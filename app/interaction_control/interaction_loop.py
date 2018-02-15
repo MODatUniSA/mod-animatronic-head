@@ -13,11 +13,13 @@ import csv
 
 from app.interaction_control.interaction_type import InteractionType
 from app.interaction_control.interaction_map import InteractionMap
+from app.playback.audio.audio_cache import AudioCache
 
 # REVISE: Either need a .random() factory method in here to fetch and load a random loop file,
 #         or need to create an InteractionLoopList class with a random() method
 class InteractionLoop:
     def __init__(self, loop_file):
+        self.audio_files = []
         self._current_interaction_type = None
         self._iterator = None
         self._interactions = {
@@ -44,6 +46,14 @@ class InteractionLoop:
         self._ensure_iterator_current(interaction_type)
         return next(self._iterator, None)
 
+    def cache_all_audio(self):
+        """ Caches all audio files referenced by interactions in this loop
+        """
+
+        audio_cache = AudioCache.Instance()
+        for audio_file in self.audio_files:
+            audio_cache.load_sound(audio_file)
+
     # INTERAL HELPERS
     # =========================================================================
 
@@ -61,6 +71,8 @@ class InteractionLoop:
         interaction = self._interaction_map.get(interaction_info['interaction_name'])
         if interaction is not None:
             self._interactions[interaction_type].append(interaction)
+            if interaction.voice_file not in ['', None]:
+                self.audio_files.append(interaction.voice_file)
 
     def _ensure_iterator_current(self, interaction_type):
         if self._current_interaction_type != interaction_type:

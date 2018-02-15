@@ -5,8 +5,6 @@ import logging
 from libs.callback_handling.callback_manager import CallbackManager
 from app.interaction_control.interaction_type import InteractionType
 
-# TODO: Need a way to interrupt this execution, so we can transition between states early based on user behaviour
-
 class InteractionLoopExecutor:
     callbacks = ['idle_complete', 'activation_complete', 'active_complete', 'deactivation_complete']
 
@@ -35,6 +33,10 @@ class InteractionLoopExecutor:
 
     def set_interaction_loop(self, interaction_loop):
         self._interaction_loop = interaction_loop
+        # REVISE: This will cache all audio as soon as we're passed an interaction loop,
+        # and will only hold up running the loop until the first audio file is loaded.
+        # This might not be the best place to cache the audio, but I'm not sure where would be better at present.
+        self._interaction_loop.cache_all_audio()
 
     def queue_execution(self, interaction_type, interrupt=False):
         """ Queues execution of all interactions of the argument type, triggering a callback when all are complete
