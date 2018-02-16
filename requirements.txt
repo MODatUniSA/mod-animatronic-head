@@ -26,6 +26,7 @@ pytest==3.3.2
 pytest-mock==1.6.3
 python-dateutil==2.6.1
 pytz==2017.3
+raven==6.5.0
 requests==2.18.4
 six==1.11.0
 slackclient==1.1.2
