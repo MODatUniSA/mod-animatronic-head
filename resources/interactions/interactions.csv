@@ -1,0 +1,17 @@
+name,voice_file,phoneme_file,animation_file,eye_control_type
+own_thing_1_all,own_thing_2.ogg,own_thing_1_phonemes.csv,own_thing_1_animation.csv,INHERIT
+own_thing_2_all,own_thing_2.ogg,own_thing_1_phonemes.csv,own_thing_1_animation.csv,INHERIT
+own_thing_3_all,own_thing_3.ogg,own_thing_1_phonemes.csv,own_thing_1_animation.csv,INHERIT
+own_thing_4_all,own_thing_4.ogg,own_thing_1_phonemes.csv,own_thing_1_animation.csv,INHERIT
+own_thing_5_all,own_thing_5.ogg,own_thing_1_phonemes.csv,own_thing_1_animation.csv,INHERIT
+own_thing_1_only_audio,own_thing_1.ogg,,,INHERIT
+own_thing_1_audio_anim,own_thing_1.ogg,,own_thing_1_animation.csv,INHERIT
+own_thing_1_audio_phoneme,own_thing_1.ogg,own_thing_1_phonemes.csv,,INHERIT
+own_thing_1_only_anim,,,own_thing_1_animation.csv,INHERIT
+own_thing_1_only_phoneme,,own_thing_1_phonemes.csv,,INHERIT
+none,,,,INHERIT
+test_loop_idle,,,idle_asleep.csv,INHERIT
+test_loop_activating,,,activating_waking.csv,INHERIT
+test_loop_active,,,active_awake_w_jaw.csv,INHERIT
+test_loop_active_do_nothing,,,active_do_nothing.csv,TRACK
+test_loop_deactivating,,,deactivating_sleepy.csv,INHERIT

@@ -1,0 +1,10 @@
+state,interaction_name
+ACTIVATING,transition_1
+ACTIVATING,hello_1
+ACTIVE,transition_2
+ACTIVE,own_thing_1
+ACTIVE,transition_3
+ACTIVE,go_away_1
+DEACTIVATING,transition_4
+DEACTIVATING,tired_1
+IDLE,breathing_1

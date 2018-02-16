@@ -1,0 +1,6 @@
+state,interaction_name
+IDLE,own_thing_1_all
+ACTIVATING,own_thing_2_all
+ACTIVE,own_thing_3_all
+ACTIVE,own_thing_4_all
+DEACTIVATING,own_thing_5_all

@@ -1,0 +1,7 @@
+state,interaction_name
+IDLE,own_thing_1_only_anim
+ACTIVATING,own_thing_1_only_audio
+ACTIVE,own_thing_1_audio_anim
+ACTIVE,own_thing_1_audio_phoneme
+ACTIVE,own_thing_1_all
+DEACTIVATING,own_thing_1_only_audio

@@ -1,0 +1,5 @@
+state,interaction_name
+IDLE,test_loop_idle
+ACTIVATING,test_loop_activating
+ACTIVE,test_loop_active_do_nothing
+DEACTIVATING,test_loop_deactivating
