@@ -16,14 +16,14 @@ class AudioPlaybackController:
     def __init__(self):
         self._logger = LoggerCreator.logger_for('audio_playback_controller')
         self._init_pygame_mixer()
-        self._audio_cache                    = AudioCache()
+        self._audio_cache                    = AudioCache.Instance()
         self._audio_filename                 = None
         self._delayed_post_playback_callback = None
         self._cbm = CallbackManager(['post_playback', 'sound_prepared'], self)
         self._loop                           = asyncio.get_event_loop()
 
-    def prepare_sound(self, audio_file, callback=None):
-        """ Prepares a sound for playback
+    def prepare_sound(self, audio_file):
+        """ Prepares a sound for playback, and stops anything currently playing
         """
 
         if not PathHelper.is_valid_audio_file(audio_file):

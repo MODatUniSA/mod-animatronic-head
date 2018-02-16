@@ -98,7 +98,9 @@ class ExperienceController:
 
     def _random_interaction_loop(self):
         # TODO: Return actual random loop. Probably by calling InteractionLoop.random().
-        return InteractionLoop('resources/interaction_loops/new_head_test_loop.csv')
+
+        # return InteractionLoop('resources/interaction_loops/new_head_test_loop.csv')
+        return InteractionLoop('resources/interaction_loops/own_thing_loop_all_audio.csv')
 
     def _build_state_machine(self):
         """ Builds the state machine and adds all state transitions
