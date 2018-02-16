@@ -213,7 +213,7 @@ class JoystickServoController:
 
     def _start_recording_countdown(self):
         if not self._write_csv:
-            self._logger.error("Can't record - No output file specified! Please specify on with --record")
+            self._logger.error("Can't record - No output file specified! Please specify one with --record")
             return
 
         asyncio.async(self._async_start_recording_countdown())
