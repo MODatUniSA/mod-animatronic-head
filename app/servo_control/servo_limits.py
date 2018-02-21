@@ -8,10 +8,9 @@ from app.servo_control.servo_map import ServoMap
 
 # REVISE: Mid position is never used
 class ServoLimit:
-    def __init__(self, lower, mid, upper):
+    def __init__(self, lower, upper):
         self.upper = upper
         self.lower = lower
-        self.mid   = mid
 
     def to_limited_position(self, position):
         """ Returns a position within upper and lower bounds for this limit
@@ -32,17 +31,17 @@ class ServoLimits(dict):
         return self[ServoMap(pin)].to_limited_position(position)
 
     def _build_limit_map(self):
-        self[ServoMap.JAW]                = ServoLimit(1440,1520,1600)
-        self[ServoMap.LIPS_UPPER]         = ServoLimit(1430,1480,1530)
-        self[ServoMap.LIPS_RIGHT]         = ServoLimit(1220,1385,1550)
-        self[ServoMap.LIPS_LEFT]          = ServoLimit(1530,1690,1850)
-        self[ServoMap.LIPS_LOWER]         = ServoLimit(1550,1650,1750)
-        self[ServoMap.EYES_X]             = ServoLimit(1380,1465,1550)
-        self[ServoMap.EYE_RIGHT_Y]        = ServoLimit(1510,1570,1630)
-        self[ServoMap.EYE_LEFT_Y]         = ServoLimit(1440,1520,1600)
-        self[ServoMap.EYELID_RIGHT_UPPER] = ServoLimit(1650,1720,1790)
-        self[ServoMap.EYELID_RIGHT_LOWER] = ServoLimit(1250,1340,1430)
-        self[ServoMap.EYELID_LEFT_UPPER]  = ServoLimit(1260,1330,1400)
-        self[ServoMap.EYELID_LEFT_LOWER]  = ServoLimit(1500,1610,1720)
-        self[ServoMap.EYEBROW_RIGHT]      = ServoLimit(1570,1585,1600)
-        self[ServoMap.EYEBROW_LEFT]       = ServoLimit(1520,1545,1570)
+        self[ServoMap.JAW]                = ServoLimit(750,1950)
+        self[ServoMap.LIPS_UPPER]         = ServoLimit(750,2200)
+        self[ServoMap.LIPS_RIGHT]         = ServoLimit(800,1500)
+        self[ServoMap.LIPS_LEFT]          = ServoLimit(850,1500)
+        self[ServoMap.LIPS_LOWER]         = ServoLimit(1500,2200)
+        self[ServoMap.EYES_X]             = ServoLimit(1380,1550)
+        self[ServoMap.EYE_RIGHT_Y]        = ServoLimit(1510,1630)
+        self[ServoMap.EYE_LEFT_Y]         = ServoLimit(1440,1600)
+        self[ServoMap.EYELID_RIGHT_UPPER] = ServoLimit(1650,1790)
+        self[ServoMap.EYELID_RIGHT_LOWER] = ServoLimit(1250,1430)
+        self[ServoMap.EYELID_LEFT_UPPER]  = ServoLimit(1260,1400)
+        self[ServoMap.EYELID_LEFT_LOWER]  = ServoLimit(1500,1720)
+        self[ServoMap.EYEBROW_RIGHT]      = ServoLimit(1150,1500)
+        self[ServoMap.EYEBROW_LEFT]       = ServoLimit(1550,1650)
