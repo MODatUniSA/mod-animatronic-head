@@ -8,6 +8,7 @@ import argparse
 import os
 import random
 import time
+import threading
 from concurrent.futures import CancelledError
 
 from libs.logging.logger_creator import LoggerCreator
@@ -67,6 +68,7 @@ class AHDriver:
 
     def run(self):
         self._logger.info("Almost Human driver starting.")
+        self._logger.info("AH Driver Thread: %s", threading.current_thread().name)
 
         self._assign_interrupt_handler()
 
@@ -90,6 +92,7 @@ class AHDriver:
         self._slack_bot.stop()
         self._experience_controller.stop()
         self._user_detector.stop()
+        # REVISE: We may want to cancel any tasks using call_soon_threadsafe
         list(map(lambda task: task.cancel(), asyncio.Task.all_tasks()))
 
         # HACK: Give things time to exit gracefully. Should make the stop() functions coroutines and wait on them to complete

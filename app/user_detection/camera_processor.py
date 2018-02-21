@@ -6,7 +6,10 @@ import asyncio
 import time
 import logging
 import functools
+import threading
 from collections import OrderedDict
+from queue import Queue, Empty, Full
+from contextlib import suppress
 
 import numpy as np
 import cv2
@@ -32,11 +35,14 @@ class CameraProcessor:
 
         self._camera = None
         self._should_quit = False
-        self._running_routine = None
+        self._processing_routine = None
+        self._display_routine = None
+        self._frame_queue = None
 
         # Displaying frames for debugging
         # FIXME: See note on _display_frame()
-        self._display_frames = False
+        # TODO: Add to config
+        self._display_frames = True
         self._font = cv2.FONT_HERSHEY_SIMPLEX
 
         self._frame_count = 0
@@ -56,13 +62,20 @@ class CameraProcessor:
         self._camera = cv2.VideoCapture(self._camera_id)
         # Fetching and processing the camera feed is a heavy, blocking operation, so we run it in a separate thread
         # IDEA: Consider using a ProcessPool to run this in a separate process, which should mean we can offload it to a separate core
-        self._running_routine = self._loop.run_in_executor(None, self._perform_run)
+        self._processing_routine = self._loop.run_in_executor(None, self._perform_run)
+
+        if self._display_frames:
+            self._frame_queue = Queue(maxsize=1)
+            cv2.namedWindow("Frame", cv2.WINDOW_AUTOSIZE)
+            # cv2.startWindowThread()
+            # self._display_routine = self._loop.run_in_executor(None, self._perform_display_frames)
+            asyncio.async(self._perform_display_frames())
 
     def stop(self):
         """ Stops processing the camera and performs any required cleanup
         """
 
-        self._running_routine.cancel()
+        self._processing_routine.cancel()
         self._should_quit = True
         self._camera.release()
         cv2.destroyAllWindows()
@@ -106,7 +119,7 @@ class CameraProcessor:
 
             # HACK: Not actually processing any keypresses,
             #       but the frame capture loop won't iterate unless this waitKey command is present
-            k = cv2.waitKey(30) & 0xff
+            # k = cv2.waitKey(30) & 0xff
 
     def _process_frame(self, frame):
         """ Processes a single image/frame from the camera
@@ -120,7 +133,8 @@ class CameraProcessor:
             self._detect_faces(frame)
 
         if self._display_frames:
-            self._display_frame(frame)
+            with suppress(Full):
+                self._frame_queue.put_nowait(frame)
 
     def _should_detect_faces_on_this_frame(self):
         """ We only detect faces when frame count is a multiple of our frame count interval (e.g. every 10 frames)
@@ -128,12 +142,27 @@ class CameraProcessor:
 
         return (self._frame_count % self._face_detection_frame_interval) == 0
 
-    # FIXME: cv2.imshow can only be called from the main thread, so we can't just call this from our
-    #           BG thread running the frame processing. Need to pass data between BG and main thread via a Queue.
-    #           Would require an async loop running in the foreground thread to process the queue
+    @asyncio.coroutine
+    def _perform_display_frames(self):
+        self._logger.info("Performing Display Frames: %s", threading.current_thread().name)
+        while not self._should_quit:
+            try:
+                if not self._frame_queue.empty():
+                    with suppress(Empty):
+                        # frame = self._frame_queue.get_nowait()
+                        # self._loop.call_soon_threadsafe(self._display_frame, frame)
+                        self._display_frame(self._frame_queue.get_nowait())
+                        # self._logger.info("Showing Frame: %s", frame)
+                k = cv2.waitKey(30) & 0xff
+                yield from asyncio.sleep(self._frame_period_seconds)
+            except RuntimeError as err:
+                self._logger.error("Error caught in CameraProcessor frame display", exc_info=True)
+
     def _display_frame(self, frame):
         """ Shows the captured frame with rectangles around any faces and eyes found
         """
+
+        self._logger.info("Displaying Frame: %s", threading.current_thread().name)
 
         for face_index, tracker in self._face_trackers.items():
             tracked_position = tracker.get_position()
