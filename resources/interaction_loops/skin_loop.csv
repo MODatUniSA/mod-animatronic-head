@@ -1,0 +1,5 @@
+state,interaction_name
+IDLE,skin_loop_idle
+ACTIVATING,skin_loop_activating
+ACTIVE,skin_loop_active
+DEACTIVATING,skin_loop_deactivating
