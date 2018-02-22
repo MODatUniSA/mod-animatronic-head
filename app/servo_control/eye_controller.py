@@ -12,6 +12,7 @@ from libs.config.device_config import DeviceConfig
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_positions import ServoPositions
 from app.servo_control.image_to_servo_position_converter import ImageToServoPositionConverter
+from libs.callback_handling.callback_manager import CallbackManager
 
 class EyeController:
     def __init__(self, camera_processor, servo_communicator):
@@ -19,10 +20,12 @@ class EyeController:
         self._servo_communicator = servo_communicator
         self._image_to_servo_position_converter = ImageToServoPositionConverter()
         self._logger = logging.getLogger('eye_controller')
+        self._cbm = CallbackManager(['target_updated'], self)
         config = DeviceConfig.Instance()
         user_detection_config = config.options['USER_DETECTION']
         self._eye_track_speed = user_detection_config.getint('EYE_TRACK_SPEED')
 
+        self._target_face_id = None
         self._tracking = False
 
         self._camera_processor.add_face_detected_callback(self._on_face_detected)
@@ -48,7 +51,17 @@ class EyeController:
 
         # Results are ordered by the time they were detected, so using the first should keep us
         # looking at the same face while it is detected
-        position = next(iter(faces.values())).get_position()
+        # TODO: If we've been looking at the same face for long enough, change target face
+        try:
+            face_id, position_info = next(iter(faces.items()))
+            position = position_info.get_position()
+        except StopIteration:
+            return
+
+        if face_id != self._target_face_id:
+            self._logger.info("Tracking face: %s", face_id)
+            self._target_face_id = face_id
+
         coordinates = [
             int(position.left()),
             int(position.top()),
@@ -72,6 +85,7 @@ class EyeController:
         x_val = int(lerp(x, x+w, x_percent))
         y_val = int(lerp(y, y+h, y_percent))
         target_point = (x_val, y_val)
+        self._cbm.trigger_target_updated_callback(target_point)
         self._move_eyes_to_image_point(target_point)
 
     def _move_eyes_to_image_point(self, point):

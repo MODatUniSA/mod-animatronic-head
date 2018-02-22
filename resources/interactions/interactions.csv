@@ -15,7 +15,7 @@ test_loop_activating,,,activating_waking.csv,INHERIT
 test_loop_active,,,active_awake_w_jaw.csv,INHERIT
 test_loop_active_do_nothing,,,active_do_nothing.csv,TRACK
 test_loop_deactivating,,,deactivating_sleepy.csv,INHERIT
-skin_loop_idle,,,s_idle_3.csv,INHERIT
-skin_loop_activating,,,s_activating_2.csv,INHERIT
-skin_loop_active,,,s_active_2.csv,INHERIT
-skin_loop_deactivating,,,s_deactivating_1.csv,INHERIT
+skin_loop_idle,,,s_idle_3.csv,TRACK
+skin_loop_activating,,,s_activating_2.csv,TRACK
+skin_loop_active,,,s_active_2.csv,TRACK
+skin_loop_deactivating,,,s_deactivating_1.csv,TRACK

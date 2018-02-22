@@ -22,7 +22,7 @@ from libs.config.device_config import DeviceConfig
 class CameraProcessor:
     def __init__(self):
         self._logger = logging.getLogger('camera_processor')
-        self._cbm = CallbackManager(['face_detected'], self)
+        self._cbm = CallbackManager(['face_detected', 'frame_processed'], self)
         self._loop = asyncio.get_event_loop()
         config = DeviceConfig.Instance()
         user_detection_config = config.options['USER_DETECTION']
@@ -36,19 +36,16 @@ class CameraProcessor:
         self._camera = None
         self._should_quit = False
         self._processing_routine = None
-        self._display_routine = None
-        self._frame_queue = None
+        self.frame_queue = None
 
         # Displaying frames for debugging
-        # FIXME: See note on _display_frame()
-        # TODO: Add to config
+        # TODO: Add to config and/or command line options
         self._display_frames = True
-        self._font = cv2.FONT_HERSHEY_SIMPLEX
 
         self._frame_count = 0
         self._current_face_id = 0
         self._currently_tracked_count = 0
-        self._face_trackers = OrderedDict()
+        self.face_trackers = OrderedDict()
 
         # Cascades for detecting features in images
         self._face_front_cascade = cv2.CascadeClassifier('resources/cascades/haarcascade_frontalface_default.xml')
@@ -65,11 +62,8 @@ class CameraProcessor:
         self._processing_routine = self._loop.run_in_executor(None, self._perform_run)
 
         if self._display_frames:
-            self._frame_queue = Queue(maxsize=1)
-            cv2.namedWindow("Frame", cv2.WINDOW_AUTOSIZE)
-            # cv2.startWindowThread()
-            # self._display_routine = self._loop.run_in_executor(None, self._perform_display_frames)
-            asyncio.async(self._perform_display_frames())
+            self.frame_queue = Queue(maxsize=1)
+            asyncio.async(self._perform_notify_frame())
 
     def stop(self):
         """ Stops processing the camera and performs any required cleanup
@@ -104,12 +98,12 @@ class CameraProcessor:
                 grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 self._process_frame(grayscale_frame)
 
-                if len(self._face_trackers) != self._currently_tracked_count:
-                    self._currently_tracked_count = len(self._face_trackers)
+                if len(self.face_trackers) != self._currently_tracked_count:
+                    self._currently_tracked_count = len(self.face_trackers)
                     self._logger.info("Tracking %i Faces", self._currently_tracked_count)
 
-                if len(self._face_trackers) > 0:
-                    self._cbm.trigger_face_detected_callback(self._face_trackers, frame)
+                if len(self.face_trackers) > 0:
+                    self._cbm.trigger_face_detected_callback(self.face_trackers, frame)
 
             # REVISE: Should our wait time be based on how long the frame processing took?
             # Takes at least 2x as long to process if we can't find any front on faces and need to look for profile faces
@@ -119,6 +113,7 @@ class CameraProcessor:
 
             # HACK: Not actually processing any keypresses,
             #       but the frame capture loop won't iterate unless this waitKey command is present
+            # FIXME: Need to run here if not displaying frames
             # k = cv2.waitKey(30) & 0xff
 
     def _process_frame(self, frame):
@@ -134,7 +129,7 @@ class CameraProcessor:
 
         if self._display_frames:
             with suppress(Full):
-                self._frame_queue.put_nowait(frame)
+                self.frame_queue.put_nowait(frame)
 
     def _should_detect_faces_on_this_frame(self):
         """ We only detect faces when frame count is a multiple of our frame count interval (e.g. every 10 frames)
@@ -142,42 +137,30 @@ class CameraProcessor:
 
         return (self._frame_count % self._face_detection_frame_interval) == 0
 
+
     @asyncio.coroutine
-    def _perform_display_frames(self):
-        self._logger.info("Performing Display Frames: %s", threading.current_thread().name)
+    def _perform_notify_frame(self):
+        """ Notifies any listeners that a frame has been processed
+        """
+
         while not self._should_quit:
             try:
-                if not self._frame_queue.empty():
+                if not self.frame_queue.empty():
+                    self._logger.info("Getting frame")
                     with suppress(Empty):
-                        # frame = self._frame_queue.get_nowait()
-                        # self._loop.call_soon_threadsafe(self._display_frame, frame)
-                        self._display_frame(self._frame_queue.get_nowait())
-                        # self._logger.info("Showing Frame: %s", frame)
+                        frame = self.frame_queue.get_nowait()
+                        self._cbm.trigger_frame_processed_callback(frame)
+                        self.frame_queue.task_done()
+                else:
+                    self._logger.info("Frame buffer empty")
+
                 k = cv2.waitKey(30) & 0xff
                 yield from asyncio.sleep(self._frame_period_seconds)
             except RuntimeError as err:
                 self._logger.error("Error caught in CameraProcessor frame display", exc_info=True)
 
-    def _display_frame(self, frame):
-        """ Shows the captured frame with rectangles around any faces and eyes found
-        """
+        self._logger.info("Done")
 
-        self._logger.info("Displaying Frame: %s", threading.current_thread().name)
-
-        for face_index, tracker in self._face_trackers.items():
-            tracked_position = tracker.get_position()
-
-            x = int(tracked_position.left())
-            y = int(tracked_position.top())
-            w = int(tracked_position.width())
-            h = int(tracked_position.height())
-
-            cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-
-            tracked_center = center_point_ints(x,y,w,h)
-            cv2.putText(frame,str(face_index),tracked_center.tuple, self._font, 1, (200,255,155), 2, cv2.LINE_AA)
-
-        cv2.imshow('Frame', frame)
 
     # IDEA: Consider periodically clearing out all existing trackers regadless of quality
     #       Otherwise, if unchanging background ever considered face, it won't be dropped due to always high corrolation
@@ -187,7 +170,7 @@ class CameraProcessor:
         """
 
         to_delete = []
-        for face_id, tracker in self._face_trackers.items():
+        for face_id, tracker in self.face_trackers.items():
             tracking_quality = tracker.update(frame)
 
             if tracking_quality < self._min_tracking_quality:
@@ -195,7 +178,7 @@ class CameraProcessor:
 
         for face_id in to_delete:
             self._logger.debug("Removing face_id {} from list of trackers".format(face_id))
-            self._face_trackers.pop( face_id , None )
+            self.face_trackers.pop( face_id , None )
 
     # FEATURE DETECTION
     # =========================================================================
@@ -224,7 +207,7 @@ class CameraProcessor:
 
         face_center = center_point_ints(x,y,w,h)
 
-        for face_id, tracker in self._face_trackers.items():
+        for face_id, tracker in self.face_trackers.items():
             tracked_position =  tracker.get_position()
             t_x = int(tracked_position.left())
             t_y = int(tracked_position.top())
@@ -256,7 +239,7 @@ class CameraProcessor:
                                             y-20,
                                             x+w+10,
                                             y+h+20))
-        self._face_trackers[self._current_face_id] = tracker
+        self.face_trackers[self._current_face_id] = tracker
 
         self._current_face_id += 1
 
