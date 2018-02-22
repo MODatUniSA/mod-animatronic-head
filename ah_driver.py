@@ -12,7 +12,6 @@ from concurrent.futures import CancelledError
 
 from libs.logging.logger_creator import LoggerCreator
 from libs.asyncio.test_functions import AsyncioTestFunctions
-from libs.slack_integration.slack_bot import SlackBot
 from libs.config.device_config import DeviceConfig
 from libs.heartbeat.heartbeater import Heartbeater
 
@@ -38,6 +37,13 @@ class AHDriver:
         else:
             self._logger.info("Running Almost Human with mocked hardware")
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
+
+        if self.args.slack_enabled:
+            self._logger.info("Slack integration enabled")
+            from libs.slack_integration.slack_bot import SlackBot
+        else:
+            self._logger.info("Slack integration disabled")
+            from app.null_objects.null_slack_bot import NullSlackBot as SlackBot
 
         self.loop                  = asyncio.get_event_loop()
         config                     = DeviceConfig.Instance()
@@ -110,8 +116,11 @@ class AHDriver:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--no-hw", dest='hardware_present', action='store_false', help="Don't attempt to communicate with hardware. Used to test behaviour when no serial device connected")
+    parser.add_argument("-no-hw", dest='hardware_present', action='store_false', help="Don't attempt to communicate with hardware. Used to test behaviour when no serial device connected")
     parser.set_defaults(hardware_present=True)
+
+    parser.add_argument("-no-slack", dest='slack_enabled', action='store_false', help="Disable direct communication with slack")
+    parser.set_defaults(slack_enabled=True)
 
     parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output all logged info to the console")
     parser.set_defaults(verbose_output=False)
