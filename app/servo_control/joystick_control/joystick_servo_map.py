@@ -128,74 +128,74 @@ class ServoControlSets:
 
     EYES_Y = JoystickServoPositions(
         {
-            ServoMap.EYE_LEFT_Y.value : { 'position' : 1440 },
-            ServoMap.EYE_RIGHT_Y.value : { 'position' : 1630 }
+            ServoMap.EYE_LEFT_Y.value : { 'position' : 1350 },
+            ServoMap.EYE_RIGHT_Y.value : { 'position' : 1750 }
         },
         {
-            ServoMap.EYE_LEFT_Y.value : { 'position' : 1600 },
-            ServoMap.EYE_RIGHT_Y.value : { 'position' : 1510 }
+            ServoMap.EYE_LEFT_Y.value : { 'position' : 1550 },
+            ServoMap.EYE_RIGHT_Y.value : { 'position' : 1500 }
         }
     )
 
     EYES_X = JoystickServoPositions(
         {
-            ServoMap.EYES_X.value : { 'position' : 1380 },
+            ServoMap.EYES_X.value : { 'position' : 800 },
         },
         {
-            ServoMap.EYES_X.value : { 'position' : 1550 },
+            ServoMap.EYES_X.value : { 'position' : 2200 },
         }
     )
 
     EYELIDS = JoystickServoPositions(
         {
-            ServoMap.EYELID_RIGHT_UPPER.value : { 'position' : 1650 },
-            ServoMap.EYELID_RIGHT_LOWER.value : { 'position' : 1430 },
-            ServoMap.EYELID_LEFT_UPPER.value : { 'position' : 1400 },
-            ServoMap.EYELID_LEFT_LOWER.value : { 'position' : 1500 }
+            ServoMap.EYELID_RIGHT_UPPER.value : { 'position' : 800 },
+            ServoMap.EYELID_RIGHT_LOWER.value : { 'position' : 2200 },
+            ServoMap.EYELID_LEFT_UPPER.value : { 'position' : 2200 },
+            ServoMap.EYELID_LEFT_LOWER.value : { 'position' : 800 }
         },
         {
-            ServoMap.EYELID_RIGHT_UPPER.value : { 'position' : 1790 },
-            ServoMap.EYELID_RIGHT_LOWER.value : { 'position' : 1250 },
-            ServoMap.EYELID_LEFT_UPPER.value : { 'position' : 1260 },
-            ServoMap.EYELID_LEFT_LOWER.value : { 'position' : 1720 }
+            ServoMap.EYELID_RIGHT_UPPER.value : { 'position' : 2200 },
+            ServoMap.EYELID_RIGHT_LOWER.value : { 'position' : 800 },
+            ServoMap.EYELID_LEFT_UPPER.value : { 'position' : 800 },
+            ServoMap.EYELID_LEFT_LOWER.value : { 'position' : 2200 }
         }
     )
 
     EYEBROWS = JoystickServoPositions(
         {
-            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1150 },
-            ServoMap.EYEBROW_LEFT.value : { 'position' : 1650 },
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 800 },
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 2200 },
         },
         {
-            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1500 },
-            ServoMap.EYEBROW_LEFT.value : { 'position' : 1550 },
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 2200 },
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 800 },
         }
     )
 
     EYEBROW_LEFT = JoystickServoPositions(
         {
-            ServoMap.EYEBROW_LEFT.value : { 'position' : 1650 },
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 2200 },
         },
         {
-            ServoMap.EYEBROW_LEFT.value : { 'position' : 1550 },
+            ServoMap.EYEBROW_LEFT.value : { 'position' : 800 },
         }
     )
 
     EYEBROW_RIGHT = JoystickServoPositions(
         {
-            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1150 },
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 800 },
         },
         {
-            ServoMap.EYEBROW_RIGHT.value : { 'position' : 1500 },
+            ServoMap.EYEBROW_RIGHT.value : { 'position' : 2200 },
         }
     )
 
     JAW = JoystickServoPositions(
         {
-            ServoMap.JAW.value : { 'position' : 750 },
+            ServoMap.JAW.value : { 'position' : 800 },
         },
         {
-            ServoMap.JAW.value : { 'position' : 1950 },
+            ServoMap.JAW.value : { 'position' : 2200 },
         }
     )
 
@@ -205,33 +205,33 @@ class ServoControlSets:
             ServoMap.LIPS_UPPER.value : { 'position' : 2200 },
         },
         {
-            ServoMap.LIPS_LOWER.value : { 'position' : 1500 },
-            ServoMap.LIPS_UPPER.value : { 'position' : 750 },
+            ServoMap.LIPS_LOWER.value : { 'position' : 800 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 800 },
         }
     )
 
     LIPS_HORIZONTAL = JoystickServoPositions(
         {
             ServoMap.LIPS_RIGHT.value : { 'position' : 800 },
-            ServoMap.LIPS_LEFT.value : { 'position' : 1500 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 2200 },
         },
         {
-            ServoMap.LIPS_RIGHT.value : { 'position' : 1500 },
-            ServoMap.LIPS_LEFT.value : { 'position' : 850 },
+            ServoMap.LIPS_RIGHT.value : { 'position' : 2200 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 800 },
         }
     )
 
     LIPS_ALL = JoystickServoPositions(
         {
             ServoMap.LIPS_LOWER.value : { 'position' : 2200 },
-            ServoMap.LIPS_UPPER.value : { 'position' : 750 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 2200 },
             ServoMap.LIPS_RIGHT.value : { 'position' : 800 },
-            ServoMap.LIPS_LEFT.value : { 'position' : 1500 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 2200 },
         },
         {
-            ServoMap.LIPS_LOWER.value : { 'position' : 1500 },
-            ServoMap.LIPS_UPPER.value : { 'position' : 2200 },
-            ServoMap.LIPS_RIGHT.value : { 'position' : 1500 },
-            ServoMap.LIPS_LEFT.value : { 'position' : 850 },
+            ServoMap.LIPS_LOWER.value : { 'position' : 800 },
+            ServoMap.LIPS_UPPER.value : { 'position' : 800 },
+            ServoMap.LIPS_RIGHT.value : { 'position' : 2200 },
+            ServoMap.LIPS_LEFT.value : { 'position' : 800 },
         }
     )
