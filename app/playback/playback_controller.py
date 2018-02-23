@@ -66,8 +66,6 @@ class PlaybackController:
         """ Stop any audio and instructions of the currently playing interaction
         """
 
-        # REVISE: Do we need to know anything about the interaction at this stage? Need to pass/cache if so
-
         self._logger.info("Stopping currently executing interaction")
         self._servo_controller.stop_execution()
         self._audio_playback_controller.stop_sound()

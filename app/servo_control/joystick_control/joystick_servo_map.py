@@ -93,6 +93,7 @@ class JoystickServoPositions:
 class JoystickServoMap(dict):
     def __init__(self):
         self._build_map()
+        super().__init__()
 
     def controlled_servos(self, axes):
         """ Returns the set of servos that are controlled by the argument axes

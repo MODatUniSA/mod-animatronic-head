@@ -1,5 +1,6 @@
 """ Takes in a camera feed and uses Open CV cascades to find faces in the frames
-    dlib correlation tracking adapted from https://github.com/gdiepen/face-recognition/blob/master/track%20multiple%20faces/demo%20-%20track%20multiple%20faces.py
+    dlib correlation tracking adapted from
+    https://github.com/gdiepen/face-recognition/blob/master/track%20multiple%20faces/demo%20-%20track%20multiple%20faces.py
 """
 
 import asyncio
@@ -26,7 +27,6 @@ class CameraProcessor:
         self._loop = asyncio.get_event_loop()
         config = DeviceConfig.Instance()
         user_detection_config = config.options['USER_DETECTION']
-        self._display_frames = user_detection_config.getboolean('DISPLAY_FRAMES')
         self._frame_period_seconds = user_detection_config.getfloat('FRAME_PERIOD_SECONDS')
         self._camera_id = user_detection_config.getint('CAMERA_ID')
         self._locate_eyes = user_detection_config.getboolean('LOCATE_EYES')
@@ -37,31 +37,32 @@ class CameraProcessor:
         self._camera = None
         self._should_quit = False
         self._processing_routine = None
-        self.frame_queue = None
-
-
+        self.frame_queue = Queue(maxsize=1)
         self._frame_count = 0
         self._current_face_id = 0
         self._currently_tracked_count = 0
         self.face_trackers = OrderedDict()
 
         # Cascades for detecting features in images
-        self._face_front_cascade = cv2.CascadeClassifier('resources/cascades/haarcascade_frontalface_default.xml')
-        self._face_profile_cascade = cv2.CascadeClassifier('resources/cascades/haarcascade_profileface.xml')
-        self._eye_cascade = cv2.CascadeClassifier('resources/cascades/haarcascade_eye.xml')
+        face_front_cascade_file = 'resources/cascades/haarcascade_frontalface_default.xml'
+        face_profile_cascade_file = 'resources/cascades/haarcascade_profileface.xml'
+        eye_cascade_file = 'resources/cascades/haarcascade_eye.xml'
+        self._face_front_cascade = cv2.CascadeClassifier(face_front_cascade_file)
+        self._face_profile_cascade = cv2.CascadeClassifier(face_profile_cascade_file)
+        self._eye_cascade = cv2.CascadeClassifier(eye_cascade_file)
 
     def run(self):
-        """ Starts taking a feed from the camera and triggers the face detected callback whenever a face is found
+        """ Starts taking a feed from the camera and triggers the face detected
+            callback whenever a face is found
         """
 
         self._camera = cv2.VideoCapture(self._camera_id)
-        # Fetching and processing the camera feed is a heavy, blocking operation, so we run it in a separate thread
-        # IDEA: Consider using a ProcessPool to run this in a separate process, which should mean we can offload it to a separate core
+        # Fetching and processing the camera feed is a heavy, blocking operation,
+        # so we run it in a separate thread
+        # IDEA: Consider using a ProcessPool to run this in a separate process,
+        #       which should mean we can offload it to a separate core
         self._processing_routine = self._loop.run_in_executor(None, self._perform_run)
-
-        if self._display_frames:
-            self.frame_queue = Queue(maxsize=1)
-            asyncio.async(self._perform_notify_frame())
+        asyncio.ensure_future(self._perform_notify_frame())
 
     def stop(self):
         """ Stops processing the camera and performs any required cleanup
@@ -125,9 +126,8 @@ class CameraProcessor:
         if self._should_detect_faces_on_this_frame():
             self._detect_faces(frame)
 
-        if self._display_frames:
-            with suppress(Full):
-                self.frame_queue.put_nowait(frame)
+        with suppress(Full):
+            self.frame_queue.put_nowait(frame)
 
     def _should_detect_faces_on_this_frame(self):
         """ We only detect faces when frame count is a multiple of our frame count interval (e.g. every 10 frames)

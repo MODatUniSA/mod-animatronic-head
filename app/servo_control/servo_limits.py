@@ -22,6 +22,7 @@ class ServoLimit:
 class ServoLimits(dict):
     def __init__(self):
         self._build_limit_map()
+        super().__init__()
 
     def to_limited_position(self, pin, position):
         """ Accepts a servo pin and position and returns a position value within limits for that servo

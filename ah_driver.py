@@ -58,8 +58,6 @@ class AHDriver:
         servo_controller           = ServoController(servo_communicator)
         camera_processor           = CameraProcessor()
         eye_controller             = EyeController(camera_processor, servo_communicator)
-        if config.options['USER_DETECTION'].getboolean('DISPLAY_FRAMES'):
-            frame_renderer             = FrameRenderer(eye_controller, camera_processor)
         playback_controller        = PlaybackController(audio_playback_controller, servo_controller, eye_controller)
         interaction_loop_executor  = InteractionLoopExecutor(playback_controller)
         self._user_detector        = UserDetector(camera_processor)
@@ -68,6 +66,9 @@ class AHDriver:
         token = config.options['SLACK']['TOKEN']
         self._slack_bot = SlackBot(token)
         self._tasks = [self._heartbeater.run(), self._tf.output_loop_count()]
+
+        if config.options['USER_DETECTION'].getboolean('DISPLAY_FRAMES'):
+            FrameRenderer(eye_controller, camera_processor)
 
     def run(self):
         self._logger.info("Almost Human driver starting.")

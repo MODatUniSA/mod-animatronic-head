@@ -11,6 +11,7 @@ from app.interaction_control.interaction import Interaction
 class InteractionMap(dict):
     def __init__(self):
         self._build_map()
+        super().__init__()
 
     def _build_map(self):
         # TODO: Define this file in config
