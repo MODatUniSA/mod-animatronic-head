@@ -58,8 +58,8 @@ class AHDriver:
         servo_controller           = ServoController(servo_communicator)
         camera_processor           = CameraProcessor()
         eye_controller             = EyeController(camera_processor, servo_communicator)
-        # TODO: Only create if rendering frames. Config or command line options
-        frame_renderer             = FrameRenderer(eye_controller, camera_processor)
+        if config.options['USER_DETECTION'].getboolean('DISPLAY_FRAMES'):
+            frame_renderer             = FrameRenderer(eye_controller, camera_processor)
         playback_controller        = PlaybackController(audio_playback_controller, servo_controller, eye_controller)
         interaction_loop_executor  = InteractionLoopExecutor(playback_controller)
         self._user_detector        = UserDetector(camera_processor)

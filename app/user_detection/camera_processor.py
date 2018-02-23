@@ -26,6 +26,7 @@ class CameraProcessor:
         self._loop = asyncio.get_event_loop()
         config = DeviceConfig.Instance()
         user_detection_config = config.options['USER_DETECTION']
+        self._display_frames = user_detection_config.getboolean('DISPLAY_FRAMES')
         self._frame_period_seconds = user_detection_config.getfloat('FRAME_PERIOD_SECONDS')
         self._camera_id = user_detection_config.getint('CAMERA_ID')
         self._locate_eyes = user_detection_config.getboolean('LOCATE_EYES')
@@ -38,9 +39,6 @@ class CameraProcessor:
         self._processing_routine = None
         self.frame_queue = None
 
-        # Displaying frames for debugging
-        # TODO: Add to config and/or command line options
-        self._display_frames = True
 
         self._frame_count = 0
         self._current_face_id = 0
@@ -146,13 +144,10 @@ class CameraProcessor:
         while not self._should_quit:
             try:
                 if not self.frame_queue.empty():
-                    self._logger.info("Getting frame")
                     with suppress(Empty):
                         frame = self.frame_queue.get_nowait()
                         self._cbm.trigger_frame_processed_callback(frame)
                         self.frame_queue.task_done()
-                else:
-                    self._logger.info("Frame buffer empty")
 
                 k = cv2.waitKey(30) & 0xff
                 yield from asyncio.sleep(self._frame_period_seconds)
