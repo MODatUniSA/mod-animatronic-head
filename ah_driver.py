@@ -8,6 +8,7 @@ import argparse
 import os
 import random
 import time
+import threading
 from concurrent.futures import CancelledError
 
 from libs.logging.logger_creator import LoggerCreator
@@ -22,6 +23,7 @@ from app.interaction_control.experience_controller import ExperienceController
 from app.interaction_control.interaction_loop_executor import InteractionLoopExecutor
 from app.user_detection.user_detector import UserDetector
 from app.user_detection.camera_processor import CameraProcessor
+from app.user_detection.frame_renderer import FrameRenderer
 from app.servo_control.eye_controller import EyeController
 
 class AHDriver:
@@ -65,8 +67,12 @@ class AHDriver:
         self._slack_bot = SlackBot(token)
         self._tasks = [self._heartbeater.run(), self._tf.output_loop_count()]
 
+        if config.options['USER_DETECTION'].getboolean('DISPLAY_FRAMES'):
+            FrameRenderer(eye_controller, camera_processor)
+
     def run(self):
         self._logger.info("Almost Human driver starting.")
+        self._logger.info("AH Driver Thread: %s", threading.current_thread().name)
 
         self._assign_interrupt_handler()
 
@@ -90,6 +96,7 @@ class AHDriver:
         self._slack_bot.stop()
         self._experience_controller.stop()
         self._user_detector.stop()
+        # REVISE: We may want to cancel any tasks using call_soon_threadsafe
         list(map(lambda task: task.cancel(), asyncio.Task.all_tasks()))
 
         # HACK: Give things time to exit gracefully. Should make the stop() functions coroutines and wait on them to complete

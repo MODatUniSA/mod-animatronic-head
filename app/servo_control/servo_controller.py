@@ -1,4 +1,5 @@
-""" Overall servo controller. Executes servo control instructions by passing them to the communicator
+""" Overall servo controller. Executes servo control instructions by passing them
+    to the communicator
 """
 
 import logging
@@ -12,7 +13,11 @@ from app.servo_control.phoneme_map import PhonemeMap
 from app.servo_control.expression_map import ExpressionMap
 from app.servo_control.servo_positions import ServoPositions
 
-# TODO: Lot of code duplication present in this class. Should be able to reduce with better handling of instruction merging and deduplication
+# TODO: Lot of code duplication present in this class. Should be able to reduce
+#           with better handling of instruction merging and deduplication
+# IDEA: Remove expression instruction type. Not used, and could be replaced by a
+#           position instruction
+# IDEA: Record position instructions as a % of the possible movment, not as fixed positions.
 
 class ServoController:
     def __init__(self, servo_communicator):
@@ -42,8 +47,11 @@ class ServoController:
         return (id(instruction_iterator), instruction_iterator)
 
     def execute_instructions(self):
+        """ Executes all currently prepared instructions
+        """
+
         self._logger.info("Executing all loaded servo instructions")
-        if len(self._instruction_iterators) == 0:
+        if not self._instruction_iterators:
             self._cbm.trigger_instructions_complete_callback()
             return
 
@@ -51,6 +59,9 @@ class ServoController:
             iterator_info['iterator'].iterate_instructions()
 
     def any_instructions_loaded(self):
+        """ Returns whether we have any instructions loaded and ready to execute
+        """
+
         return len(self._instruction_iterators) > 0
 
     def stop_execution(self):
@@ -97,7 +108,7 @@ class ServoController:
 
         self._logger.debug("Clearing position override for: %s", servos)
         if self._overridden_servo_positions is None:
-                return
+            return
 
         self._overridden_servo_positions.clear_servos(servos)
 
@@ -136,9 +147,9 @@ class ServoController:
                 self.clear_control_override(iterator_info['overridden'])
 
             self._logger.debug("Clearing instruction iterator")
-            del(self._instruction_iterators[iterator_id])
+            del self._instruction_iterators[iterator_id]
 
-        if len(self._instruction_iterators) == 0:
+        if not self._instruction_iterators:
             self._logger.info("Notifying all instructions executed")
             self._cbm.trigger_instructions_complete_callback()
 
@@ -176,8 +187,10 @@ class ServoController:
         self._cbm.trigger_move_instruction_callback(to_send.positions)
         self._servo_communicator.move_to(to_send, instruction.move_time)
 
+    # REVISE: Method fairly useless now, and should be removed
     def _execute_expression_instruction(self, instruction, iterator_info):
-        """ Executes a single expression instruction, which sends a message to the face servos to move
+        """ Executes a single expression instruction, which sends a message to the
+            face servos to move
         """
 
         servo_positions = self._expression_map['pins'][instruction.expression]
@@ -196,7 +209,8 @@ class ServoController:
 
         self._servo_communicator.move_to(positions_to_send, instruction.move_time)
 
-    # TODO: Loading and executing nested instructions is rather dangerous, as files could contain loops/self references that cause infinite loops. Should guard against this.
+    # TODO: Loading and executing nested instructions is rather dangerous, as files
+    #       could contain loops/self references that cause infinite loops. Should guard against this.
     def _execute_parallel_sequence_instruction(self, instruction):
         """ Loads a named instruction sequence into an instruction list and starts iteration.
             This allows mulitple lists of instructions to be triggered in parallel

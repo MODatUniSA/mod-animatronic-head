@@ -7,8 +7,6 @@ import time
 
 from libs.callback_handling.callback_manager import CallbackManager
 
-# TODO: Provide a way to put a delay/pre-delay on instructions
-
 class InstructionIterator:
     def __init__(self):
         self._logger = logging.getLogger('instruction_iterator')
@@ -18,10 +16,15 @@ class InstructionIterator:
         self._cbm = CallbackManager(['instruction', 'complete'], self)
 
     def set_instruction_list(self, instruction_list):
+        """ Sets the list of instructions this iterator should iterate
+        """
+
         self._instruction_list = instruction_list
 
     def iterate_instructions(self, instruction_list=None):
         """ Accepts an instruction list and iterates over all stored instructions
+            Instruction list is optional, as we can set one with set_instruction_list
+            to set it up without immediately starting iteration
         """
 
         if instruction_list is not None:
@@ -32,15 +35,18 @@ class InstructionIterator:
             self._logger.error("No instruction list to iterate!")
             return
 
-        if len(self._instruction_list.instructions) == 0:
+        if not self._instruction_list.instructions:
             # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
             self._logger.error("No instructions in list to iterate!")
             return
 
         self._iterating = True
-        self._iteration_routine = asyncio.async(self._iterate_instructions())
+        self._iteration_routine = asyncio.ensure_future(self._iterate_instructions())
 
     def stop(self):
+        """ Stop instruction iteration
+        """
+
         self._stop_running_routines()
 
     # INTERNAL COROUTINES
@@ -75,7 +81,6 @@ class InstructionIterator:
 
             if self._iterating:
                 self._logger.debug("Executing instruction with time offset %.2f at %.2f seconds after iteration start", instruction.time_offset, time_passed)
-
                 self._cbm.trigger_instruction_callback(instruction, id(self))
 
         self._logger.info("Finished iterating instructions")

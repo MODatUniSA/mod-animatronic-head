@@ -6,6 +6,7 @@ from app.servo_control.servo_positions import ServoPositions
 class ServoPositionMap(dict):
     def __init__(self):
         self._build_map()
+        super().__init__()
 
     @staticmethod
     def positions_to_pin_numbers(single_position_map):

@@ -1,4 +1,5 @@
-"""Config singleton class. Can be accessed anywhere in code to get global config options read from .default_config.ini and .device_config.ini
+"""Config singleton class. Can be accessed anywhere in code to get global config
+options read from .default_config.ini and .device_config.ini
 """
 
 import configparser

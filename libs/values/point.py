@@ -7,6 +7,7 @@ class Point(dict):
         self.x = x
         self.y = y
         self.tuple = (self.x, self.y)
+        super().__init__()
 
     def cast_values_to_ints(self):
         self.x = int(self.x)

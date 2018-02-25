@@ -28,11 +28,10 @@ def doRecognizePerson(faceNames, fid):
     # time.sleep(2)
     faceNames[ fid ] = "Person " + str(fid)
 
-
 def detectAndTrackMultipleFaces():
     #Open the first webcame device
-    # capture = cv2.VideoCapture(0)
-    capture = cv2.VideoCapture('dave_faces.mp4')
+    capture = cv2.VideoCapture(0)
+    # capture = cv2.VideoCapture('dave_faces.mp4')
 
     #Create two opencv named windows
     cv2.namedWindow("base-image", cv2.WINDOW_AUTOSIZE)

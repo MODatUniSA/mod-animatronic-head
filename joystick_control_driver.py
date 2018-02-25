@@ -90,7 +90,7 @@ if __name__ == '__main__':
     parser.add_argument("--playback", dest='input_file', help="Instruction file to execute")
     parser.set_defaults(input_file=None)
 
-    # TODO: Consider adding arg to record to default file
+    # IDEA: Consider adding arg to record to default file
     parser.add_argument("--record", dest='output_file', help="File to write joystick control + playback instructions to.")
     parser.set_defaults(output_file=None)
 
