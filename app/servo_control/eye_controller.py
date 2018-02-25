@@ -5,14 +5,15 @@
 """
 
 import logging
+import time
+import random
+from contextlib import suppress
 
 from libs.helpers.math_helpers import lerp
 from libs.config.device_config import DeviceConfig
-
-from app.servo_control.servo_map import ServoMap
-from app.servo_control.servo_positions import ServoPositions
-from app.servo_control.image_to_servo_position_converter import ImageToServoPositionConverter
 from libs.callback_handling.callback_manager import CallbackManager
+
+from app.servo_control.image_to_servo_position_converter import ImageToServoPositionConverter
 
 class EyeController:
     def __init__(self, camera_processor, servo_communicator):
@@ -24,16 +25,27 @@ class EyeController:
         config = DeviceConfig.Instance()
         user_detection_config = config.options['USER_DETECTION']
         self._eye_track_speed = user_detection_config.getint('EYE_TRACK_SPEED')
+        self._min_track_time = user_detection_config.getfloat('MIN_TRACK_SINGLE_FACE_SECONDS')
+        self._max_track_time = user_detection_config.getfloat('MAX_TRACK_SINGLE_FACE_SECONDS')
 
         self._target_face_id = None
+        self._tracking_face_start = time.time()
+        # How long to track the current face for
+        self._current_tracking_time = self._max_track_time
         self._tracking = False
 
         self._camera_processor.add_face_detected_callback(self._on_face_detected)
 
     def start_tracking(self):
+        """ Start tracking faces found from the webcam
+        """
+
         self._tracking = True
 
     def stop_tracking(self):
+        """ Stop tracking faces found from the webcam
+        """
+
         self._tracking = False
 
     # CALLBACKS
@@ -46,21 +58,12 @@ class EyeController:
         if not self._tracking:
             return
 
-        # Make sure the servo position converter makes calculations with the correct image dimensions
+        # Ensure the servo position converter makes calculations with the correct image dimensions
         self._image_to_servo_position_converter.set_image_dimensions(frame.shape[0:2])
 
-        # Results are ordered by the time they were detected, so using the first should keep us
-        # looking at the same face while it is detected
-        # TODO: If we've been looking at the same face for long enough, change target face
-        try:
-            face_id, position_info = next(iter(faces.items()))
-            position = position_info.get_position()
-        except StopIteration:
+        position = self._position_to_track(faces)
+        if not position:
             return
-
-        if face_id != self._target_face_id:
-            self._logger.info("Tracking face: %s", face_id)
-            self._target_face_id = face_id
 
         coordinates = [
             int(position.left()),
@@ -73,6 +76,47 @@ class EyeController:
 
     # INTERNAL HELPERS
     # =========================================================================
+
+    def _position_to_track(self, faces):
+        """ Returns the position for the eyes to track.
+            Picks a face and attempts to target between its eyes
+        """
+
+        current_face = faces.get(self._target_face_id)
+        tracking_for_seconds = time.time() - self._tracking_face_start
+
+        if current_face and not self._should_track_new_face(faces, tracking_for_seconds):
+            position = current_face.get_position()
+        else:
+            self._target_face_id, position = self._new_random_face(faces)
+            self._tracking_face_start = time.time()
+            self._current_tracking_time = random.uniform(self._min_track_time, self._max_track_time)
+            self._logger.info("Changing tracked face: %s", self._target_face_id)
+            self._logger.info("Tracking for %s seconds", self._current_tracking_time)
+
+        return position
+
+    def _should_track_new_face(self, faces, tracking_for_seconds):
+        """ Returns whether we should track a new face
+            based on whether there is a new face to track and if we have been tracking
+            the current one for too long
+        """
+
+        return len(faces) > 1 and tracking_for_seconds > self._current_tracking_time
+
+    def _new_random_face(self, faces):
+        """ Returns a new face from the tracked collection that is not currently being targeted
+        """
+
+        face_id = None
+        position = None
+
+        if faces:
+            face_list = [(k,v) for k,v in faces.items() if k != self._target_face_id]
+            face_id, position_info = random.choice(face_list)
+            position = position_info.get_position()
+
+        return face_id, position
 
     def _target_coordinates(self, coordinates, x_percent=0.5, y_percent=0.5):
         """ Target the eyes to x_percent, y_percent of the passed coordinates

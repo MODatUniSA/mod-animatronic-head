@@ -30,6 +30,9 @@ class FrameRenderer:
 
     def _draw_face_bounds(self, frame):
         # REVISE: Nosy for this class to know about the face trackers directly. May be able to decouple.
+        # FIXME: Trackers dict might be mutated during this iteration. Can we dupe?
+        #           Could add a callback on element added/removed, and have this class keep its own
+        #           copy. Solves both modification during iteration and coupling issues.
         for face_index, tracker in self._camera_processor.face_trackers.items():
             tracked_position = tracker.get_position()
 
@@ -45,7 +48,7 @@ class FrameRenderer:
             # cv2.putText(frame,track_string,tracked_center.tuple, self._font, 1, (200,255,155), 2, cv2.LINE_AA)
 
     def _draw_eye_tracking_location(self, frame):
-        cv2.circle(frame, self._eye_target, 10, (0,255,0), 8)
+        cv2.circle(frame, self._eye_target, 10, (255,255,255), 8)
 
     def _set_eye_target(self, target_point):
         self._eye_target = target_point

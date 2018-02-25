@@ -110,11 +110,6 @@ class CameraProcessor:
             # frame and only cascade feature detection every x frames.
             time.sleep(self._frame_period_seconds)
 
-            # HACK: Not actually processing any keypresses,
-            #       but the frame capture loop won't iterate unless this waitKey command is present
-            # FIXME: Need to run here if not displaying frames
-            # k = cv2.waitKey(30) & 0xff
-
     def _process_frame(self, frame):
         """ Processes a single image/frame from the camera
             If we find a front face, we try to find eyes in it. We don't try to
@@ -130,7 +125,8 @@ class CameraProcessor:
             self.frame_queue.put_nowait(frame)
 
     def _should_detect_faces_on_this_frame(self):
-        """ We only detect faces when frame count is a multiple of our frame count interval (e.g. every 10 frames)
+        """ We only detect faces when frame count is a multiple of our frame count interval (e.g.
+            every 10 frames)
         """
 
         return (self._frame_count % self._face_detection_frame_interval) == 0
@@ -149,16 +145,19 @@ class CameraProcessor:
                         self._cbm.trigger_frame_processed_callback(frame)
                         self.frame_queue.task_done()
 
-                k = cv2.waitKey(30) & 0xff
+                # HACK: Not actually processing any keypresses,
+                #       but the frame capture loop won't iterate unless this waitKey command is
+                #       present. Waitkey must occur in the main thread if we use cv2 to display them
+                cv2.waitKey(30) & 0xff
                 yield from asyncio.sleep(self._frame_period_seconds)
-            except RuntimeError as err:
+            except RuntimeError:
                 self._logger.error("Error caught in CameraProcessor frame display", exc_info=True)
 
         self._logger.info("Done")
 
-
     # IDEA: Consider periodically clearing out all existing trackers regadless of quality
-    #       Otherwise, if unchanging background ever considered face, it won't be dropped due to always high corrolation
+    #       Otherwise, if unchanging background ever considered face, it won't be dropped due to
+    #       always high corrolation
     def _update_trackers(self, frame):
         """ Updates all existing dlub correlation trackers
             Destroys any with insufficient quality
@@ -172,8 +171,8 @@ class CameraProcessor:
                 to_delete.append( face_id )
 
         for face_id in to_delete:
-            self._logger.debug("Removing face_id {} from list of trackers".format(face_id))
-            self.face_trackers.pop( face_id , None )
+            self._logger.debug("Removing face_id %d from list of trackers", face_id)
+            self.face_trackers.pop(face_id, None)
 
     # FEATURE DETECTION
     # =========================================================================

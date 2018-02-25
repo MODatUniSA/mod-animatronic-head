@@ -28,7 +28,6 @@ def doRecognizePerson(faceNames, fid):
     # time.sleep(2)
     faceNames[ fid ] = "Person " + str(fid)
 
-
 def detectAndTrackMultipleFaces():
     #Open the first webcame device
     capture = cv2.VideoCapture(0)
