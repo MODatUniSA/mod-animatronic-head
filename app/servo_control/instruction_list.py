@@ -34,7 +34,7 @@ class ServoInstruction:
         # TODO: Gracefully handle unrecognised instruction. Just ignore.
         self.instruction_type = InstructionTypes[info_row['instruction'].upper()]
         self.arg_1 = info_row['arg_1']
-        self.arg_2 = info_row.get('arg_2', default_move_time_ms)
+        self.arg_2 = info_row.get('arg_2', default_move_time_ms) or default_move_time_ms
 
         # Semantic sugar for accessing instruction arguments
         self.phoneme = None
