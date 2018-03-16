@@ -238,9 +238,11 @@ class JoystickServoController:
         self._logger.info("RECORDING! GO GO GO!!")
         self._recording = True
 
+    # IDEA: Use a PlaybackController rather than ServoController if we need to also play audio content
     def _start_playback(self):
         """ Starts playing back input instructions file if one specified
         """
+
         if self._servo_controller.any_instructions_loaded():
             if self._write_csv and self._autostop_recording:
                 self._servo_controller.add_instructions_complete_callback(self._stop_recording)

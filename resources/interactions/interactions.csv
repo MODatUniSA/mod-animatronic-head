@@ -19,3 +19,5 @@ skin_loop_idle,,,s_idle_3.csv,TRACK
 skin_loop_activating,,,s_activating_2.csv,TRACK
 skin_loop_active,,,s_active_2.csv,TRACK
 skin_loop_deactivating,,,s_deactivating_1.csv,TRACK
+now_that_youre_here_phonemes,F6_now_that_youre_here.ogg,now_that_youre_here_phonemes.csv,,INHERIT
+now_that_youre_here,F6_now_that_youre_here.ogg,now_youre_here/1.csv,,INHERIT
