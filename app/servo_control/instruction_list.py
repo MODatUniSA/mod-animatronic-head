@@ -4,7 +4,7 @@
 import csv
 import logging
 import json
-from enum import Enum, auto
+from enum import Enum
 from contextlib import suppress
 
 from libs.config.path_helper import PathHelper
@@ -15,15 +15,15 @@ from app.servo_control.position_instruction_decoder import PositionInstructionDe
 
 class InstructionTypes(Enum):
     # Set the mouth/jaw servos to a named phoneme
-    PHONEME = auto()
+    PHONEME = 0
     # Set the face servos to a mapped fixed expression
-    EXPRESSION = auto()
+    EXPRESSION = 1
     # Load an execute an additional sequence of instructions in parallel with the current
-    PARALLEL_SEQUENCE = auto()
+    PARALLEL_SEQUENCE = 2
     # Set the servos to a fixed, specified position. Will still apply clamping.
-    POSITION = auto()
+    POSITION = 3
     # Stop the servos in their current position
-    STOP = auto()
+    STOP = 4
 
 class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.

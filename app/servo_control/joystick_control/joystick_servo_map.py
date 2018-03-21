@@ -1,7 +1,7 @@
 """ Maps joystick axes to servos.
 """
 
-from enum import Enum, auto
+from enum import Enum
 
 from libs.config.device_config import DeviceConfig
 from libs.helpers.list_helpers import flatten
@@ -11,11 +11,11 @@ from app.servo_control.servo_limits import ServoLimits
 from app.servo_control.servo_positions import ServoPositions
 
 class JoystickAxes(Enum):
-    LEFT_STICK_X = auto()
-    LEFT_STICK_Y = auto()
-    RIGHT_STICK_X = auto()
-    RIGHT_STICK_Y = auto()
-    TRIGGERS = auto()
+    LEFT_STICK_X = 0
+    LEFT_STICK_Y = 1
+    RIGHT_STICK_X = 2
+    RIGHT_STICK_Y = 3
+    TRIGGERS = 4
 
 class JoystickServoPosition:
     """ Stores a single set of servo positions to be used by a joystick control.

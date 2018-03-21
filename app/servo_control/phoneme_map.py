@@ -3,23 +3,23 @@
 
 # IDEA: Take mapping from CSV
 
-from enum import Enum, auto
+from enum import Enum
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_position_map import ServoPositionMap
 
 class Phonemes(Enum):
-    REST = auto()
-    AI = auto()
-    ETC = auto()
-    E = auto()
-    O = auto()
-    U = auto()
-    L = auto()
-    FV = auto()
-    MBP = auto()
-    WQ = auto()
-    CLOSED = auto()
+    REST = 0
+    AI = 1
+    ETC = 2
+    E = 3
+    O = 4
+    U = 5
+    L = 6
+    FV = 7
+    MBP = 8
+    WQ = 9
+    CLOSED = 10
 
 class PhonemeMap(ServoPositionMap):
     def _build_map(self):

@@ -18,6 +18,7 @@ from app.servo_control.servo_positions import ServoPositions
 # IDEA: Remove expression instruction type. Not used, and could be replaced by a
 #           position instruction
 # IDEA: Record position instructions as a % of the possible movment, not as fixed positions.
+#           Would account for changing servo limits without needing to adjust/re-record all animations
 
 class ServoController:
     def __init__(self, servo_communicator):

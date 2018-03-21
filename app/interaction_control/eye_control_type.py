@@ -1,6 +1,6 @@
-from enum import Enum, auto
+from enum import Enum
 
 class EyeControlType(Enum):
-    NONE = auto()
-    TRACK = auto()
-    INHERIT = auto()
+    NONE = 0
+    TRACK = 1
+    INHERIT = 2
