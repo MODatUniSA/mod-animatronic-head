@@ -17,7 +17,7 @@ from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
-    def __init__(self, playback_controller, input_interaction=None, autostop_recording=False, record_only_joystick=False):
+    def __init__(self, playback_controller, input_interaction=None, autostop_recording=False, record_only_joystick=False, looping=False):
         self._logger = logging.getLogger('joystick_servo_controller')
         self._write_csv = False
         self._playback_controller = playback_controller
@@ -27,6 +27,9 @@ class JoystickServoController:
         self._control_time_start = None
         self._should_quit = False
         self._instruction_writer = None
+        self._output_filename = None
+        self._looping = looping
+        self._loop_count = 1
         self._loop = asyncio.get_event_loop()
         self._map = JoystickServoMap()
         self._input_interaction = input_interaction
@@ -49,12 +52,18 @@ class JoystickServoController:
         self._use_left_stick = False
         self._use_right_stick = False
         self._recording = False
+        self._rec_started = False
+
+        if self._looping:
+            self._playback_controller.add_interaction_complete_callback(self._trigger_loop)
+
 
     def record_to_file(self, output_filename):
         """ Tells this class to record servo positions to a file, and which file to write to
         """
         self._write_csv = True
-        self._instruction_writer = InstructionWriter(output_filename)
+        self._output_filename = output_filename
+        self._init_instruction_writer()
         self._playback_controller.add_interaction_started_callback(self._enable_csv_writing)
 
         # Record all control performed by the servo controller unless we're only recording
@@ -143,7 +152,11 @@ class JoystickServoController:
             if self._just_pressed(pressed, getattr(xbox360_controller, button)):
                 self._logger.debug("%s Button pressed!", button)
                 if action == 'TOGGLE_RECORDING':
-                    self._toggle_recording()
+                    # TODO: Gross and unnecessarily complicated logic. Clean up.
+                    if self._rec_started and self._looping:
+                        self.stop()
+                    else:
+                        self._toggle_recording()
                 elif action == 'STOP_CODE':
                     self.stop()
                 else:
@@ -201,6 +214,20 @@ class JoystickServoController:
     # INTERNAL HELPERS
     # =========================================================================
 
+    def _trigger_loop(self):
+        if self._write_csv:
+            self._recording = False
+            self._instruction_writer.stop()
+            self._loop_count += 1
+            self._init_instruction_writer()
+            self._start_recording_countdown()
+        else:
+            self._start_playback()
+
+    def _init_instruction_writer(self):
+        output_filename = "{}_loop_{}.csv".format(self._output_filename, self._loop_count)
+        self._instruction_writer = InstructionWriter(output_filename)
+
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator.
             Uses axis position to determine target position. Movement speed is fixed, set in the config.
@@ -248,6 +275,7 @@ class JoystickServoController:
         self._loop.call_soon(self._start_recording)
 
     def _start_recording(self):
+        self._rec_started = True
         self._control_time_start = time.time()
         if self._input_interaction:
             self._start_playback()
@@ -265,7 +293,7 @@ class JoystickServoController:
         if not self._input_interaction:
             return
 
-        if self._write_csv and self._autostop_recording:
+        if self._write_csv and self._autostop_recording and not self._looping:
             self._playback_controller.add_interaction_complete_callback(self._stop_recording)
 
         self._playback_controller.play_interaction(self._input_interaction)

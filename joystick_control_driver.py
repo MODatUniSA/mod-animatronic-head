@@ -31,6 +31,8 @@ class JoystickControlDriver:
             self._logger.info("Running Almost Human with mocked hardware")
             from app.null_objects.null_servo_communicator import NullServoCommunicator as ServoCommunicator
 
+        # TODO: Set in config
+        pygame.mixer.pre_init(frequency=48000, size=-16, channels=2)
         pygame.init()
 
         self.loop                   = asyncio.get_event_loop()
@@ -43,7 +45,8 @@ class JoystickControlDriver:
             playback_controller,
             self._build_input_interaction(),
             args.autostop_recording,
-            args.only_joystick
+            args.only_joystick,
+            args.looping
         )
 
         if args.output_file is not None:
@@ -101,11 +104,14 @@ if __name__ == '__main__':
     parser.add_argument("-vv", dest='very_verbose_output', action='store_true', help="Output all logged output to the console")
     parser.set_defaults(verbose_output=False)
 
-    parser.add_argument("-autostop", dest='autostop_recording', action='store_true', help="Autostop the overdub recording once the input file completes playback")
+    parser.add_argument("-autostop", dest='autostop_recording', action='store_true', help="Autostop the overdub recording once the input file completes playback. Has no effect if looping.")
     parser.set_defaults(autostop_recording=False)
 
-    parser.add_argument("-record-joystick-only", dest='only_joystick', action='store_true', help="Only record joystick control to new file, rather than ")
+    parser.add_argument("-record-joystick-only", dest='only_joystick', action='store_true', help="Only record joystick control to new file, rather than both recorded and played back instructions")
     parser.set_defaults(only_joystick=False)
+
+    parser.add_argument("-loop", dest='looping', action='store_true', help="Loop playback/recording")
+    parser.set_defaults(looping=False)
 
     parser.add_argument("--playback", dest='input_file', help="Instruction file to execute")
     parser.set_defaults(input_file=None)
