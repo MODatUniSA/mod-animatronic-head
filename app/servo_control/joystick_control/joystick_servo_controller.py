@@ -1,10 +1,11 @@
 """ Reads joystick values and uses these to send servo control instructions
 """
 
+# TODO: This class has become a big complicated mess. Should be able to extract a lot of this logic out.
+
 import asyncio
 import logging
 import time
-from enum import Enum, auto
 
 import pygame
 

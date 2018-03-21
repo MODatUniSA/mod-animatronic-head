@@ -77,7 +77,7 @@ class JoystickControlDriver:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--no-hw", dest='hardware_present', action='store_false', help="Don't attempt to communicate with hardware. Used to test behaviour when no serial device connected")
+    parser.add_argument("-no-hw", dest='hardware_present', action='store_false', help="Don't attempt to communicate with hardware. Used to test behaviour when no serial device connected")
     parser.set_defaults(hardware_present=True)
 
     parser.add_argument("-v", dest='verbose_output', action='store_true', help="Output errors, warnings, and info to the console")
