@@ -13,6 +13,10 @@ import pygame
 from libs.logging.logger_creator import LoggerCreator
 from app.servo_control.joystick_control.joystick_servo_controller import JoystickServoController
 from app.servo_control.servo_controller import ServoController
+from app.playback.audio.audio_playback_controller import AudioPlaybackController
+from app.playback.playback_controller import PlaybackController
+from app.interaction_control.interaction import Interaction
+from app.null_objects.null_eye_controller import NullEyeController
 
 class JoystickControlDriver:
     def __init__(self, args):
@@ -29,16 +33,19 @@ class JoystickControlDriver:
 
         pygame.init()
 
-        self.loop                = asyncio.get_event_loop()
-        self.servo_communicator  = ServoCommunicator()
-        self.servo_controller = ServoController(self.servo_communicator)
+        self.loop                   = asyncio.get_event_loop()
+        servo_communicator          = ServoCommunicator()
+        audio_playback_controller   = AudioPlaybackController()
+        servo_controller            = ServoController(servo_communicator)
+        playback_controller         = PlaybackController(audio_playback_controller, servo_controller, NullEyeController())
 
-        if args.input_file is not None:
-            self.playback = True
-            self.playback_filename = args.input_file
-            self.servo_controller.prepare_instructions(self.playback_filename)
+        self.joystick_controller = JoystickServoController(
+            playback_controller,
+            self._build_input_interaction(),
+            args.autostop_recording,
+            args.only_joystick
+        )
 
-        self.joystick_controller = JoystickServoController(self.servo_controller, args.autostop_recording)
         if args.output_file is not None:
             self.joystick_controller.record_to_file(args.output_file)
 
@@ -59,6 +66,16 @@ class JoystickControlDriver:
 
     def stop(self):
         self.joystick_controller.stop()
+
+    def _build_input_interaction(self):
+        if self.args.input_file is None and self.args.playback_audio_file is None:
+            return None
+
+        return Interaction(
+            name='joystick_input_interaction',
+            voice_file=self.args.playback_audio_file,
+            animation_file=self.args.input_file
+        )
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================
@@ -87,11 +104,18 @@ if __name__ == '__main__':
     parser.add_argument("-autostop", dest='autostop_recording', action='store_true', help="Autostop the overdub recording once the input file completes playback")
     parser.set_defaults(autostop_recording=False)
 
+    parser.add_argument("-record-joystick-only", dest='only_joystick', action='store_true', help="Only record joystick control to new file, rather than ")
+    parser.set_defaults(only_joystick=False)
+
     parser.add_argument("--playback", dest='input_file', help="Instruction file to execute")
     parser.set_defaults(input_file=None)
+
+    parser.add_argument("--playback-audio", dest='playback_audio_file', help="Audio file to play")
+    parser.set_defaults(playback_audio_file=None)
 
     # IDEA: Consider adding arg to record to default file
     parser.add_argument("--record", dest='output_file', help="File to write joystick control + playback instructions to.")
     parser.set_defaults(output_file=None)
+
 
     JoystickControlDriver(parser.parse_args()).run()

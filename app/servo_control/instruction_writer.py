@@ -32,7 +32,7 @@ class InstructionWriter:
 
         row = [
             time,
-            instruction_type.name,
+            instruction_type if isinstance(instruction_type, str) else instruction_type.name,
             json.dumps(arg_1),
             json.dumps(arg_2)
         ]
