@@ -276,7 +276,6 @@ class JoystickServoController:
 
     def _start_recording(self):
         self._rec_started = True
-        self._control_time_start = time.time()
         if self._input_interaction:
             self._start_playback()
         else:
@@ -284,6 +283,7 @@ class JoystickServoController:
 
     def _enable_csv_writing(self):
         self._logger.info("RECORDING! GO GO GO!!")
+        self._control_time_start = time.time()
         self._recording = True
 
     def _start_playback(self):
