@@ -32,9 +32,9 @@ class PhonemeMap(ServoPositionMap):
         self['names'][Phonemes.ETC]   = { ServoMap.JAW : 1832, ServoMap.LIPS_UPPER : 2196, ServoMap.LIPS_LOWER : 2196, ServoMap.LIPS_LEFT : 1244, ServoMap.LIPS_RIGHT : 1755 }
         self['names'][Phonemes.E]     = { ServoMap.JAW : 1832, ServoMap.LIPS_UPPER : 2196, ServoMap.LIPS_LOWER : 2196, ServoMap.LIPS_LEFT : 1244, ServoMap.LIPS_RIGHT : 1755 }
         self['names'][Phonemes.O]     = { ServoMap.JAW : 1000, ServoMap.LIPS_UPPER : 2130, ServoMap.LIPS_LOWER : 2130, ServoMap.LIPS_LEFT : 1916, ServoMap.LIPS_RIGHT : 1083 }
-        self['names'][Phonemes.U]     = { ServoMap.JAW : 2200, ServoMap.LIPS_UPPER : 2087, ServoMap.LIPS_LOWER : 2087, ServoMap.LIPS_LEFT : 1018, ServoMap.LIPS_RIGHT : 1981 }
-        self['names'][Phonemes.L]     = { ServoMap.JAW : 1700, ServoMap.LIPS_UPPER : 1200, ServoMap.LIPS_LOWER : 1700, ServoMap.LIPS_LEFT : 1300, ServoMap.LIPS_RIGHT : 1700 }
-        self['names'][Phonemes.FV]    = { ServoMap.JAW : 1400, ServoMap.LIPS_UPPER : 1500, ServoMap.LIPS_LOWER : 1500, ServoMap.LIPS_LEFT : 1500, ServoMap.LIPS_RIGHT : 1500 }
+        self['names'][Phonemes.U]     = { ServoMap.JAW : 1859, ServoMap.LIPS_UPPER : 1024, ServoMap.LIPS_LOWER : 1024, ServoMap.LIPS_LEFT : 2112, ServoMap.LIPS_RIGHT : 887 }
+        self['names'][Phonemes.L]     = { ServoMap.JAW : 1190, ServoMap.LIPS_UPPER : 2105, ServoMap.LIPS_LOWER : 2105, ServoMap.LIPS_LEFT : 1014, ServoMap.LIPS_RIGHT : 1985 }
+        self['names'][Phonemes.FV]    = { ServoMap.JAW : 1663, ServoMap.LIPS_UPPER : 1260, ServoMap.LIPS_LOWER : 1260, ServoMap.LIPS_LEFT : 817, ServoMap.LIPS_RIGHT : 2182 }
         self['names'][Phonemes.MBP]   = { ServoMap.JAW : 2200, ServoMap.LIPS_UPPER : 933, ServoMap.LIPS_LOWER : 933, ServoMap.LIPS_LEFT : 1039, ServoMap.LIPS_RIGHT : 1960 }
         self['names'][Phonemes.WQ]    = { ServoMap.JAW : 2200, ServoMap.LIPS_UPPER : 1151, ServoMap.LIPS_LOWER : 1151, ServoMap.LIPS_LEFT : 2199, ServoMap.LIPS_RIGHT : 800 }
 
