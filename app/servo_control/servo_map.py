@@ -23,8 +23,6 @@ class ServoMap(Enum):
 
 # Mouth servos are those controlled by the phonemes, and so will override the animation file if a
 # phoneme file is also playing back
-# MOUTH_SERVOS = [ServoMap.JAW, ServoMap.LIPS_UPPER, ServoMap.LIPS_LOWER,
-#                 ServoMap.LIPS_LEFT, ServoMap.LIPS_RIGHT]
 MOUTH_SERVOS = [ServoMap.LIPS_UPPER, ServoMap.LIPS_LOWER,
                 ServoMap.LIPS_LEFT, ServoMap.LIPS_RIGHT]
 MOUTH_SERVO_PINS = [servo.value for servo in MOUTH_SERVOS]
