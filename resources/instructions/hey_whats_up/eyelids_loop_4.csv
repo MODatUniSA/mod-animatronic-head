@@ -1,0 +1,12 @@
+time,instruction,arg_1,arg_2
+0.01,POSITION,'{"8": {"position": 2002, "speed": 8000}, "9": {"position": 997, "speed": 8000}, "10": {"position": 997, "speed": 8000}, "11": {"position": 2002, "speed": 8000}}',""
+0.06,POSITION,'{"8": {"position": 1997, "speed": 8000}, "9": {"position": 1002, "speed": 8000}, "10": {"position": 1002, "speed": 8000}, "11": {"position": 1997, "speed": 8000}}',""
+0.07,POSITION,'{"8": {"position": 1995, "speed": 8000}, "9": {"position": 1004, "speed": 8000}, "10": {"position": 1004, "speed": 8000}, "11": {"position": 1995, "speed": 8000}}',""
+0.13,POSITION,'{"8": {"position": 1993, "speed": 8000}, "9": {"position": 1006, "speed": 8000}, "10": {"position": 1006, "speed": 8000}, "11": {"position": 1993, "speed": 8000}}',""
+0.15,POSITION,'{"8": {"position": 1990, "speed": 8000}, "9": {"position": 1009, "speed": 8000}, "10": {"position": 1009, "speed": 8000}, "11": {"position": 1990, "speed": 8000}}',""
+0.16,POSITION,'{"8": {"position": 1988, "speed": 8000}, "9": {"position": 1011, "speed": 8000}, "10": {"position": 1011, "speed": 8000}, "11": {"position": 1988, "speed": 8000}}',""
+0.2,POSITION,'{"8": {"position": 1992, "speed": 8000}, "9": {"position": 1007, "speed": 8000}, "10": {"position": 1007, "speed": 8000}, "11": {"position": 1992, "speed": 8000}}',""
+0.21,POSITION,'{"8": {"position": 1999, "speed": 8000}, "9": {"position": 1000, "speed": 8000}, "10": {"position": 1000, "speed": 8000}, "11": {"position": 1999, "speed": 8000}}',""
+0.22,POSITION,'{"8": {"position": 2004, "speed": 8000}, "9": {"position": 995, "speed": 8000}, "10": {"position": 995, "speed": 8000}, "11": {"position": 2004, "speed": 8000}}',""
+0.24,POSITION,'{"8": {"position": 2014, "speed": 8000}, "9": {"position": 985, "speed": 8000}, "10": {"position": 985, "speed": 8000}, "11": {"position": 2014, "speed": 8000}}',""
+0.25,POSITION,'{"8": {"position": 2030, "speed": 8000}, "9": {"position": 969, "speed": 8000}, "10": {"position": 969, "speed": 8000}, "11": {"position": 2030, "speed": 8000}}',""
