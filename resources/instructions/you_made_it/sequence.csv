@@ -1,0 +1,5 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,you_made_it/jaw_loop_4.csv,
+0.00,PARALLEL_SEQUENCE,you_made_it/eyebrows_loop_5.csv,
+0.00,PARALLEL_SEQUENCE,you_made_it/eyelids_loop_3.csv,
+0.00,PARALLEL_SEQUENCE,you_made_it/eyes_loop_3.csv,
