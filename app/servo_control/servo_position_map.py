@@ -1,4 +1,4 @@
-""" Base class for position maps (Phonemes and Expressions)
+""" Base class for position maps
 """
 
 from app.servo_control.servo_positions import ServoPositions

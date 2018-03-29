@@ -10,20 +10,17 @@ from contextlib import suppress
 from libs.config.path_helper import PathHelper
 from libs.config.device_config import DeviceConfig
 from app.servo_control.phoneme_map import Phonemes
-from app.servo_control.expression_map import Expressions
 from app.servo_control.position_instruction_decoder import PositionInstructionDecoder
 
 class InstructionTypes(Enum):
     # Set the mouth/jaw servos to a named phoneme
     PHONEME = 0
-    # Set the face servos to a mapped fixed expression
-    EXPRESSION = 1
     # Load an execute an additional sequence of instructions in parallel with the current
-    PARALLEL_SEQUENCE = 2
+    PARALLEL_SEQUENCE = 1
     # Set the servos to a fixed, specified position. Will still apply clamping.
-    POSITION = 3
+    POSITION = 2
     # Stop the servos in their current position
-    STOP = 4
+    STOP = 3
 
 class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.
@@ -38,7 +35,6 @@ class ServoInstruction:
 
         # Semantic sugar for accessing instruction arguments
         self.phoneme = None
-        self.expression = None
         self.filename = None
         self.position = None
         self.move_time = None
@@ -50,12 +46,10 @@ class ServoInstruction:
             Just used for readable access to args
         """
 
-        # TODO: Gracefully handle unrecognised phoneme/expression. Default?
+        # TODO: Gracefully handle unrecognised phoneme. Default?
 
         if self.instruction_type == InstructionTypes.PHONEME:
             self.phoneme = Phonemes[self.arg_1.upper()]
-        elif self.instruction_type == InstructionTypes.EXPRESSION:
-            self.expression = Expressions[self.arg_1.upper()]
         elif self.instruction_type == InstructionTypes.PARALLEL_SEQUENCE:
             self.filename = self.arg_1
         elif self.instruction_type == InstructionTypes.POSITION:

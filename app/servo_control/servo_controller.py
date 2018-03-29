@@ -10,13 +10,10 @@ from libs.callback_handling.callback_manager import CallbackManager
 from app.servo_control.instruction_iterator import InstructionIterator
 from app.servo_control.instruction_list import InstructionList, InstructionTypes
 from app.servo_control.phoneme_map import PhonemeMap
-from app.servo_control.expression_map import ExpressionMap
 from app.servo_control.servo_positions import ServoPositions
 
 # TODO: Lot of code duplication present in this class. Should be able to reduce
 #           with better handling of instruction merging and deduplication
-# IDEA: Remove expression instruction type. Not used, and could be replaced by a
-#           position instruction
 # IDEA: Record position instructions as a % of the possible movment, not as fixed positions.
 #           Would account for changing servo limits without needing to adjust/re-record all animations
 
@@ -25,7 +22,6 @@ class ServoController:
         self._logger = logging.getLogger('servo_controller')
         self._servo_communicator = servo_communicator
         self._phoneme_map = PhonemeMap()
-        self._expression_map = ExpressionMap()
         self._overridden_servo_positions = None
         self._cbm = CallbackManager(['move_instruction', 'stop_instruction', 'instructions_complete'], self)
         self._instruction_iterators = {}
@@ -125,8 +121,6 @@ class ServoController:
 
         if instruction.instruction_type == InstructionTypes.PHONEME:
             self._execute_phoneme_instruction(instruction)
-        elif instruction.instruction_type == InstructionTypes.EXPRESSION:
-            self._execute_expression_instruction(instruction, iterator_info)
         elif instruction.instruction_type == InstructionTypes.PARALLEL_SEQUENCE:
             self._execute_parallel_sequence_instruction(instruction)
         elif instruction.instruction_type == InstructionTypes.POSITION:
@@ -187,28 +181,6 @@ class ServoController:
 
         self._cbm.trigger_move_instruction_callback(to_send.positions)
         self._servo_communicator.move_to(to_send, instruction.move_time)
-
-    # REVISE: Method fairly useless now, and should be removed
-    def _execute_expression_instruction(self, instruction, iterator_info):
-        """ Executes a single expression instruction, which sends a message to the
-            face servos to move
-        """
-
-        servo_positions = self._expression_map['pins'][instruction.expression]
-        if self._overridden_servo_positions is not None:
-            servo_positions = servo_positions.merge(self._overridden_servo_positions)
-
-        to_send = servo_positions.without_duplicates(self._last_sent)
-        self._last_sent = self._last_sent.merge(to_send)
-
-        # REVISE: Should we clear the 'without_servos before triggering this callback'?
-        self._cbm.trigger_move_instruction_callback(to_send.positions)
-
-        positions_to_send = to_send.to_str(without=iterator_info['without_servos'])
-        self._logger.debug("Sending Expression: %s", instruction.expression)
-        self._logger.debug("Sending servo positions: %s", positions_to_send)
-
-        self._servo_communicator.move_to(positions_to_send, instruction.move_time)
 
     # TODO: Loading and executing nested instructions is rather dangerous, as files
     #       could contain loops/self references that cause infinite loops. Should guard against this.
