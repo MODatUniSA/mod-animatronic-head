@@ -9,7 +9,7 @@ from libs.callback_handling.callback_manager import CallbackManager
 
 class InstructionIterator:
     def __init__(self):
-        self._logger = logging.getLogger('instruction_iterator')
+        self._logger = logging.getLogger('instruction_iterator_{}'.format(id(self)))
         self._iteration_routine = None
         self._iterating = False
         self._instruction_list = None
@@ -31,13 +31,13 @@ class InstructionIterator:
             self._instruction_list = instruction_list
 
         if self._instruction_list is None:
-            # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
             self._logger.error("No instruction list to iterate!")
+            self._cbm.trigger_complete_callback(id(self))
             return
 
         if not self._instruction_list.instructions:
-            # REVISE: Do we call the complete callback here? Maybe need a 3rd error callback?
             self._logger.error("No instructions in list to iterate!")
+            self._cbm.trigger_complete_callback(id(self))
             return
 
         self._iterating = True

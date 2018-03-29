@@ -41,6 +41,9 @@ class ServoInstruction:
         self.servos = None
         self._set_instruction_args()
 
+    def is_parallel_sequence(self):
+        return self.instruction_type == InstructionTypes.PARALLEL_SEQUENCE
+
     def _set_instruction_args(self):
         """ Assigns this instruction's argument to an instance variable depending on instruction type
             Just used for readable access to args
@@ -70,6 +73,7 @@ class InstructionList:
         self._filename = filename
         self._file_path = None
         self.instructions = []
+        self.parallel_sequences = []
         self._load_instructions()
 
     # INTERNAL METHODS
@@ -95,3 +99,5 @@ class InstructionList:
                 dict_row = {key: value for key, value in zip(headers, row)}
                 instruction = ServoInstruction(dict_row, self._default_move_time_ms)
                 self.instructions.append(instruction)
+                if instruction.is_parallel_sequence():
+                    self.parallel_sequences.append(instruction)
