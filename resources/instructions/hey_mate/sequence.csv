@@ -1,0 +1,5 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,hey_mate/jaw.csv
+0.00,PARALLEL_SEQUENCE,hey_mate/eyebrows.csv
+0.00,PARALLEL_SEQUENCE,hey_mate/eyelids.csv
+0.00,PARALLEL_SEQUENCE,hey_mate/eyes.csv

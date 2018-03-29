@@ -1,10 +1,11 @@
 """ Reads joystick values and uses these to send servo control instructions
 """
 
+# TODO: This class has become a big complicated mess. Should be able to extract a lot of this logic out.
+
 import asyncio
 import logging
 import time
-from enum import Enum, auto
 
 import pygame
 
@@ -16,15 +17,22 @@ from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
-    def __init__(self, servo_controller, autostop_recording=False):
+    def __init__(self, playback_controller, input_interaction=None, autostop_recording=False, overdub=False, looping=False):
         self._logger = logging.getLogger('joystick_servo_controller')
         self._write_csv = False
-        self._servo_controller = servo_controller
+        self._playback_controller = playback_controller
+        self._servo_controller = playback_controller.servo_controller
         self._autostop_recording = autostop_recording
+        self._overdub = overdub
         self._control_time_start = None
         self._should_quit = False
+        self._instruction_writer = None
+        self._output_filename = None
+        self._looping = looping
+        self._loop_count = 1
         self._loop = asyncio.get_event_loop()
         self._map = JoystickServoMap()
+        self._input_interaction = input_interaction
         config = DeviceConfig.Instance()
         joystick_config = config.options['JOYSTICK_CONTROL']
         self._fixed_move_speed = joystick_config.getint('MOVE_SPEED')
@@ -44,14 +52,28 @@ class JoystickServoController:
         self._use_left_stick = False
         self._use_right_stick = False
         self._recording = False
+        self._rec_started = False
+
+        if self._looping:
+            self._playback_controller.add_interaction_complete_callback(self._trigger_loop)
+
 
     def record_to_file(self, output_filename):
         """ Tells this class to record servo positions to a file, and which file to write to
         """
         self._write_csv = True
-        self._instruction_writer = InstructionWriter(output_filename)
-        self._servo_controller.add_move_instruction_callback(self._write_position_instruction)
-        self._servo_controller.add_stop_instruction_callback(self._write_stop_instruction)
+        self._output_filename = output_filename
+        self._init_instruction_writer()
+        self._playback_controller.add_interaction_started_callback(self._enable_csv_writing)
+
+        # Record all control performed by the servo controller unless we're only recording
+        # current joystick positions (not overdubbing)
+        if self._overdub:
+            self._logger.info("Writing all servo instructions to file")
+            self._servo_controller.add_move_instruction_callback(self._write_position_instruction)
+            self._servo_controller.add_stop_instruction_callback(self._write_stop_instruction)
+        else:
+            self._logger.info("Writing only joystick instructions to file")
 
     @asyncio.coroutine
     def run(self):
@@ -130,7 +152,11 @@ class JoystickServoController:
             if self._just_pressed(pressed, getattr(xbox360_controller, button)):
                 self._logger.debug("%s Button pressed!", button)
                 if action == 'TOGGLE_RECORDING':
-                    self._toggle_recording()
+                    # TODO: Gross and unnecessarily complicated logic. Clean up.
+                    if self._rec_started and self._looping:
+                        self.stop()
+                    else:
+                        self._toggle_recording()
                 elif action == 'STOP_CODE':
                     self.stop()
                 else:
@@ -182,8 +208,25 @@ class JoystickServoController:
 
         self._servo_controller.override_control(servo_positions)
 
+        if not self._overdub:
+            self._write_position_instruction(servo_positions.positions)
+
     # INTERNAL HELPERS
     # =========================================================================
+
+    def _trigger_loop(self):
+        if self._write_csv:
+            self._recording = False
+            self._instruction_writer.stop()
+            self._loop_count += 1
+            self._init_instruction_writer()
+            self._start_recording_countdown()
+        else:
+            self._start_playback()
+
+    def _init_instruction_writer(self):
+        output_filename = "{}_loop_{}.csv".format(self._output_filename, self._loop_count)
+        self._instruction_writer = InstructionWriter(output_filename)
 
     def _to_position_dict(self, axis, value):
         """ Takes the axis value and returns a position dictionary to be passed to the communicator.
@@ -232,20 +275,28 @@ class JoystickServoController:
         self._loop.call_soon(self._start_recording)
 
     def _start_recording(self):
-        self._control_time_start = time.time()
-        self._start_playback()
+        self._rec_started = True
+        if self._input_interaction:
+            self._start_playback()
+        else:
+            self._enable_csv_writing()
 
+    def _enable_csv_writing(self):
         self._logger.info("RECORDING! GO GO GO!!")
+        self._control_time_start = time.time()
         self._recording = True
 
     def _start_playback(self):
         """ Starts playing back input instructions file if one specified
         """
-        if self._servo_controller.any_instructions_loaded():
-            if self._write_csv and self._autostop_recording:
-                self._servo_controller.add_instructions_complete_callback(self._stop_recording)
 
-            self._servo_controller.execute_instructions()
+        if not self._input_interaction:
+            return
+
+        if self._write_csv and self._autostop_recording and not self._looping:
+            self._playback_controller.add_interaction_complete_callback(self._stop_recording)
+
+        self._playback_controller.play_interaction(self._input_interaction)
 
     # CSV WRITING
     # =========================================================================

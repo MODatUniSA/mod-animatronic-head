@@ -65,6 +65,7 @@ class AudioPlaybackController:
 
     def _init_pygame_mixer(self):
         # Init just the pygame mixer, as we don't need the entire library
+        # TODO: Set in config
         pygame.mixer.init(frequency=48000, size=-16, channels=2)
         # Only need to play 1 sound at a time
         pygame.mixer.set_num_channels(1)

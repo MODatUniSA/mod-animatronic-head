@@ -101,7 +101,8 @@ class ExperienceController:
 
         # return InteractionLoop('resources/interaction_loops/new_head_test_loop.csv')
         # return InteractionLoop('resources/interaction_loops/own_thing_loop_all_audio.csv')
-        return InteractionLoop('resources/interaction_loops/skin_loop.csv')
+        # return InteractionLoop('resources/interaction_loops/skin_loop.csv')
+        return InteractionLoop('resources/interaction_loops/now_that_youre_here_loop.csv')
 
     def _build_state_machine(self):
         """ Builds the state machine and adds all state transitions

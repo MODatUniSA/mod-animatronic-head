@@ -21,8 +21,10 @@ class ServoMap(Enum):
     EYEBROW_RIGHT = 12
     EYEBROW_LEFT = 13
 
-MOUTH_SERVOS = [ServoMap.JAW, ServoMap.LIPS_UPPER, ServoMap.LIPS_LOWER,
-ServoMap.LIPS_LEFT, ServoMap.LIPS_RIGHT]
+# Mouth servos are those controlled by the phonemes, and so will override the animation file if a
+# phoneme file is also playing back
+MOUTH_SERVOS = [ServoMap.LIPS_UPPER, ServoMap.LIPS_LOWER,
+                ServoMap.LIPS_LEFT, ServoMap.LIPS_RIGHT]
 MOUTH_SERVO_PINS = [servo.value for servo in MOUTH_SERVOS]
 EYE_SERVOS = [ServoMap.EYES_X, ServoMap.EYE_LEFT_Y, ServoMap.EYE_RIGHT_Y]
 EYE_SERVO_PINS = [servo.value for servo in EYE_SERVOS]

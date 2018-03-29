@@ -1,0 +1,5 @@
+state,interaction_name
+IDLE,now_that_youre_here
+ACTIVATING,now_that_youre_here
+ACTIVE,now_that_youre_here
+DEACTIVATING,now_that_youre_here

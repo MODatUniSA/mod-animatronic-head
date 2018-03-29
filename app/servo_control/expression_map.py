@@ -3,14 +3,14 @@
 
 # REIVSE: May not use static expressions anymore, as we'll be using moving animations for expression control
 
-from enum import Enum, auto
+from enum import Enum
 
 from app.servo_control.servo_map import ServoMap
 from app.servo_control.servo_position_map import ServoPositionMap
 
 class Expressions(Enum):
-    SURPRISED = auto()
-    STERN     = auto()
+    SURPRISED = 0
+    STERN     = 1
 
 class ExpressionMap(ServoPositionMap):
     def _build_map(self):

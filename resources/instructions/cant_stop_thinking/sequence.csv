@@ -1,0 +1,5 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,cant_stop_thinking/jaw.csv,
+0.00,PARALLEL_SEQUENCE,cant_stop_thinking/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,cant_stop_thinking/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,cant_stop_thinking/eyes.csv,

@@ -4,7 +4,7 @@
 import csv
 import logging
 import json
-from enum import Enum, auto
+from enum import Enum
 from contextlib import suppress
 
 from libs.config.path_helper import PathHelper
@@ -15,15 +15,15 @@ from app.servo_control.position_instruction_decoder import PositionInstructionDe
 
 class InstructionTypes(Enum):
     # Set the mouth/jaw servos to a named phoneme
-    PHONEME = auto()
+    PHONEME = 0
     # Set the face servos to a mapped fixed expression
-    EXPRESSION = auto()
+    EXPRESSION = 1
     # Load an execute an additional sequence of instructions in parallel with the current
-    PARALLEL_SEQUENCE = auto()
+    PARALLEL_SEQUENCE = 2
     # Set the servos to a fixed, specified position. Will still apply clamping.
-    POSITION = auto()
+    POSITION = 3
     # Stop the servos in their current position
-    STOP = auto()
+    STOP = 4
 
 class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.
@@ -34,7 +34,7 @@ class ServoInstruction:
         # TODO: Gracefully handle unrecognised instruction. Just ignore.
         self.instruction_type = InstructionTypes[info_row['instruction'].upper()]
         self.arg_1 = info_row['arg_1']
-        self.arg_2 = info_row.get('arg_2', default_move_time_ms)
+        self.arg_2 = info_row.get('arg_2', default_move_time_ms) or default_move_time_ms
 
         # Semantic sugar for accessing instruction arguments
         self.phoneme = None
