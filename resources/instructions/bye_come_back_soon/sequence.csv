@@ -1,5 +1,5 @@
 time,instruction,arg_1,arg_2
-0.00,PARALLEL_SEQUENCE,bye_come_back_soon/jaw_loop_2.csv,
-0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyebrows_loop_3.csv,
-0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyelids_loop_2.csv,
-0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyes_loop_1.csv,
+0.00,PARALLEL_SEQUENCE,bye_come_back_soon/jaw.csv,
+0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyes.csv,

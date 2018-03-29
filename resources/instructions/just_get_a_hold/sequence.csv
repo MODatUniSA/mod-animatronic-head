@@ -1,5 +1,5 @@
 time,instruction,arg_1,arg_2
-0.00,PARALLEL_SEQUENCE,just_get_a_hold/jaw_loop_3.csv,
-0.00,PARALLEL_SEQUENCE,just_get_a_hold/eyebrows_loop_1.csv,
-0.00,PARALLEL_SEQUENCE,just_get_a_hold/eyelids_loop_2.csv,
-0.00,PARALLEL_SEQUENCE,just_get_a_hold/eyes_loop_2.csv,
+0.00,PARALLEL_SEQUENCE,just_get_a_hold/jaw.csv,
+0.00,PARALLEL_SEQUENCE,just_get_a_hold/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,just_get_a_hold/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,just_get_a_hold/eyes.csv,

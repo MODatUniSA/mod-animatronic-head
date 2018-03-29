@@ -1,9 +1,0 @@
-time,instruction,arg_1,arg_2
-0.09,POSITION,'{"8": {"position": 2028, "speed": 8000}, "9": {"position": 971, "speed": 8000}, "10": {"position": 971, "speed": 8000}, "11": {"position": 2028, "speed": 8000}}',""
-0.12,POSITION,'{"8": {"position": 2024, "speed": 8000}, "9": {"position": 975, "speed": 8000}, "10": {"position": 975, "speed": 8000}, "11": {"position": 2024, "speed": 8000}}',""
-0.16,POSITION,'{"8": {"position": 2030, "speed": 8000}, "9": {"position": 969, "speed": 8000}, "10": {"position": 969, "speed": 8000}, "11": {"position": 2030, "speed": 8000}}',""
-0.17,POSITION,'{"8": {"position": 2043, "speed": 8000}, "9": {"position": 956, "speed": 8000}, "10": {"position": 956, "speed": 8000}, "11": {"position": 2043, "speed": 8000}}',""
-0.19,POSITION,'{"8": {"position": 2054, "speed": 8000}, "9": {"position": 945, "speed": 8000}, "10": {"position": 945, "speed": 8000}, "11": {"position": 2054, "speed": 8000}}',""
-0.2,POSITION,'{"8": {"position": 2062, "speed": 8000}, "9": {"position": 937, "speed": 8000}, "10": {"position": 937, "speed": 8000}, "11": {"position": 2062, "speed": 8000}}',""
-0.21,POSITION,'{"8": {"position": 2064, "speed": 8000}, "9": {"position": 935, "speed": 8000}, "10": {"position": 935, "speed": 8000}, "11": {"position": 2064, "speed": 8000}}',""
-0.23,POSITION,'{"8": {"position": 2066, "speed": 8000}, "9": {"position": 933, "speed": 8000}, "10": {"position": 933, "speed": 8000}, "11": {"position": 2066, "speed": 8000}}',""
