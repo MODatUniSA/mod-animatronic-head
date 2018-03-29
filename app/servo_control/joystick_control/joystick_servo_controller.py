@@ -17,13 +17,13 @@ from app.servo_control.instruction_list import InstructionTypes
 from app.servo_control.instruction_writer import InstructionWriter
 
 class JoystickServoController:
-    def __init__(self, playback_controller, input_interaction=None, autostop_recording=False, record_only_joystick=False, looping=False):
+    def __init__(self, playback_controller, input_interaction=None, autostop_recording=False, overdub=False, looping=False):
         self._logger = logging.getLogger('joystick_servo_controller')
         self._write_csv = False
         self._playback_controller = playback_controller
         self._servo_controller = playback_controller.servo_controller
         self._autostop_recording = autostop_recording
-        self._record_only_joystick = record_only_joystick
+        self._overdub = overdub
         self._control_time_start = None
         self._should_quit = False
         self._instruction_writer = None
@@ -68,7 +68,7 @@ class JoystickServoController:
 
         # Record all control performed by the servo controller unless we're only recording
         # current joystick positions (not overdubbing)
-        if not self._record_only_joystick:
+        if self._overdub:
             self._logger.info("Writing all servo instructions to file")
             self._servo_controller.add_move_instruction_callback(self._write_position_instruction)
             self._servo_controller.add_stop_instruction_callback(self._write_stop_instruction)
@@ -208,7 +208,7 @@ class JoystickServoController:
 
         self._servo_controller.override_control(servo_positions)
 
-        if self._record_only_joystick:
+        if not self._overdub:
             self._write_position_instruction(servo_positions.positions)
 
     # INTERNAL HELPERS

@@ -45,7 +45,7 @@ class JoystickControlDriver:
             playback_controller,
             self._build_input_interaction(),
             args.autostop_recording,
-            args.only_joystick,
+            args.overdub,
             args.looping
         )
 
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     parser.add_argument("-autostop", dest='autostop_recording', action='store_true', help="Autostop the overdub recording once the input file completes playback. Has no effect if looping.")
     parser.set_defaults(autostop_recording=False)
 
-    parser.add_argument("-record-joystick-only", dest='only_joystick', action='store_true', help="Only record joystick control to new file, rather than both recorded and played back instructions")
-    parser.set_defaults(only_joystick=False)
+    parser.add_argument("-overdub", dest='overdub', action='store_true', help="Record both the playback and joystick control into the new file")
+    parser.set_defaults(overdub=False)
 
     parser.add_argument("-loop", dest='looping', action='store_true', help="Loop playback/recording")
     parser.set_defaults(looping=False)
