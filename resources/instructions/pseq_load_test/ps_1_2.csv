@@ -1,0 +1,5 @@
+time,instruction,arg_1,arg_2
+0,POSITION,'{"0": {"position": 1000, "speed": 8000}, "1": {"position": 1000, "speed": 8000}}',""
+0.5,PHONEME,O,""
+1,POSITION,'{"1": {"position": 800, "speed": 8000}}',""
+2,POSITION,'{"0": {"position": 2200, "speed": 8000}}',""

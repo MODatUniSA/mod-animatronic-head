@@ -1,5 +1,4 @@
 time,instruction,arg_1,arg_2
-0.00,PARALLEL_SEQUENCE,youve_got_that_look/phonemes.csv,
 0.00,PARALLEL_SEQUENCE,youve_got_that_look/jaw.csv,
 0.00,PARALLEL_SEQUENCE,youve_got_that_look/eyebrows.csv,
 0.00,PARALLEL_SEQUENCE,youve_got_that_look/eyelids.csv,

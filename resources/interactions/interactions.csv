@@ -22,3 +22,9 @@ skin_loop_deactivating,,,s_deactivating_1.csv,TRACK
 now_that_youre_here,F6_now_that_youre_here.ogg,now_youre_here/now_youre_here_phonemes.csv,now_youre_here/jeee_loop_2_shifted.csv,INHERIT
 now_that_youre_here_phonemes_only,F6_now_that_youre_here.ogg,now_that_youre_here_phonemes.csv,,INHERIT
 now_that_youre_here_jaw_only,F6_now_that_youre_here.ogg,now_youre_here/jaw_2_shifted.csv,INHERIT
+hey_its_you,G1_Hey_its_you.ogg,,hey_its_you/sequence.csv,INHERIT
+youve_got_that_look,F7_youve_got_that_look.ogg,youve_got_that_look/phonemes.csv,youve_got_that_look/sequence.csv,INHERIT
+secret,F8_can_I_tell_you_a_secret.ogg,secret/phonemes.csv,secret/sequence.csv
+cant_stop_thinking,L1_I_cant_stop_thinking.ogg,,cant_stop_thinking/sequence.csv
+bye_come_back_soon,B1_bye_come_back_soon.ogg,,bye_come_back_soon/sequence.csv
+idle_1,,,idle_1/sequence.csv,INHERIT
