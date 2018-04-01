@@ -23,7 +23,7 @@ class ServoController:
         self._logger = logging.getLogger('servo_controller')
         self._servo_communicator = servo_communicator
         self._phoneme_map = PhonemeMap()
-        self._list_builder = InstructionListBuilder(self._execute_instruction, self._instructions_complete)
+        self._list_builder = InstructionListBuilder()
         self._overridden_servo_positions = None
         self._cbm = CallbackManager(['move_instruction', 'stop_instruction', 'instructions_complete'], self)
         self._instruction_iterators = {}
@@ -36,12 +36,15 @@ class ServoController:
         """
 
         options = {
-            'without_servos' : without_servos,
-            'override'       : as_override
+            'without_servos'    : without_servos,
+            'override'          : as_override,
+            'execute_callback'  : self._execute_instruction,
+            'complete_callback' : self._instructions_complete
         }
-        primary_iterator, iterators = self._list_builder.build(instructions_filename, options)
-        self._instruction_iterators.update(iterators)
-        return primary_iterator
+        instruction_list = self._list_builder.build(instructions_filename)
+        iterator_info = InstructionListBuilder.create_iterator(instruction_list, **options)
+        self._instruction_iterators[iterator_info['id']] = iterator_info
+        return iterator_info['iterator']
 
     def execute_instructions(self):
         """ Executes all currently prepared instructions
@@ -54,8 +57,7 @@ class ServoController:
 
         # Run all primary iterators. Nested iterators will be run when triggered by parent
         for iterator_info in self._instruction_iterators.values():
-            if iterator_info['primary']:
-                iterator_info['iterator'].iterate_instructions()
+            iterator_info['iterator'].iterate_instructions()
 
     def any_instructions_loaded(self):
         """ Returns whether we have any instructions loaded and ready to execute
@@ -123,8 +125,6 @@ class ServoController:
 
         if instruction.instruction_type == InstructionTypes.PHONEME:
             self._execute_phoneme_instruction(instruction)
-        elif instruction.instruction_type == InstructionTypes.PARALLEL_SEQUENCE:
-            self._execute_parallel_sequence_instruction(instruction, iterator_info)
         elif instruction.instruction_type == InstructionTypes.POSITION:
             self._execute_position_instruction(instruction, iterator_info)
         elif instruction.instruction_type == InstructionTypes.STOP:
@@ -172,15 +172,6 @@ class ServoController:
 
         self._cbm.trigger_move_instruction_callback(to_send.positions)
         self._servo_communicator.move_to(to_send, instruction.move_time)
-
-    def _execute_parallel_sequence_instruction(self, instruction, iterator_info):
-        """ Loads a named instruction sequence into an instruction list and starts iteration.
-            This allows mulitple lists of instructions to be triggered in parallel
-        """
-
-        # TODO: Handle case where no nested iterator has been cached for this filename
-        self._logger.info("Executing parallel instruction sequence: %s", instruction.filename)
-        iterator_info['nested'][instruction.filename].iterate_instructions()
 
     # FIXME: If overriding control, excluded servos settings are ignored
     def _execute_position_instruction(self, instruction, iterator_info):

@@ -6,6 +6,7 @@ import logging
 import json
 from enum import Enum
 from contextlib import suppress
+from collections import OrderedDict
 
 from libs.config.path_helper import PathHelper
 from libs.config.device_config import DeviceConfig
@@ -65,39 +66,85 @@ class ServoInstruction:
         if self.instruction_type != InstructionTypes.PARALLEL_SEQUENCE:
             self.move_time = self.arg_2
 
+    def merge(self, other):
+        """ Merge this instruction with another instruction.
+            Only valid for POSITION instructions
+        """
+
+        if not self.instruction_type == InstructionTypes.POSITION and\
+            other.instruction_type == InstructionTypes.POSITION:
+            return
+
+        self.position.update(other.position)
+
+
 class InstructionList:
-    def __init__(self, filename):
+    def __init__(self):
         self._logger = logging.getLogger('instruction_list')
         self._config = DeviceConfig.Instance()
         self._default_move_time_ms = self._config.options['SERVO_CONTROL'].getint('DEFAULT_MOVE_TIME_MS')
-        self._filename = filename
-        self._file_path = None
-        self.instructions = []
-        self.parallel_sequences = []
-        self._load_instructions()
+        self.files = []
+        self._unsorted_instructions = {}
+        self.instructions = OrderedDict()
 
     # INTERNAL METHODS
     # =========================================================================
 
-    def _load_instructions(self):
-        """ Loads the instructions in the csv passed to this class on init
+    def load_instructions(self, filename):
+        """ Loads the argument instructions
+            Returns whether the load was successful, and the list of parallel sequences found in the instructions
         """
 
-        if not PathHelper.is_valid_instruction_file(self._filename):
-            self._logger.error("Instruction file %s not found. Please make sure this exists, and we have read permissions.", self._filename)
-            return
+        if not PathHelper.is_valid_instruction_file(filename):
+            self._logger.error("Instruction file %s not found. Please make sure this exists, and we have read permissions.", filename)
+            return False, None
 
-        self._file_path = PathHelper.instruction_path(self._filename)
-        self._parse_instructions_csv()
+        self.files.append(filename)
+        return True, self._parse_instructions_csv(PathHelper.instruction_path(filename))
 
-    def _parse_instructions_csv(self):
-        with open(self._file_path, newline='') as csvfile:
+    def sort_instructions(self):
+        self.instructions = OrderedDict(sorted(self._unsorted_instructions.items()))
+
+    def merge(self, other):
+        """ Merges instruction lists
+        """
+
+        self._logger.debug("Merging instruction list for %s into %s", other.files, self.files)
+        self.files.append(other.files[0])
+
+        for instructions in other.instructions.values():
+            for instruction in instructions.values():
+                self._add_to_instructions(instruction)
+
+    def _parse_instructions_csv(self, file_path):
+        parallel_sequences = []
+
+        with open(file_path, newline='') as csvfile:
             instruction_reader = csv.reader(csvfile, delimiter=',', quotechar="'")
             headers = next(instruction_reader)
 
             for row in instruction_reader:
                 dict_row = {key: value for key, value in zip(headers, row)}
                 instruction = ServoInstruction(dict_row, self._default_move_time_ms)
-                self.instructions.append(instruction)
                 if instruction.is_parallel_sequence():
-                    self.parallel_sequences.append(instruction)
+                    parallel_sequences.append(instruction)
+                else:
+                    self._add_to_instructions(instruction)
+
+        return parallel_sequences
+
+
+    def _add_to_instructions(self, instruction):
+        """ Adds the instruction to the list, merging with existing instructions if present
+        """
+
+        instructions_for_time = self._unsorted_instructions.get(instruction.time_offset)
+        if instructions_for_time is None:
+            self._unsorted_instructions[instruction.time_offset] = { instruction.instruction_type : instruction }
+        else:
+            matching_instruction = instructions_for_time.get(instruction.instruction_type)
+            if matching_instruction is None\
+                or instruction.instruction_type == InstructionTypes.PHONEME:
+                self._unsorted_instructions[instruction.time_offset][instruction.instruction_type] = instruction
+            else:
+                matching_instruction.merge(instruction)

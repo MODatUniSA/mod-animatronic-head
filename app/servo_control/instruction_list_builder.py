@@ -6,8 +6,7 @@ import logging
 
 from libs.config.path_helper import PathHelper
 from app.servo_control.instruction_iterator import InstructionIterator
-from app.servo_control.instruction_list import InstructionList, InstructionTypes
-
+from app.servo_control.instruction_list import InstructionList
 
 class InstructionListBuilder:
     """ Builds instruction lists/iterators from a filename. Handles arbitrarily deep structure
@@ -16,71 +15,52 @@ class InstructionListBuilder:
 
     IDENTIFY_BY_FILENAME = False
 
-    def __init__(self, iterator_execute_callback, iterator_complete_callback):
+    def __init__(self):
         self._logger = logging.getLogger('instruction_list_builder')
-        self._iterator_execute_callback = iterator_execute_callback
-        self._iterator_complete_callback = iterator_complete_callback
 
-    def build(self, filename, options=None):
+    def build(self, filename):
         """ Builds instruction lists/Iterators from the input filename.
             Returns a hierarchy of instruction iterators
         """
 
-        options = options or {}
-        iterators = options.get('iterators', {})
-        parent    = options.get('parent')
+        instruction_list = InstructionList()
+        success, parallel_sequences = instruction_list.load_instructions(filename)
 
-        instruction_list     = InstructionList(filename)
-        instruction_iterator = self._create_instruction_iterator(instruction_list)
+        if not success:
+            self._logger.error("Failed to load instruction list")
+            return None
 
-        if parent:
-            self._logger.debug("Built nested iterator for %s: %d", filename, id(instruction_iterator))
-        else:
-            self._logger.debug("Building iterator for %s: %d", filename, id(instruction_iterator))
+        for sequence in parallel_sequences:
+            instruction_list.merge(self.build(sequence.filename))
 
-        iterator_key = type(self)._iterator_identifier(instruction_iterator, filename)
-        type(self)._add_to_structure(iterator_key, instruction_iterator, iterators, options)
+        instruction_list.sort_instructions()
+        return instruction_list
 
-        if parent is not None:
-            iterators[parent].setdefault('nested',{})
-            iterators[parent]['nested'][filename] = instruction_iterator
+    @classmethod
+    def create_iterator(cls, instruction_list, **kwargs):
+        """ Creates an instruction iterator, assigning the argument callbacks
+        """
 
-        nested_options = copy(options)
-        nested_options.update({
-            'primary'   : False,
-            'parent'    : iterator_key,
-            'iterators' : iterators
-        })
+        instruction_iterator = InstructionIterator()
+        execute_callback = kwargs.get('execute_callback')
+        complete_callback = kwargs.get('complete_callback')
+        if execute_callback:
+            instruction_iterator.add_instruction_callback(execute_callback)
+        if complete_callback:
+            instruction_iterator.add_complete_callback(complete_callback)
 
-        for sequence in instruction_list.parallel_sequences:
-            _,nested_iterators = self.build(
-                filename=sequence.filename,
-                options=nested_options
-            )
+        instruction_iterator.set_instruction_list(instruction_list)
+        return cls.iterator_info(instruction_iterator, **kwargs)
 
-            iterators.update(nested_iterators)
-
-        # Return the iterator for the top level instructions, as well as the hierarchy
-        return instruction_iterator, iterators
-
-    @staticmethod
-    def _add_to_structure(key, iterator, iterators, options):
-        iterators[key] = {
+    @classmethod
+    def iterator_info(cls, iterator, **kwargs):
+        return {
+            'id'             : id(iterator),
             'iterator'       : iterator,
-            'primary'        : options.get('primary', True),
-            'without_servos' : options.get('without_servos'),
-            'override'       : options.get('override', False),
+            'without_servos' : kwargs.get('without_servos'),
+            'override'       : kwargs.get('override', False),
             'overridden'     : set()
         }
-
-    def _create_instruction_iterator(self, instruction_list=None):
-        instruction_iterator = InstructionIterator()
-        instruction_iterator.add_instruction_callback(self._iterator_execute_callback)
-        instruction_iterator.add_complete_callback(self._iterator_complete_callback)
-        if instruction_list is not None:
-            instruction_iterator.set_instruction_list(instruction_list)
-
-        return instruction_iterator
 
     @classmethod
     def _iterator_identifier(cls, iterator, filename):

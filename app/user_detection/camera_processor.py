@@ -6,13 +6,10 @@
 import asyncio
 import time
 import logging
-import functools
-import threading
 from collections import OrderedDict
 from queue import Queue, Empty, Full
 from contextlib import suppress
 
-import numpy as np
 import cv2
 import dlib
 
@@ -33,6 +30,7 @@ class CameraProcessor:
         self._face_detection_frame_interval = user_detection_config.getint('FACE_DETECTION_FRAME_INTERVAL')
         self._min_tracking_quality = user_detection_config.getint('MIN_TRACKING_QUALITY')
         self._frame_scale = user_detection_config.getfloat('FRAME_SCALE')
+        self._display_frames = user_detection_config.getboolean('DISPLAY_FRAMES')
 
         self._camera = None
         self._should_quit = False
@@ -59,10 +57,12 @@ class CameraProcessor:
         self._camera = cv2.VideoCapture(self._camera_id)
         # Fetching and processing the camera feed is a heavy, blocking operation,
         # so we run it in a separate thread
-        # IDEA: Consider using a ProcessPool to run this in a separate process,
-        #       which should mean we can offload it to a separate core
+        # Would run in a subprocess, but there are issues with forking using open cv on OS X
         self._processing_routine = self._loop.run_in_executor(None, self._perform_run)
-        asyncio.ensure_future(self._perform_notify_frame())
+        # Need to execute waitkey hack and notify of processed frames in main thread, so we
+        # use this to consume frames processed in above thread for display
+        if self._display_frames:
+            asyncio.ensure_future(self._perform_notify_frame())
 
     def stop(self):
         """ Stops processing the camera and performs any required cleanup
@@ -110,6 +110,9 @@ class CameraProcessor:
             # frame and only cascade feature detection every x frames.
             time.sleep(self._frame_period_seconds)
 
+            if not self._display_frames:
+                type(self)._waitkey_hack()
+
     def _process_frame(self, frame):
         """ Processes a single image/frame from the camera
             If we find a front face, we try to find eyes in it. We don't try to
@@ -131,7 +134,6 @@ class CameraProcessor:
 
         return (self._frame_count % self._face_detection_frame_interval) == 0
 
-
     @asyncio.coroutine
     def _perform_notify_frame(self):
         """ Notifies any listeners that a frame has been processed
@@ -145,10 +147,7 @@ class CameraProcessor:
                         self._cbm.trigger_frame_processed_callback(frame)
                         self.frame_queue.task_done()
 
-                # HACK: Not actually processing any keypresses,
-                #       but the frame capture loop won't iterate unless this waitKey command is
-                #       present. Waitkey must occur in the main thread if we use cv2 to display them
-                cv2.waitKey(30) & 0xff
+                type(self)._waitkey_hack()
                 yield from asyncio.sleep(self._frame_period_seconds)
             except RuntimeError:
                 self._logger.error("Error caught in CameraProcessor frame display", exc_info=True)
@@ -261,3 +260,12 @@ class CameraProcessor:
 
     def _find_eyes(self, image):
         return self._eye_cascade.detectMultiScale(image, 1.3, 5)
+
+    @staticmethod
+    def _waitkey_hack():
+        """ Hack to ensure frame capture doesn't hang
+        """
+        # HACK: Not actually processing any keypresses,
+        #       but the frame capture loop won't iterate unless this waitKey command is
+        #       present. Waitkey must occur in the main thread if we use cv2 to display them
+        cv2.waitKey(30) & 0xff
