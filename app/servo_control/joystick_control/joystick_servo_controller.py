@@ -160,7 +160,7 @@ class JoystickServoController:
                 elif action == 'STOP_CODE':
                     self.stop()
                 else:
-                    iid, instruction_iterator  = self._servo_controller.prepare_instructions(action, as_override=True)
+                    instruction_iterator  = self._servo_controller.prepare_instructions(action, as_override=True)
                     instruction_iterator.iterate_instructions()
 
     def _clear_control_override(self, axes):

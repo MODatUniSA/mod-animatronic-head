@@ -9,7 +9,7 @@ import os
 import random
 import time
 import threading
-from concurrent.futures import CancelledError
+from concurrent.futures import CancelledError, ThreadPoolExecutor
 
 from libs.logging.logger_creator import LoggerCreator
 from libs.asyncio.test_functions import AsyncioTestFunctions
@@ -48,6 +48,9 @@ class AHDriver:
             from app.null_objects.null_slack_bot import NullSlackBot as SlackBot
 
         self.loop                  = asyncio.get_event_loop()
+        self.executor              = ThreadPoolExecutor(5)
+        self.loop.set_default_executor(self.executor)
+
         config                     = DeviceConfig.Instance()
         heartbeat_config           = config.options['HEARTBEAT']
         heartbeat_url              = heartbeat_config['HEARTBEAT_PUSH_URL']
@@ -84,6 +87,7 @@ class AHDriver:
         except CancelledError:
             self._logger.debug("Event loop tasks have been cancelled!")
         finally:
+            # REVISE: May need to call self.executor.shutdown(wait=True)
             self._logger.debug("Closing Event Loop")
             self.loop.close()
 
@@ -96,11 +100,7 @@ class AHDriver:
         self._slack_bot.stop()
         self._experience_controller.stop()
         self._user_detector.stop()
-        # REVISE: We may want to cancel any tasks using call_soon_threadsafe
         list(map(lambda task: task.cancel(), asyncio.Task.all_tasks()))
-
-        # HACK: Give things time to exit gracefully. Should make the stop() functions coroutines and wait on them to complete
-        time.sleep(2)
 
     # EVENT LOOP SIGNAL HANDLING
     # ==========================================================================

@@ -4,6 +4,9 @@
     falling back to an estimated point between the eyes if no faces are found
 """
 
+# REVISE: If attempting to track face, eyes freeze when no faces found. Looks unnatural.
+# Would be good to drop back to animation movement. Should be able to do this using overrides.
+
 import logging
 import time
 import random

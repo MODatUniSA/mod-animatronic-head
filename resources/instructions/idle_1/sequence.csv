@@ -1,0 +1,4 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,idle_1/jaw.csv,
+0.00,PARALLEL_SEQUENCE,idle_1/eyelids_shifted.csv,
+0.00,PARALLEL_SEQUENCE,idle_1/lips.csv,

@@ -1,0 +1,5 @@
+state,interaction_name
+IDLE,idle_1
+ACTIVATING,idle_1
+ACTIVE,idle_1
+DEACTIVATING,idle_1
