@@ -6,7 +6,7 @@ After=network-online.target
 
 [Service]
 Type=idle
-WorkingDirectory=/home/pi/code/wonderland
+WorkingDirectory=/home/josh/code/almost-human
 ExecStart=/home/josh/.pythonvirtualenvs/almost_human/bin/python /home/josh/code/almost-human/ah_driver.py
 KillSignal=SIGINT
 # 10 seconds should be more than enough for the code to stop running
