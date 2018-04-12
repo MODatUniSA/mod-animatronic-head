@@ -36,10 +36,14 @@ class CsvTimeShift:
             for row in instruction_reader:
                 dict_row = {key: value for key, value in zip(headers, row)}
                 shifted_time = self._shift_time(dict_row['time'])
+                try:
+                    arg_1 = json.loads(dict_row['arg_1'])
+                except json.decoder.JSONDecodeError:
+                    arg_1 = dict_row['arg_1']
                 self._instruction_writer.write_instruction(
                     shifted_time,
                     dict_row['instruction'],
-                    json.loads(dict_row['arg_1']),
+                    arg_1,
                     dict_row.get('arg_2')
                 )
 

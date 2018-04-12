@@ -52,8 +52,7 @@ class InstructionWriter:
             arg = re.sub(r'"', '', arg)
             if arg == '':
                 arg = None
-
-        if arg is not None:
+        else:
             arg = json.dumps(arg)
 
         return arg
