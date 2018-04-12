@@ -1,3 +1,3 @@
 time,instruction,arg_1,arg_2
-0.00,PARALLEL_SEQUENCE,pseq_load_test/ps_1_1.csv,
-0.00,PARALLEL_SEQUENCE,pseq_load_test/ps_1_2.csv,
+0.00,PARALLEL_SEQUENCE,tests/pseq_load_test/ps_1_1.csv,
+0.00,PARALLEL_SEQUENCE,tests/pseq_load_test/ps_1_2.csv,

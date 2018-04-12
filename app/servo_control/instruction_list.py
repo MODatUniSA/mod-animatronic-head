@@ -27,8 +27,8 @@ class ServoInstruction:
     """ Storage class. Stores a single instruction to send to the servos.
     """
 
-    def __init__(self, info_row, default_move_time_ms):
-        self.time_offset = float(info_row['time'])
+    def __init__(self, info_row, default_move_time_ms, time_offset):
+        self.time_offset = float(info_row['time']) + time_offset
         # TODO: Gracefully handle unrecognised instruction. Just ignore.
         self.instruction_type = InstructionTypes[info_row['instruction'].upper()]
         self.arg_1 = info_row['arg_1']
@@ -90,8 +90,10 @@ class InstructionList:
     # INTERNAL METHODS
     # =========================================================================
 
-    def load_instructions(self, filename):
+    def load_instructions(self, filename, time_offset=0):
         """ Loads the argument instructions
+            Offsets all instruction time offsets by the time_offset. This is needed when loading
+            parallel sequences of instructions that have their own time offset
             Returns whether the load was successful, and the list of parallel sequences found in the instructions
         """
 
@@ -100,7 +102,7 @@ class InstructionList:
             return False, None
 
         self.files.append(filename)
-        return True, self._parse_instructions_csv(PathHelper.instruction_path(filename))
+        return True, self._parse_instructions_csv(PathHelper.instruction_path(filename), time_offset)
 
     def sort_instructions(self):
         self.instructions = OrderedDict(sorted(self._unsorted_instructions.items()))
@@ -116,7 +118,7 @@ class InstructionList:
             for instruction in instructions.values():
                 self._add_to_instructions(instruction)
 
-    def _parse_instructions_csv(self, file_path):
+    def _parse_instructions_csv(self, file_path, time_offset):
         parallel_sequences = []
 
         with open(file_path, newline='') as csvfile:
@@ -125,7 +127,7 @@ class InstructionList:
 
             for row in instruction_reader:
                 dict_row = {key: value for key, value in zip(headers, row)}
-                instruction = ServoInstruction(dict_row, self._default_move_time_ms)
+                instruction = ServoInstruction(dict_row, self._default_move_time_ms, time_offset)
                 if instruction.is_parallel_sequence():
                     parallel_sequences.append(instruction)
                 else:
@@ -137,6 +139,10 @@ class InstructionList:
     def _add_to_instructions(self, instruction):
         """ Adds the instruction to the list, merging with existing instructions if present
         """
+
+        if instruction.time_offset < 0:
+            self._logger.debug("Ignoring instruction with negative time offset")
+            return
 
         instructions_for_time = self._unsorted_instructions.get(instruction.time_offset)
         if instructions_for_time is None:
