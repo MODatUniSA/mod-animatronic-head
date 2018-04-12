@@ -1,5 +1,5 @@
 time,instruction,arg_1,arg_2
-0.00,PARALLEL_SEQUENCE,expressions/confused/jaw_loop_1.csv,
-0.00,PARALLEL_SEQUENCE,expressions/confused/eyebrows_loop_2.csv,
-0.00,PARALLEL_SEQUENCE,expressions/confused/eyelids2_loop_3.csv,
-0.00,PARALLEL_SEQUENCE,expressions/confused/eyes_loop_2.csv,
+0.00,PARALLEL_SEQUENCE,expressions/confused/jaw.csv,
+0.00,PARALLEL_SEQUENCE,expressions/confused/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,expressions/confused/eyelids2.csv,
+0.00,PARALLEL_SEQUENCE,expressions/confused/eyes.csv,
