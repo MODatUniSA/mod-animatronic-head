@@ -1,0 +1,7 @@
+state,interaction_name
+IDLE,idle_1
+ACTIVATING,hey_its_you
+ACTIVATING,youve_got_that_look
+ACTIVE,secret
+ACTIVE,cant_stop_thinking
+DEACTIVATING,bye_come_back_soon
