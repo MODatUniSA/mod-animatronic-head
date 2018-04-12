@@ -1,5 +1,6 @@
 time,instruction,arg_1,arg_2
 0.00,PARALLEL_SEQUENCE,happened_so_fast/jaw.csv,
+0.00,PARALLEL_SEQUENCE,happened_so_fast/L6_it_all_happened_so_fast_phonemes.csv,
 0.00,PARALLEL_SEQUENCE,happened_so_fast/eyebrows.csv,
 0.00,PARALLEL_SEQUENCE,happened_so_fast/eyelids.csv,
 0.00,PARALLEL_SEQUENCE,happened_so_fast/eyes.csv,
