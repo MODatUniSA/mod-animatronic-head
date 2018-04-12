@@ -1,12 +1,12 @@
 name,voice_file,phoneme_file,animation_file,eye_control_type
 none,,,,INHERIT
-now_that_youre_here,F6_now_that_youre_here.ogg,now_youre_here/now_youre_here_phonemes.csv,now_youre_here/jeee_loop_2_shifted.csv,INHERIT
+idle_1,,,idle_1/sequence.csv,INHERIT
+now_that_youre_here,F6_now_that_youre_here.ogg,,now_youre_here/sequence.csv,INHERIT
 hey_its_you,G1_Hey_its_you.ogg,,hey_its_you/sequence.csv,INHERIT
 youve_got_that_look,F7_youve_got_that_look.ogg,youve_got_that_look/phonemes.csv,youve_got_that_look/sequence.csv,INHERIT
 secret,F8_can_I_tell_you_a_secret.ogg,secret/phonemes.csv,secret/sequence.csv,INHERIT
 cant_stop_thinking,L1_I_cant_stop_thinking.ogg,,cant_stop_thinking/sequence.csv,INHERIT
 bye_come_back_soon,B1_bye_come_back_soon.ogg,,bye_come_back_soon/sequence.csv,INHERIT
-idle_1,,,idle_1/sequence.csv,INHERIT
 a_specific_dream,D1_a_specific_dream.ogg,,a_specific_dream/sequence.csv,INHERIT
 come_here_face,F1_come_on_face.ogg,,come_here_face/sequence.csv,INHERIT
 see_ya_later,B2_see_ya_later.ogg,,see_ya_later/sequence.csv,INHERIT
