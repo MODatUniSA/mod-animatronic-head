@@ -1,0 +1,6 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,on_my_own/jaw.csv,
+0.00,PARALLEL_SEQUENCE,on_my_own/L4_on_my_own_phonemes.csv,
+0.00,PARALLEL_SEQUENCE,on_my_own/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,on_my_own/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,on_my_own/eyes.csv,

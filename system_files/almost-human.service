@@ -1,0 +1,22 @@
+# Runs the ah_driver code `sudo journalctl -u almost-human --follow`
+
+[Unit]
+Description=Starts the Almost Human code. Restarting it within 5 seconds after any exit (crash or otherwise)
+After=network-online.target
+
+[Service]
+Type=idle
+WorkingDirectory=/home/josh/code/almost-human
+ExecStart=/home/josh/.pythonvirtualenvs/almost_human/bin/python /home/josh/code/almost-human/ah_driver.py
+KillSignal=SIGINT
+# 10 seconds should be more than enough for the code to stop running
+# Will be killed with more aggressive signals if it fails to shut down from an interrupt in this time
+TimeoutStopSec=10
+Restart=always
+RestartSec=5
+# Needs to be run as root to allow us to issue shutdown commands from code
+User=root
+Group=root
+
+[Install]
+WantedBy=network-online.target

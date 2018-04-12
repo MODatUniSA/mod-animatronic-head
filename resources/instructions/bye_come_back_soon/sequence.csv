@@ -1,5 +1,6 @@
 time,instruction,arg_1,arg_2
 0.00,PARALLEL_SEQUENCE,bye_come_back_soon/jaw.csv,
+0.00,PARALLEL_SEQUENCE,bye_come_back_soon/B1_bye_come_back_soon_phonemes.csv,
 0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyebrows.csv,
 0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyelids.csv,
 0.00,PARALLEL_SEQUENCE,bye_come_back_soon/eyes.csv,

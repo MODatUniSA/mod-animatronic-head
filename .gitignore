@@ -1,2 +1,7 @@
 *.pyc
 .device_config.ini
+*.ogg
+*.mp4
+*.wav
+*.reapeaks
+*.bak

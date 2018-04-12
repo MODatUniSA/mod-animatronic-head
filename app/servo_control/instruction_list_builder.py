@@ -18,20 +18,27 @@ class InstructionListBuilder:
     def __init__(self):
         self._logger = logging.getLogger('instruction_list_builder')
 
-    def build(self, filename):
+    def build(self, filename, parent_offset=0):
         """ Builds instruction lists/Iterators from the input filename.
             Returns a hierarchy of instruction iterators
         """
 
+        self._logger.debug("Loading instructions from file %s with offset %f", filename, parent_offset)
+
         instruction_list = InstructionList()
-        success, parallel_sequences = instruction_list.load_instructions(filename)
+        success, parallel_sequences = instruction_list.load_instructions(filename, parent_offset)
 
         if not success:
             self._logger.error("Failed to load instruction list")
             return None
 
         for sequence in parallel_sequences:
-            instruction_list.merge(self.build(sequence.filename))
+            child_sequence = self.build(sequence.filename, sequence.time_offset)
+            if child_sequence is None:
+                self._logger.error("Failed to build sequence for %s. Skipping", sequence.filename)
+                continue
+
+            instruction_list.merge(child_sequence)
 
         instruction_list.sort_instructions()
         return instruction_list

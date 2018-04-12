@@ -1,0 +1,4 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,expressions/blinking/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,expressions/blinking/mouth.csv,
+0.00,PARALLEL_SEQUENCE,expressions/blinking/eyes.csv,

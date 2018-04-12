@@ -1,3 +1,6 @@
 time,instruction,arg_1,arg_2
-0.00,PARALLEL_SEQUENCE,now_youre_here/jeee_loop_2.csv,
 0.00,PARALLEL_SEQUENCE,now_youre_here/phonemes.csv,
+0.00,PARALLEL_SEQUENCE,now_youre_here/jaw.csv,
+0.00,PARALLEL_SEQUENCE,now_youre_here/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,now_youre_here/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,now_youre_here/eyes.csv,

@@ -47,10 +47,14 @@ class PapagayoToPhoneme:
                     skip = True
                 else:
                     frame, phoneme = line_split
-                    try:
-                        frame = int(frame)
-                    except ValueError as err:
+                    phoneme = phoneme.rstrip()
+                    if phoneme is None or phoneme == '':
                         skip = True
+                    else:
+                        try:
+                            frame = int(frame)
+                        except ValueError:
+                            skip = True
 
                 if skip:
                     print("Skipping line: {}".format(line.rstrip()))

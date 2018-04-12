@@ -1,5 +1,6 @@
 time,instruction,arg_1,arg_2
 0.00,PARALLEL_SEQUENCE,come_here_face/jaw.csv,
+0.00,PARALLEL_SEQUENCE,come_here_face/F1_come_on_face_phonemes.csv,
 0.00,PARALLEL_SEQUENCE,come_here_face/eyebrows.csv,
 0.00,PARALLEL_SEQUENCE,come_here_face/eyelids.csv,
 0.00,PARALLEL_SEQUENCE,come_here_face/eyes.csv,

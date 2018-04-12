@@ -1,0 +1,17 @@
+state,interaction_name
+IDLE,idle_1
+ACTIVATING,waking
+ACTIVE,hi_hello_yes_you
+ACTIVE,blinking
+ACTIVE,dont_worry
+ACTIVE,confused
+ACTIVE,nothing_sticks
+ACTIVE,um_2
+ACTIVE,secret
+ACTIVE,surprised_2
+ACTIVE,do_you_really_mean
+ACTIVE,blinking
+ACTIVE,a_specific_dream
+ACTIVE,look_around
+DEACTIVATING,oh_youre_off
+DEACTIVATING,falling_asleep
