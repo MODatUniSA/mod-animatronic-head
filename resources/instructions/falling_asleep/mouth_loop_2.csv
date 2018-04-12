@@ -1,0 +1,4 @@
+time,instruction,arg_1,arg_2
+0.06,POSITION,'{"4": {"position": 1038, "speed": 8000}, "1": {"position": 1038, "speed": 8000}}',""
+0.09,POSITION,'{"4": {"position": 1040, "speed": 8000}, "1": {"position": 1040, "speed": 8000}}',""
+0.11,POSITION,'{"4": {"position": 1042, "speed": 8000}, "1": {"position": 1042, "speed": 8000}}',""
