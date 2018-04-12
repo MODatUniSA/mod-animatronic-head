@@ -1,5 +1,6 @@
 state,interaction_name
 IDLE,idle_1
+ACTIVE,hey_mate
 ACTIVE,dont_worry
 ACTIVE,do_you_really_mean
 ACTIVE,do_you_think_i_did
@@ -16,7 +17,6 @@ ACTIVE,youll_stay_with_me
 ACTIVE,hi_hello_yes_you
 ACTIVE,a_specific_dream
 ACTIVE,hey_whats_up
-ACTIVE,G4_hey_mate
 ACTIVE,you_made_it
 ACTIVE,i_didnt_mean_it
 ACTIVE,it_all_happened_so_fast
