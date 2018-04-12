@@ -1,0 +1,4 @@
+time,instruction,arg_1,arg_2
+0.0,POSITION,'{"8": {"position": 2176, "speed": 8000}, "9": {"position": 823, "speed": 8000}, "10": {"position": 823, "speed": 8000}, "11": {"position": 2176, "speed": 8000}}',""
+0.02,POSITION,'{"8": {"position": 2179, "speed": 8000}, "9": {"position": 820, "speed": 8000}, "10": {"position": 820, "speed": 8000}, "11": {"position": 2179, "speed": 8000}}',""
+0.04,POSITION,'{"8": {"position": 2181, "speed": 8000}, "9": {"position": 818, "speed": 8000}, "10": {"position": 818, "speed": 8000}, "11": {"position": 2181, "speed": 8000}}',""
