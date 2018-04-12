@@ -12,7 +12,7 @@ come_here_face,F1_come_on_face.ogg,,come_here_face/sequence.csv,INHERIT
 see_ya_later,B2_see_ya_later.ogg,,see_ya_later/sequence.csv,INHERIT
 oh_youre_off,B3_oh_youre_off.ogg,,oh_youre_off/sequence.csv,INHERIT
 dont_worry,F2_dont_worry.ogg,,dont_worry/sequence.csv,INHERIT
-missed_you,F3_missed_you,,missed_you/sequence.csv,INHERIT
+missed_you,F3_missed_you.ogg,,missed_you/sequence.csv,INHERIT
 you_havent_visited,F4_you_havent_visited.ogg,,you_havent_visited/sequence.csv,INHERIT
 youll_stay_with_me,F5_youll_stay_with_me.ogg,,youll_stay_with_me/sequence.csv,INHERIT
 hi_hello_yes_you,G2_hi_hello_yes_you.ogg,,hi_hello_yes_you/sequence.csv,INHERIT
@@ -32,7 +32,7 @@ um_2,um_2.ogg,,um_2/sequence.csv,INHERIT
 um_3,um_3.ogg,,/sequence.csv,INHERIT
 um_4,um_4.ogg,,/sequence.csv,INHERIT
 falling_asleep,,,falling_asleep/sequence.csv,INHERIT
-waking,,,waking/sequence.csv,INHERIT
+waking,,,waking/waking1.csv,INHERIT
 blinking,,,expressions/blinking/blinking.csv,INHERIT
 confused,,,expressions/confused/confused.csv,INHERIT
 look_around,,,expressions/look_around/look_around.csv,INHERIT

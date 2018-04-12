@@ -1,7 +1,6 @@
 time,instruction,arg_1,arg_2
 0,PHONEME,O
 0.38,PHONEME,rest
-0.58,PHONEME,
 0.71,PHONEME,O
 0.83,PHONEME,FV
 0.96,PHONEME,rest
