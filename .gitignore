@@ -1,3 +1,4 @@
 *.pyc
 .device_config.ini
 *.ogg
+*.mp4
