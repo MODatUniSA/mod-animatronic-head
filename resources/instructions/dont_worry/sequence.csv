@@ -1,6 +1,6 @@
 time,instruction,arg_1,arg_2
 0.00,PARALLEL_SEQUENCE,dont_worry/jaw.csv,
 0.00,PARALLEL_SEQUENCE,dont_worry/F2_dont_worry_phonemes.csv,
-0.00,PARALLEL_SEQUENCE,dont_worry/eyebrows_loop_3.csv,
-0.00,PARALLEL_SEQUENCE,dont_worry/eyes_loop_3.csv,
+0.00,PARALLEL_SEQUENCE,dont_worry/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,dont_worry/eyes.csv,
 0.00,PARALLEL_SEQUENCE,dont_worry/eyelids.csv,
