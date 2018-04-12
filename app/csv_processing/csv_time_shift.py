@@ -40,7 +40,7 @@ class CsvTimeShift:
                     shifted_time,
                     dict_row['instruction'],
                     json.loads(dict_row['arg_1']),
-                    dict_row['arg_2']
+                    dict_row.get('arg_2')
                 )
 
         self._instruction_writer.stop()

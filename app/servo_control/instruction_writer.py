@@ -4,6 +4,7 @@
 import csv
 import json
 import logging
+import re
 from datetime import datetime
 
 from libs.config.path_helper import PathHelper
@@ -27,17 +28,35 @@ class InstructionWriter:
 
         self._file.close()
 
-    def write_instruction(self, time, instruction_type, arg_1, arg_2=''):
+    def write_instruction(self, time, instruction_type, arg_1, arg_2=None):
         self._logger.debug("Writing instruction row")
 
         row = [
             time,
             instruction_type if isinstance(instruction_type, str) else instruction_type.name,
-            json.dumps(arg_1),
-            json.dumps(arg_2)
+            type(self).json_arg_clean(arg_1),
+            type(self).json_arg_clean(arg_2)
         ]
 
         self._writer.writerow(row)
+
+    @classmethod
+    def json_arg_clean(cls, arg):
+        """ Returns a clean version of a JSON arg. Used to avoid duplicating quotes when writing.
+        """
+
+        if arg is None:
+            return arg
+
+        if isinstance(arg, str):
+            arg = re.sub(r'"', '', arg)
+            if arg == '':
+                arg = None
+
+        if arg is not None:
+            arg = json.dumps(arg)
+
+        return arg
 
     @staticmethod
     def _default_filename():
