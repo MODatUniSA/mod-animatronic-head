@@ -1,11 +1,11 @@
 state,interaction_name
 IDLE,idle_1
+ACTIVE,hey_its_you
 ACTIVE,youve_got_that_look
 ACTIVE,bye_come_back_soon
 ACTIVE,secret
 ACTIVE,cant_stop_thinking
 ACTIVE,come_here_face
-ACTIVE,see_ya_later
 ACTIVE,oh_youre_off
 ACTIVE,dont_worry
 ACTIVE,missed_you
@@ -26,4 +26,4 @@ ACTIVE,do_you_think_i_did
 ACTIVE,now_that_youre_here
 ACTIVE,on_my_own
 ACTIVE,um_4
-DEACTIVATING,hey_its_you
+DEACTIVATING,see_ya_later

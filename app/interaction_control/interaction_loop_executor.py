@@ -45,7 +45,7 @@ class InteractionLoopExecutor:
             If interrupt is True, we stop the currently executing interaction executing immediately
         """
 
-        self._logger.info("Queuing Execution of {} interactions".format(interaction_type.name))
+        self._logger.info("Queuing Execution of %s interactions", interaction_type.name)
         self._interaction_loop.reset()
         self._current_interaction_type = interaction_type
 

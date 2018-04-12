@@ -86,6 +86,8 @@ class ExperienceController:
         self._logger.info("Executing Deactivating State")
         self._executor.queue_execution(InteractionType.DEACTIVATING,True)
 
+    # IDEA: Could have a concept of interrupted deactivating
+
     def _execute_deactivating_from_activating(self):
         if self._should_quit:
             return
@@ -103,8 +105,9 @@ class ExperienceController:
         # return InteractionLoop('resources/interaction_loops/own_thing_loop_all_audio.csv')
         # return InteractionLoop('resources/interaction_loops/skin_loop.csv')
         # return InteractionLoop('resources/interaction_loops/now_that_youre_here_loop.csv')
-        return InteractionLoop('resources/interaction_loops/demo_loop.csv')
-        # return InteractionLoop('resources/interaction_loops/demo_loop_test.csv')
+        # return InteractionLoop('resources/interaction_loops/demo_loop.csv')
+        # return InteractionLoop('resources/interaction_loops/thursday_test_loop_1.csv')
+        return InteractionLoop('resources/interaction_loops/all_interactions_loop.csv')
 
     def _build_state_machine(self):
         """ Builds the state machine and adds all state transitions
