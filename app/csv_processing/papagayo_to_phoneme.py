@@ -47,9 +47,11 @@ class PapagayoToPhoneme:
                     skip = True
                 else:
                     frame, phoneme = line_split
+                    if phoneme is None or phoneme == '':
+                        skip = True
                     try:
                         frame = int(frame)
-                    except ValueError as err:
+                    except ValueError:
                         skip = True
 
                 if skip:
