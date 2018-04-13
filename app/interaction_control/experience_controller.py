@@ -9,7 +9,6 @@
 #       completion or state changes
 
 import logging
-import asyncio
 
 from transitions import Machine
 

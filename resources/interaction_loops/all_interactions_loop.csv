@@ -1,5 +1,7 @@
 state,interaction_name
 IDLE,idle_1
+ACTIVATING,waking
+ACTIVE,um_2
 ACTIVE,hey_mate
 ACTIVE,dont_worry
 ACTIVE,do_you_really_mean
@@ -25,5 +27,10 @@ ACTIVE,nothing_sticks
 ACTIVE,fear_you
 ACTIVE,now_that_youre_here
 ACTIVE,on_my_own
-ACTIVE,um_4
+ACTIVE,look_around
+ACTIVE,blinking
+ACTIVE,confused
+ACTIVE,surprised1
+ACTIVE,surprised2
 DEACTIVATING,see_ya_later
+DEACTIVATING,falling_asleep
