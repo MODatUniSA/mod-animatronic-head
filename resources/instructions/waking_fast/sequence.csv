@@ -1,0 +1,5 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,waking_fast/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,waking_fast/eyes.csv,
+0.00,PARALLEL_SEQUENCE,waking_fast/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,waking_fast/mouth.csv,

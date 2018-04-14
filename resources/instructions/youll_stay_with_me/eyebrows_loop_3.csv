@@ -1,0 +1,11 @@
+time,instruction,arg_1,arg_2
+0.0,POSITION,'{"12": {"position": 1651, "speed": 8000}}',
+0.02,POSITION,'{"12": {"position": 1647, "speed": 8000}}',
+0.04,POSITION,'{"12": {"position": 1645, "speed": 8000}}',
+0.05,POSITION,'{"12": {"position": 1643, "speed": 8000}}',
+0.07,POSITION,'{"12": {"position": 1641, "speed": 8000}}',
+0.09,POSITION,'{"12": {"position": 1639, "speed": 8000}}',
+0.16,POSITION,'{"12": {"position": 1629, "speed": 8000}}',
+0.17,POSITION,'{"12": {"position": 1623, "speed": 8000}}',
+0.19,POSITION,'{"12": {"position": 1610, "speed": 8000}}',
+0.2,POSITION,'{"12": {"position": 1604, "speed": 8000}}',

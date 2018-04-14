@@ -1,0 +1,5 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,expressions/anger/eyelids2_loop_1.csv,
+0.00,PARALLEL_SEQUENCE,expressions/anger/eyebrows_loop_1.csv,
+0.00,PARALLEL_SEQUENCE,expressions/anger/eyes_loop_1.csv,
+0.00,PARALLEL_SEQUENCE,expressions/anger/mouth_loop_1.csv,

@@ -13,4 +13,4 @@ time,instruction,arg_1,arg_2
 1.08,PHONEME,etc
 1.33,PHONEME,AI
 1.42,PHONEME,etc
-1.54,PHONEME,rest
+1.54,PHONEME,rest,10

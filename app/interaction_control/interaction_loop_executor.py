@@ -23,8 +23,10 @@ class InteractionLoopExecutor:
         self._completion_triggers = {
             InteractionType.IDLE : self._cbm.trigger_idle_complete_callback,
             InteractionType.ACTIVATING : self._cbm.trigger_activation_complete_callback,
+            InteractionType.INTERRUPTED_ACTIVATING : self._cbm.trigger_activation_complete_callback,
             InteractionType.ACTIVE : self._cbm.trigger_active_complete_callback,
-            InteractionType.DEACTIVATING : self._cbm.trigger_deactivation_complete_callback
+            InteractionType.DEACTIVATING : self._cbm.trigger_deactivation_complete_callback,
+            InteractionType.INTERRUPTED_DEACTIVATING : self._cbm.trigger_deactivation_complete_callback,
         }
 
     def stop(self):
@@ -70,7 +72,7 @@ class InteractionLoopExecutor:
         """ Executes the next step in the current interaction type if present, or flags it as complete otherwise
         """
 
-        self._logger.debug("Executing {} Step".format(self._current_interaction_type.name))
+        self._logger.info("Executing %s Step", self._current_interaction_type.name)
 
         interaction = self._interaction_loop.next(self._current_interaction_type)
         if interaction is not None:

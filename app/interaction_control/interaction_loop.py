@@ -25,8 +25,10 @@ class InteractionLoop:
         self._interactions = {
             InteractionType.IDLE : [],
             InteractionType.ACTIVATING : [],
+            InteractionType.INTERRUPTED_ACTIVATING : [],
             InteractionType.ACTIVE : [],
             InteractionType.DEACTIVATING : [],
+            InteractionType.INTERRUPTED_DEACTIVATING : [],
         }
         self._interaction_map = InteractionMap.Instance()
         self._build_interactions(loop_file)
