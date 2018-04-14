@@ -2,12 +2,6 @@
     based on this state
 """
 
-# TODO: Figure out when to fetch a new interaction loop and pass it to the executor.
-#       After we return to idle? After we're told to activate while idle?
-#       May also need to account for activating/deactivating loops that skip idle
-#       At this stage, only a single loop will be fetched and executed, regardless of
-#       completion or state changes
-
 import logging
 
 from transitions import Machine
@@ -39,7 +33,6 @@ class ExperienceController:
         """ Starts the experience. Kicks everything off in idle.
         """
 
-        self._executor.set_interaction_loop(self._random_interaction_loop())
         self._execute_idle()
 
     def stop(self):
@@ -53,12 +46,14 @@ class ExperienceController:
     #           method and a map to determine which interactions to execute
 
     def _execute_idle(self):
-        """ Executes the idle part of the current interaction loop
+        """ Executes the idle part of the current interaction loop. Selects a new random interaction
+            loop each time we go into idle
         """
 
         if self._should_quit:
             return
 
+        self._executor.set_interaction_loop(InteractionLoop.random())
         self._logger.info("Executing Idle State")
         self._executor.queue_execution(InteractionType.IDLE)
 
@@ -105,18 +100,6 @@ class ExperienceController:
 
     # INTERNAL HELPERS
     # =========================================================================
-
-    def _random_interaction_loop(self):
-        # TODO: Return actual random loop. Probably by calling InteractionLoop.random().
-
-        # return InteractionLoop('resources/interaction_loops/new_head_test_loop.csv')
-        # return InteractionLoop('resources/interaction_loops/own_thing_loop_all_audio.csv')
-        # return InteractionLoop('resources/interaction_loops/skin_loop.csv')
-        # return InteractionLoop('resources/interaction_loops/now_that_youre_here_loop.csv')
-        # return InteractionLoop('resources/interaction_loops/demo_loop.csv')
-        return InteractionLoop('resources/interaction_loops/thursday_test_loop_1.csv')
-        # return InteractionLoop('resources/interaction_loops/all_interactions_loop.csv')
-        # return InteractionLoop('resources/interaction_loops/interrupt_test.csv')
 
     def _build_state_machine(self):
         """ Builds the state machine and adds all state transitions

@@ -1,6 +1,7 @@
 state,interaction_name
 IDLE,idle_1
 ACTIVATING,waking
+INTERRUPTED_ACTIVATING,waking_fast
 ACTIVE,hi_hello_yes_you
 ACTIVE,blinking
 ACTIVE,dont_worry
@@ -13,5 +14,7 @@ ACTIVE,do_you_really_mean
 ACTIVE,blinking
 ACTIVE,a_specific_dream
 ACTIVE,look_around
-DEACTIVATING,oh_youre_off
+INTERRUPTED_DEACTIVATING,oh_youre_off
+INTERRUPTED_DEACTIVATING,falling_asleep_fast
+DEACTIVATING,see_ya_later
 DEACTIVATING,falling_asleep

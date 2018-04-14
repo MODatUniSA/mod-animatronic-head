@@ -1,23 +1,27 @@
-""" InteractionLoop contains an entire interaction loop, as defined by a CSV file
-    CSV - state,interaction_name
-        idle, breathing_1
-        activating, hello_1
-        activating, transition_1
-        active, own_thing_1
-        active, transition_2
-        ...
-    IDLE state defines the idle to be used AFTER the rest of the loop is executed
-"""
-
 import csv
+import os
+import random
+import logging
 
 from app.interaction_control.interaction_type import InteractionType
 from app.interaction_control.interaction_map import InteractionMap
 from app.playback.audio.audio_cache import AudioCache
+from libs.config.path_helper import PathHelper
+from libs.patterns.singleton import Singleton
 
-# REVISE: Either need a .random() factory method in here to fetch and load a random loop file,
-#         or need to create an InteractionLoopList class with a random() method
 class InteractionLoop:
+    """ Contains an entire interaction loop, as defined by a CSV file
+        CSV -
+            state,interaction_name
+            IDLE, breathing_1
+            ACTIVATING, hello_1
+            ACTIVATING, transition_1
+            ACTIVE, own_thing_1
+            ACTIVE, transition_2
+            ...
+        IDLE state defines the idle to be used AFTER the rest of the loop is executed
+    """
+
     def __init__(self, loop_file):
         self.audio_files = []
         self._current_interaction_type = None
@@ -33,8 +37,15 @@ class InteractionLoop:
         self._interaction_map = InteractionMap.Instance()
         self._build_interactions(loop_file)
 
+    @classmethod
+    def random(cls):
+        """ Returns a random interaction loop
+        """
+        return cls(InteractionLoopList.Instance().random())
+
     def reset(self):
-        """ Resets the state of this loop. Allows us to iterate over a single interaction type multiple times
+        """ Resets the state of this loop. Allows us to iterate over a single interaction type
+            multiple times without reloading
         """
 
         self._current_interaction_type = None
@@ -80,3 +91,43 @@ class InteractionLoop:
         if self._current_interaction_type != interaction_type:
             self._current_interaction_type = interaction_type
             self._iterator = iter(self._interactions[interaction_type])
+
+@Singleton
+class InteractionLoopList:
+    """ List of all defined interaction loops in directory defined in config
+    """
+
+    def __init__(self):
+        self._logger = logging.getLogger('interaction_loop_list')
+        self.loops = []
+        self._base_path = PathHelper.base_interaction_loop_path
+        self._valid_extension = '.csv'
+        self._last_selected = None
+        self._build_list()
+
+    def random(self):
+        """ Fetch a random loop from all loaded loops. If more than one loop defined, does not
+            return the same loop twice in a row
+        """
+
+        if not self.loops:
+            self._logger.error("No Loops Loaded. Can't select random")
+
+        if len(self.loops) == 1:
+            return self.loops[0]
+
+        except_last = [loop for loop in self.loops if loop != self._last_selected]
+        self._last_selected = random.choice(except_last)
+        return self._last_selected
+
+    def _build_list(self):
+        """ Builds a list of interaction loops based on files in the specified interaction
+            loop directory
+        """
+
+        self.loops = [
+            os.path.join(self._base_path, filename) for filename
+            in os.listdir(self._base_path)
+            if os.path.isfile(os.path.join(self._base_path, filename)) and
+            os.path.splitext(filename)[1] == self._valid_extension
+        ]

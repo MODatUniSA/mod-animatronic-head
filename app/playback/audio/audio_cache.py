@@ -27,7 +27,7 @@ class AudioCache:
         """
 
         if self.is_sound_cached(filename):
-            self._logger.info("Ignoring attempt to preload sound that is already cached: %s", filename)
+            self._logger.debug("Ignoring attempt to preload sound that is already cached: %s", filename)
             return
 
         if not PathHelper.is_valid_audio_file(filename):
@@ -39,7 +39,7 @@ class AudioCache:
             # Perform the acutal loading of the audio file in a background thread
             self._loop.run_in_executor(None, self._perform_load_sound, filename)
             return True
-        except pygame.error as err:
+        except pygame.error:
             self._logger.error("Error loading sound!", exc_info=True)
             return False
 

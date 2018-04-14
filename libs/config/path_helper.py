@@ -10,6 +10,7 @@ class PathHelper:
     path_options = config.options['PATHS']
     base_audio_path = path_options['BASE_AUDIO_PATH']
     base_instruction_path = path_options['BASE_INSTRUCTION_PATH']
+    base_interaction_loop_path = path_options['BASE_INTERACTION_LOOP_PATH']
 
     @classmethod
     def is_valid_path(cls, path):
