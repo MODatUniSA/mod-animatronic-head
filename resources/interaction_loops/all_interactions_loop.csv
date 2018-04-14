@@ -1,5 +1,7 @@
 state,interaction_name
 IDLE,idle_1
+ACTIVATING,waking_fast
+ACTIVATING,falling_asleep_fast
 ACTIVATING,surprised_1
 ACTIVATING,um_2
 ACTIVATING,surprised_2

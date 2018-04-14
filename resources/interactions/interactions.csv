@@ -32,7 +32,9 @@ um_2,um_2.ogg,,um_2/sequence.csv,INHERIT
 um_3,um_3.ogg,,/sequence.csv,INHERIT
 um_4,um_4.ogg,,/sequence.csv,INHERIT
 falling_asleep,,,falling_asleep/sequence.csv,INHERIT
+falling_asleep_fast,,,falling_asleep_fast/sequence.csv,INHERIT
 waking,,,waking/waking1.csv,INHERIT
+waking_fast,,,waking_fast/sequence.csv,INHERIT
 blinking,,,expressions/blinking/blinking.csv,INHERIT
 confused,,,expressions/confused/confused.csv,INHERIT
 look_around,,,expressions/look_around/look_around.csv,INHERIT
