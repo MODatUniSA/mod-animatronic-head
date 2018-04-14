@@ -1,0 +1,11 @@
+state,interaction_name
+IDLE,idle_1
+ACTIVATING,youll_stay_with_me
+ACTIVE,youll_stay_with_me
+ACTIVE,youll_stay_with_me
+ACTIVE,youll_stay_with_me
+ACTIVE,youve_got_that_look
+ACTIVE,youve_got_that_look
+ACTIVE,secret
+ACTIVE,secret
+DEACTIVATING,falling_asleep

@@ -1,6 +1,6 @@
 time,instruction,arg_1,arg_2
 0.00,PARALLEL_SEQUENCE,youll_stay_with_me/jaw.csv,
 0.00,PARALLEL_SEQUENCE,youll_stay_with_me/F5_youll_stay_with_me_phonemes.csv,
-0.00,PARALLEL_SEQUENCE,youll_stay_with_me/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,youll_stay_with_me/eyebrows_loop_2.csv,    
 0.00,PARALLEL_SEQUENCE,youll_stay_with_me/eyelids.csv,
 0.00,PARALLEL_SEQUENCE,youll_stay_with_me/eyes.csv,
