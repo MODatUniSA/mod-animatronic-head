@@ -268,4 +268,4 @@ class CameraProcessor:
         # HACK: Not actually processing any keypresses,
         #       but the frame capture loop won't iterate unless this waitKey command is
         #       present. Waitkey must occur in the main thread if we use cv2 to display them
-        cv2.waitKey(30) & 0xff
+        cv2.waitKey(1)

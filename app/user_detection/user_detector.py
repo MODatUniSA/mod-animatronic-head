@@ -28,6 +28,7 @@ class UserDetector:
         self._face_detected_count = 0
         self._should_quit = False
         self._user_present = False
+        self._current_user_absent_countdown = 0
         self._logger.info("User Detector Initted")
 
     def run(self):
@@ -75,6 +76,8 @@ class UserDetector:
     # INTERNAL HELPERS
     # =========================================================================
 
+    # REVISE: How expensive is it to keep queuing and cancelling delayed callbacks?
+    # Could just manage our own counter in here
     def _reset_delayed_users_left_trigger(self):
         """ Cancels any scheduled call to the all_users_left callback and creates
             a new one to be called after the default wait time
