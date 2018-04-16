@@ -5,12 +5,11 @@ Driver should call LoggerCreator().create_logger() before any calls to logger_fo
 """
 
 import sys
-import os
 import logging
 from logging.handlers import RotatingFileHandler
 
 # Sentry Integration
-from raven import Client, fetch_git_sha
+from raven import Client
 from raven.handlers.logging import SentryHandler
 from raven.conf import setup_logging
 
@@ -28,19 +27,25 @@ class LoggerCreator:
         if path is None:
             path = 'logs/{}'.format(logger_name)
 
+        # REVISE: I'm sure there's a better way to specify which levels get set in which log
+
         # Get a base level logger, so other classes don't need to know logger base
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-        # Allow total of 1GB of each type of log file
-        # Each log file can grow to 100mb. The most recent 5 are kept
-        handler = RotatingFileHandler("{}_error.log".format(path), maxBytes=100000000,
+        # Each log file can grow to 10mb. The most recent 5 are kept
+        error_handler = RotatingFileHandler("{}_error.log".format(path), maxBytes=10000000,
         backupCount=5)
-        handler.setLevel(logging.WARNING)
-        handler.setFormatter(formatter)
+        error_handler.setLevel(logging.WARNING)
+        error_handler.setFormatter(formatter)
 
-        verbose_handler = RotatingFileHandler("{}_output.log".format(path), maxBytes=100000000,
+        info_handler = RotatingFileHandler("{}_info.log".format(path), maxBytes=10000000,
+        backupCount=5)
+        info_handler.setLevel(logging.INFO)
+        info_handler.setFormatter(formatter)
+
+        verbose_handler = RotatingFileHandler("{}_verbose.log".format(path), maxBytes=10000000,
         backupCount=5)
         verbose_handler.setLevel(logging.DEBUG)
         verbose_handler.setFormatter(formatter)
@@ -51,7 +56,8 @@ class LoggerCreator:
         console_handler.setLevel(type(self)._console_level())
         console_handler.setFormatter(formatter)
 
-        logger.addHandler(handler)
+        logger.addHandler(error_handler)
+        logger.addHandler(info_handler)
         logger.addHandler(verbose_handler)
         logger.addHandler(console_handler)
 
@@ -72,8 +78,7 @@ class LoggerCreator:
             environment=environment,
             include_paths=['app', 'libs'],
             # FIXME: want to automatically set release by git sha
-            # release=fetch_git_sha(os.path.dirname(__file__)),
-            repos={'raven' : {'name': 'wearesandpit/almost-human'}},
+            repos={'raven' : {'name': 'wearesandpit/wonderland'}},
         )
 
         handler = SentryHandler(client)
@@ -90,7 +95,7 @@ class LoggerCreator:
     def _console_level():
         if '-vv' in sys.argv:
             return logging.DEBUG
-        elif '-v' in sys.argv:
+        if '-v' in sys.argv:
             return logging.INFO
-        else:
-            return logging.WARNING
+
+        return logging.WARNING

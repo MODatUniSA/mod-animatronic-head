@@ -120,7 +120,7 @@ class ServoController:
         """ Called by the instruction iterator each time an instruction should be executed
         """
 
-        self._logger.debug("Executing %s Instruction from iterator %s", instruction.instruction_type.name, iterator_id)
+        # self._logger.debug("Executing %s Instruction from iterator %s", instruction.instruction_type.name, iterator_id)
         iterator_info = self._instruction_iterators[iterator_id]
 
         if instruction.instruction_type == InstructionTypes.PHONEME:

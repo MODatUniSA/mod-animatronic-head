@@ -3,9 +3,10 @@
 """
 
 import asyncio
-import aiohttp
 import logging
 from concurrent.futures import CancelledError
+
+import aiohttp
 
 class Heartbeater:
     def __init__(self, url, period):
@@ -32,6 +33,8 @@ class Heartbeater:
                 break
             except RuntimeError:
                 self._logger.error("Heatbeat ping failed!", exc_info=True)
+            except Exception as err:
+                import pdb; pdb.set_trace()
 
     def stop(self):
         self._logger.debug("Stopping Heartbeater")

@@ -10,16 +10,19 @@ class CallbackManager:
         an_object will respond to add_thing_happened_callback() if passed.
     """
 
-    def __init__(self, callback_list, for_instance=None):
+    def __init__(self, callback_list, for_instance=None, use_call_soon=True):
         """ Accepts a list of callbacks that this class should allow to be triggered.
             Creates dynamic methods on this instance for each callback name in the list.
             If for_instance is provided, delegate add_callback methods will be added to the instance
+            use_call_soon allows us to determine whether we use asyncio's call soon, or just call directly
+            Note that just calling directly
         """
 
         logger_name = '{}_callback_manager'.format(type(for_instance).__name__.lower())
         self._logger = logging.getLogger(logger_name)
         self._callback_list = callback_list
         self._for_instance = for_instance
+        self._use_call_soon = use_call_soon
         self._loop = asyncio.get_event_loop()
         self._callbacks = { name: [] for name in callback_list }
         self._create_all_callback_methods()
@@ -35,12 +38,15 @@ class CallbackManager:
                 self._callbacks[callback_name].append(to_call)
 
         def _trigger_callback(self, *args, **kwargs):
-            self._logger.debug("Triggering callback for {}".format(callback_name))
+            # self._logger.debug("Triggering callback for {}".format(callback_name))
 
             for to_call in self._callbacks[callback_name]:
-                # Call via asyncio to avoid the call stack getting too deep
-                wrapped_call = functools.partial(to_call, *args, **kwargs)
-                self._loop.call_soon_threadsafe(wrapped_call)
+                if self._use_call_soon:
+                    # Call via asyncio to avoid the call stack getting too deep
+                    wrapped_call = functools.partial(to_call, *args, **kwargs)
+                    self._loop.call_soon_threadsafe(wrapped_call)
+                else:
+                    to_call(*args, **kwargs)
 
         # Create add_callback method on this instance and delegate on caller (if provided)
         add_cb_name = "add_{}_callback".format(callback_name)

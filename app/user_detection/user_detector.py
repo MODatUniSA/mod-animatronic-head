@@ -28,6 +28,7 @@ class UserDetector:
         self._face_detected_count = 0
         self._should_quit = False
         self._user_present = False
+        self._current_user_absent_countdown = 0
         self._logger.info("User Detector Initted")
 
     def run(self):
@@ -43,13 +44,14 @@ class UserDetector:
     # CALLBACKS
     # =========================================================================
 
-    def _handle_face_found(self, results, frame):
+    def _handle_face_found(self, *args):
         """ Handles any faces/eyes being found by the camera processor
+            Doesn't use the frame or trackers here, so just set to args and ignore
         """
 
         self._face_detected_count += 1
         self._face_detected_count = min(self._face_detected_count, self._max_face_detected_count)
-        self._logger.debug("Users in front of device: %d", self._face_detected_count)
+        self._logger.debug("At least one user present for count: %d", self._face_detected_count)
 
         if self._face_detected_count >= self._activate_at_face_detected_count \
             and not self._user_present:
@@ -62,7 +64,7 @@ class UserDetector:
     def _handle_face_absent(self):
         self._face_detected_count -= 1
         self._face_detected_count = max(self._face_detected_count, 0)
-        self._logger.debug("No users detected for %s seconds: %d", self._user_absent_timeout, self._face_detected_count)
+        self._logger.debug("No users detected for %s seconds. New Count: %d", self._user_absent_timeout, self._face_detected_count)
 
         if self._user_present:
             if self._face_detected_count <= self._deactivate_at_face_detected_count:
@@ -75,6 +77,8 @@ class UserDetector:
     # INTERNAL HELPERS
     # =========================================================================
 
+    # REVISE: How expensive is it to keep queuing and cancelling delayed callbacks?
+    # Could just manage our own counter in here
     def _reset_delayed_users_left_trigger(self):
         """ Cancels any scheduled call to the all_users_left callback and creates
             a new one to be called after the default wait time
@@ -91,5 +95,4 @@ class UserDetector:
 
     def _cancel_delayed_callbacks(self):
         if self._delayed_all_users_left_trigger is not None:
-            self._logger.debug("Cancelling existing delayed notification callback")
             self._delayed_all_users_left_trigger.cancel()

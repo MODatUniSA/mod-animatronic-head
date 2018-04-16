@@ -51,7 +51,7 @@ class ServoCommunicator:
         else:
             instruction = "{}T{}\r".format(positions_str, in_milliseconds)
 
-        self._logger.debug("Sending Instruction: %s", instruction)
+        # self._logger.debug("Sending Instruction: %s", instruction)
         self._serial.write(instruction.encode('utf-8'))
 
     def stop_servos(self, servos):

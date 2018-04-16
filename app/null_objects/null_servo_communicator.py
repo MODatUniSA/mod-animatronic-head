@@ -13,7 +13,7 @@ class NullServoCommunicator:
         if isinstance(positions, ServoPositions):
             positions = positions.positions_str
 
-        self._logger.debug("Moving Servo Positions: %s, in %s mS", positions, in_milliseconds)
+        # self._logger.debug("Moving Servo Positions: %s, in %s mS", positions, in_milliseconds)
 
     def stop_servos(self, servos):
         self._logger.debug("Stopping Servos: %s", servos)

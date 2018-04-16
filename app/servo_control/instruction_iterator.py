@@ -13,7 +13,10 @@ class InstructionIterator:
         self._iteration_routine = None
         self._iterating = False
         self._instruction_list = None
-        self._cbm = CallbackManager(['instruction', 'complete'], self)
+        # Using 2 separate callback managers so we don't need to use call soon on the frequently
+        # triggering instruction callback
+        self._cbm_complete = CallbackManager(['complete'], self)
+        self._cbm_instruction = CallbackManager(['instruction'], self, False)
 
     def set_instruction_list(self, instruction_list):
         """ Sets the list of instructions this iterator should iterate
@@ -32,12 +35,12 @@ class InstructionIterator:
 
         if self._instruction_list is None:
             self._logger.error("No instruction list to iterate!")
-            self._cbm.trigger_complete_callback(id(self))
+            self._cbm_complete.trigger_complete_callback(id(self))
             return
 
         if not self._instruction_list.instructions:
             self._logger.error("No instructions in list to iterate!")
-            self._cbm.trigger_complete_callback(id(self))
+            self._cbm_complete.trigger_complete_callback(id(self))
             return
 
         self._iterating = True
@@ -68,13 +71,12 @@ class InstructionIterator:
                 self._logger.info("Interrupting instruction iteration")
                 break
 
-            self._logger.debug("Reading instruction")
-            self._logger.debug("%.2f seconds have passed since start of instruction iteration", time_passed)
+            # self._logger.debug("%.2f seconds have passed since start of instruction iteration", time_passed)
 
             if time_offset > time_passed:
                 # Wait until we should execute the next instruction
                 to_wait = time_offset - time_passed - 0.005
-                self._logger.debug("Next instruction should be executed with an offset of %.2f. Waiting %.2f seconds", time_offset, to_wait)
+                # self._logger.debug("Next instruction should be executed with an offset of %.2f. Waiting %.2f seconds", time_offset, to_wait)
                 yield from asyncio.sleep(to_wait)
 
             time_passed = time.time() - start_time
@@ -84,13 +86,13 @@ class InstructionIterator:
                 if time_diff >= 1:
                     # TODO: May want to skip instructions if we fall behind to make up lost time. Similar to dropping frames.
                     self._logger.warning("Time offset diff of %.2f greater than allowed threshold", time_diff)
-                self._logger.debug("Executing instructions with time offset %.2f at %.2f seconds after iteration start (Diff: %.2f)", time_offset, time_passed, time_diff)
+                # self._logger.debug("Executing instructions with time offset %.2f at %.2f seconds after iteration start (Diff: %.2f)", time_offset, time_passed, time_diff)
                 for instruction in instructions.values():
-                    self._logger.debug("%s instruction", instruction.instruction_type.name)
-                    self._cbm.trigger_instruction_callback(instruction, id(self))
+                    # self._logger.debug("%s instruction", instruction.instruction_type.name)
+                    self._cbm_instruction.trigger_instruction_callback(instruction, id(self))
 
         self._logger.info("Finished iterating instructions")
-        self._cbm.trigger_complete_callback(id(self))
+        self._cbm_complete.trigger_complete_callback(id(self))
         self._iterating = False
         self._iteration_routine = None
 
@@ -106,4 +108,4 @@ class InstructionIterator:
             self._iteration_routine.cancel()
             self._iterating = False
             self._iteration_routine = None
-            self._cbm.trigger_complete_callback(id(self))
+            self._cbm_complete.trigger_complete_callback(id(self))

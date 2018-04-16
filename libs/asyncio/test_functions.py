@@ -15,7 +15,7 @@ class AsyncioTestFunctions:
         self._should_quit = True
 
     @asyncio.coroutine
-    def output_loop_count(self):
+    def output_loop_count(self, loop_seconds=1):
         """ Coroutine to run while testing async behaviour to ensure we don't accidentally block the event loop. If count output is interrupted we have blocked async ops.
         """
         count = 1
@@ -27,5 +27,5 @@ class AsyncioTestFunctions:
             time_diff = time.time() - last_time
             last_time = time.time()
             self._logger.debug("Loop: {}. Time Diff: {:.2f}".format(count, time_diff))
-            yield from asyncio.sleep(1)
+            yield from asyncio.sleep(loop_seconds)
             count += 1
