@@ -34,11 +34,11 @@ def detectAndTrackMultipleFaces():
     # capture = cv2.VideoCapture('dave_faces.mp4')
 
     #Create two opencv named windows
-    cv2.namedWindow("base-image", cv2.WINDOW_AUTOSIZE)
+    # cv2.namedWindow("base-image", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("result-image", cv2.WINDOW_AUTOSIZE)
 
     #Position the windows next to eachother
-    cv2.moveWindow("base-image",0,100)
+    # cv2.moveWindow("base-image",0,100)
     cv2.moveWindow("result-image",400,100)
 
     #Start the window thread for the two windows we are using
@@ -60,7 +60,8 @@ def detectAndTrackMultipleFaces():
             #Retrieve the latest image from the webcam
             rc,fullSizeBaseImage = capture.read()
 
-            baseImage = cv2.resize(fullSizeBaseImage,(0,0),fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+            baseImage = cv2.resize(fullSizeBaseImage,(0,0),fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+            # baseImage = fullSizeBaseImage
             # baseImage = cv2.resize( fullSizeBaseImage, ( 320, 240))
 
             #Check if a key was pressed and if it was Q, then break
@@ -75,6 +76,7 @@ def detectAndTrackMultipleFaces():
             #combination of the original image from the webcam and the
             #overlayed rectangle for the largest face
             resultImage = baseImage.copy()
+            # resultImage = fullSizeBaseImage.copy()
 
 
 
@@ -254,7 +256,7 @@ def detectAndTrackMultipleFaces():
                                      # (OUTPUT_SIZE_WIDTH,OUTPUT_SIZE_HEIGHT))
 
             #Finally, we want to show the images on the screen
-            cv2.imshow("base-image", baseImage)
+            # cv2.imshow("base-image", baseImage)
             cv2.imshow("result-image", resultImage)
 
 
