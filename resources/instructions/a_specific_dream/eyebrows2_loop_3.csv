@@ -1,6 +1,0 @@
-time,instruction,arg_1,arg_2
-0.0,POSITION,'{"12": {"position": 1449, "speed": 8000}}',
-0.0,POSITION,'{"13": {"position": 1538, "speed": 8000}}',
-0.02,POSITION,'{"12": {"position": 1447, "speed": 8000}}',
-0.08,POSITION,'{"12": {"position": 1444, "speed": 8000}}',
-0.16,POSITION,'{"12": {"position": 1441, "speed": 8000}}',
