@@ -6,13 +6,20 @@ import asyncio
 import time
 
 from libs.callback_handling.callback_manager import CallbackManager
+from libs.config.device_config import DeviceConfig
 
 class InstructionIterator:
     def __init__(self):
         self._logger = logging.getLogger('instruction_iterator_{}'.format(id(self)))
+        config                  = DeviceConfig.Instance()
+        logging_config          = config.options['LOGGING']
+        self._warning_threshold = logging_config.getfloat('INSTRUCTION_TIME_WARNING_THRESHOLD')
+        self._log_timing        = logging_config.getboolean('LOG_INSTRUCTION_TIMING')
+        self._threshold_str     = "Time offset diff of %.2f greater than allowed threshold"
+        self._timing_str        = "Executing instructions with time offset %.2f at %.2f seconds after iteration start (Diff: %.2f)"
         self._iteration_routine = None
-        self._iterating = False
-        self._instruction_list = None
+        self._iterating         = False
+        self._instruction_list  = None
         # Using 2 separate callback managers so we don't need to use call soon on the frequently
         # triggering instruction callback
         self._cbm_complete = CallbackManager(['complete'], self)
@@ -71,24 +78,21 @@ class InstructionIterator:
                 self._logger.info("Interrupting instruction iteration")
                 break
 
-            # self._logger.debug("%.2f seconds have passed since start of instruction iteration", time_passed)
-
             if time_offset > time_passed:
                 # Wait until we should execute the next instruction
                 to_wait = time_offset - time_passed - 0.005
-                # self._logger.debug("Next instruction should be executed with an offset of %.2f. Waiting %.2f seconds", time_offset, to_wait)
                 yield from asyncio.sleep(to_wait)
 
             time_passed = time.time() - start_time
 
             if self._iterating:
                 time_diff = time_passed - time_offset
-                if time_diff >= 1:
-                    # TODO: May want to skip instructions if we fall behind to make up lost time. Similar to dropping frames.
-                    self._logger.warning("Time offset diff of %.2f greater than allowed threshold", time_diff)
-                # self._logger.debug("Executing instructions with time offset %.2f at %.2f seconds after iteration start (Diff: %.2f)", time_offset, time_passed, time_diff)
+                if self._log_timing or time_diff >= self._warning_threshold:
+                    self._logger.debug(self._timing_str, time_offset, time_passed, time_diff)
+                if time_diff >= self._warning_threshold:
+                    # IDEA: May want to skip instructions if we fall behind to make up lost time. Similar to dropping frames.
+                    self._logger.warning(self._threshold_str, time_diff)
                 for instruction in instructions.values():
-                    # self._logger.debug("%s instruction", instruction.instruction_type.name)
                     self._cbm_instruction.trigger_instruction_callback(instruction, id(self))
 
         self._logger.info("Finished iterating instructions")

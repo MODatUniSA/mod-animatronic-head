@@ -38,8 +38,6 @@ class CallbackManager:
                 self._callbacks[callback_name].append(to_call)
 
         def _trigger_callback(self, *args, **kwargs):
-            # self._logger.debug("Triggering callback for {}".format(callback_name))
-
             for to_call in self._callbacks[callback_name]:
                 if self._use_call_soon:
                     # Call via asyncio to avoid the call stack getting too deep

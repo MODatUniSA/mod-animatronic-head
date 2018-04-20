@@ -53,6 +53,7 @@ class AHDriver:
 
         config                     = DeviceConfig.Instance()
         heartbeat_config           = config.options['HEARTBEAT']
+        logging_config             = config.options['LOGGING']
         heartbeat_url              = heartbeat_config['HEARTBEAT_PUSH_URL']
         heartbeat_period           = heartbeat_config.getfloat('HEARTBEAT_PUSH_PERIOD_SECONDS')
         self._heartbeater          = Heartbeater(heartbeat_url, heartbeat_period)
@@ -68,7 +69,9 @@ class AHDriver:
         self._tf                   = AsyncioTestFunctions()
         token = config.options['SLACK']['TOKEN']
         self._slack_bot = SlackBot(token)
-        self._tasks = [self._heartbeater.run(), self._tf.output_loop_count()]
+        self._tasks = [self._heartbeater.run()]
+        if logging_config.getboolean('LOG_ASYNC_LOOP_COUNT'):
+            self._tasks.append(self._tf.output_loop_count())
 
         if config.options['USER_DETECTION'].getboolean('DISPLAY_FRAMES'):
             FrameRenderer(eye_controller, camera_processor)

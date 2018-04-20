@@ -71,8 +71,8 @@ class UserDetector:
                 self._logger.info("Flagging all users absent")
                 self._user_present = False
                 self._cbm.trigger_all_users_left_callback()
-            else:
-                self._queue_delayed_users_left_trigger()
+        if self._face_detected_count > 0:
+            self._queue_delayed_users_left_trigger()
 
     # INTERNAL HELPERS
     # =========================================================================
