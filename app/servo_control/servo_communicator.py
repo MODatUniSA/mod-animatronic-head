@@ -15,6 +15,8 @@ class ServoCommunicator:
         config = DeviceConfig.Instance()
         serial_config = config.options['SERIAL']
         joystick_config = config.options['JOYSTICK_CONTROL']
+        logging_config = config.options['LOGGING']
+        self._log_instructions = logging_config.getboolean('LOG_SERVO_INSTRUCTIONS')
         self._port = serial_config['PORT']
         self._timeout = serial_config.getfloat('TIMEOUT')
         self._speed = serial_config.getint('SPEED')
@@ -51,7 +53,9 @@ class ServoCommunicator:
         else:
             instruction = "{}T{}\r".format(positions_str, in_milliseconds)
 
-        # self._logger.debug("Sending Instruction: %s", instruction)
+        if self._log_instructions:
+            self._logger.debug("Sending Instruction: %s", instruction)
+
         self._serial.write(instruction.encode('utf-8'))
 
     def stop_servos(self, servos):
