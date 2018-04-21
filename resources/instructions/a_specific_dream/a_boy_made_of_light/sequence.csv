@@ -1,0 +1,6 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,a_specific_dream/a_boy_made_of_light/jaw.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/a_boy_made_of_light/D1_a_specific_dream_phonemes.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/a_boy_made_of_light/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/a_boy_made_of_light/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/a_boy_made_of_light/eyes.csv,

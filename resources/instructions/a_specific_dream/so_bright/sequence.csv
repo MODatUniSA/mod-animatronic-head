@@ -1,0 +1,6 @@
+time,instruction,arg_1,arg_2
+0.00,PARALLEL_SEQUENCE,a_specific_dream/so_bright/jaw.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/so_bright/D1_a_specific_dream_phonemes.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/so_bright/eyebrows.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/so_bright/eyelids.csv,
+0.00,PARALLEL_SEQUENCE,a_specific_dream/so_bright/eyes.csv,

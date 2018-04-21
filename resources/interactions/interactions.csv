@@ -40,3 +40,13 @@ confused,,,expressions/confused/confused.csv,INHERIT
 look_around,,,expressions/look_around/look_around.csv,INHERIT
 surprised_1,,,expressions/surprise/surprised1.csv,INHERIT
 surprised_2,,,expressions/surprise/surprised2.csv,INHERIT
+short_rest,,,expressions/short_rest/sequence.csv,INHERIT
+short_rest_blink,,,expressions/short_rest/sequence_w_blink.csv,INHERIT
+dream_understand,D1_dream_split/understand.ogg,,a_specific_dream/understand/sequence.csv,INHERIT
+dream_boy_made_of_light,D1_dream_split/a_boy_made_of_light.ogg,,a_specific_dream/a_boy_made_of_light/sequence.csv,INHERIT
+dream_every_cell,D1_dream_split/every_cell_in_my_body.ogg,,a_specific_dream/every_cell/sequence.csv,INHERIT
+dream_everything_is_going_to_change,D1_dream_split/everything_is_going_to_change.ogg,,a_specific_dream/everything_is_going_to_change/sequence.csv,INHERIT
+dream_in_my_dream,D1_dream_split/he_was_in_my_dream.ogg,,a_specific_dream/in_my_dream/sequence.csv,INHERIT
+dream_see_everything,D1_dream_split/i_could_see_everything.ogg,,a_specific_dream/see_everything/sequence.csv,INHERIT
+dream_so_bright,D1_dream_split/so_bright.ogg,,a_specific_dream/so_bright/sequence.csv,INHERIT
+dream_then_he_leaves,D1_dream_split/then_he_leaves.ogg,,a_specific_dream/then_he_leaves/sequence.csv,INHERIT

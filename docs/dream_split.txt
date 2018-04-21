@@ -1,0 +1,33 @@
+Phrase Parts
+
+- He was in my dream again
+  - 0.62 - 1.98
+
+- A boy made of light
+  - 3.06 - 4.08
+
+- Everything is going to change
+  - 4.85 - 10.65
+
+- So bright
+  - 12.23 - 19.50
+
+- Every cell in my body
+  - 20.38 - 24.27
+
+- I could see everything
+  - 25.30 - 30.16
+
+- Then he leaves
+  - 31.25 - 37.00
+
+- Do you think I'm meant to understand
+  - 37.85 - 42.46
+
+
+----
+
+Need to take all files associated with the phrase and split by the timings provided. Then need to offset all instructions by the starting time. Will take a long time if doing this manually.
+Do it for one of the phrases to validate approach, then write code to do this for the rest.
+
+- Just do the jaw + phonemes for the last phrase for testing
