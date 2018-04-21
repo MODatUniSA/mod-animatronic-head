@@ -10,13 +10,17 @@ from datetime import datetime
 from libs.config.path_helper import PathHelper
 
 class InstructionWriter:
-    def __init__(self, filename=None):
+    def __init__(self, filename=None,prepend_instruction_path=True):
         self._logger = logging.getLogger("instruction_writer")
         self._filename = filename
         if self._filename == None:
             self._filename = type(self)._default_filename()
 
-        self._file_path = PathHelper.instruction_path(self._filename)
+        if prepend_instruction_path:
+            self._file_path = PathHelper.instruction_path(self._filename)
+        else:
+            self._file_path = self._filename
+
         self._file = open(self._file_path, 'w')
         fieldnames = ['time','instruction','arg_1','arg_2']
         self._writer = csv.writer(self._file, delimiter=',', quotechar="'", quoting=csv.QUOTE_MINIMAL)
