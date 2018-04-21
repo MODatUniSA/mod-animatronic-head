@@ -1,0 +1,12 @@
+time,instruction,arg_1,arg_2
+0,PHONEME,AI,
+0.03,PHONEME,etc,
+0.08,PHONEME,AI,
+0.16,PHONEME,etc,
+0.49,PHONEME,E,
+0.78,PHONEME,rest,
+2.08,PHONEME,rest,
+4.37,PHONEME,etc,
+4.49,PHONEME,AI,
+4.66,PHONEME,etc,
+4.78,PHONEME,rest,
