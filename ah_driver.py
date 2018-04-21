@@ -92,7 +92,8 @@ class AHDriver:
         finally:
             # REVISE: May need to call self.executor.shutdown(wait=True)
             self._logger.debug("Closing Event Loop")
-            self.loop.close()
+            if not self.loop.is_closed():
+                self.loop.close()
 
             if self._shutdown_on_complete:
                 self._logger.info("Initiating System Shutdown!")
