@@ -80,6 +80,7 @@ class SlackBot:
                 self._run()
             except RuntimeError:
                 self._logger.error("Error caught in SlackBot executor", exc_info=True)
+                time.sleep(1)
 
 
     def _run(self):
