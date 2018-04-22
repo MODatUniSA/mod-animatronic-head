@@ -40,6 +40,9 @@ confused,,,expressions/confused/confused.csv,INHERIT
 look_around,,,expressions/look_around/look_around.csv,INHERIT
 surprised_1,,,expressions/surprise/surprised1.csv,INHERIT
 surprised_2,,,expressions/surprise/surprised2.csv,INHERIT
+fear,,,expressions/fear/sequence.csv,INHERIT
+sad,,,expressions/sad/sequence.csv,INHERIT
+anger,,,expressions/anger/sequence.csv,INHERIT
 short_rest,,,expressions/short_rest/sequence.csv,INHERIT
 short_rest_blink,,,expressions/short_rest/sequence_w_blink.csv,INHERIT
 dream_understand,D1_dream_split/understand.ogg,,a_specific_dream/understand/sequence.csv,INHERIT
