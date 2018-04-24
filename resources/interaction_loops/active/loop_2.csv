@@ -3,6 +3,7 @@ IDLE,idle_1
 ACTIVATING,waking
 INTERRUPTED_ACTIVATING,waking_fast
 ACTIVE,hey_whats_up
+ACTIVE,short_rest_blink
 ACTIVE,um_2
 ACTIVE,missed_you
 ACTIVE,look_around
