@@ -22,7 +22,6 @@ from app.servo_control.servo_controller import ServoController
 from app.interaction_control.experience_controller import ExperienceController
 from app.interaction_control.interaction_loop_executor import InteractionLoopExecutor
 from app.user_detection.user_detector import UserDetector
-from app.user_detection.camera_processor import CameraProcessor
 from app.user_detection.frame_renderer import FrameRenderer
 from app.servo_control.eye_controller import EyeController
 
@@ -57,15 +56,30 @@ class AHDriver:
         heartbeat_url              = heartbeat_config['HEARTBEAT_PUSH_URL']
         heartbeat_period           = heartbeat_config.getfloat('HEARTBEAT_PUSH_PERIOD_SECONDS')
         self._heartbeater          = Heartbeater(heartbeat_url, heartbeat_period)
+        camera_enabled             = config.options['USER_DETECTION'].getboolean('CAMERA_ENABLED')
+
+        if camera_enabled:
+            from app.user_detection.camera_processor import CameraProcessor
+        else:
+            from app.null_objects.null_camera_processor import NullCameraProcessor as CameraProcessor
+
         audio_playback_controller  = AudioPlaybackController()
         servo_communicator         = ServoCommunicator()
         servo_controller           = ServoController(servo_communicator)
         camera_processor           = CameraProcessor()
         eye_controller             = EyeController(camera_processor, servo_communicator)
-        playback_controller        = PlaybackController(audio_playback_controller, servo_controller, eye_controller)
+        playback_controller        = PlaybackController(
+            audio_playback_controller,
+            servo_controller,
+            eye_controller
+        )
         interaction_loop_executor  = InteractionLoopExecutor(playback_controller)
         self._user_detector        = UserDetector(camera_processor)
-        self._experience_controller = ExperienceController(interaction_loop_executor, self._user_detector)
+        self._experience_controller = ExperienceController(
+            interaction_loop_executor,
+            self._user_detector,
+            autorun=not camera_enabled
+        )
         self._tf                   = AsyncioTestFunctions()
         token = config.options['SLACK']['TOKEN']
         self._slack_bot = SlackBot(token)
