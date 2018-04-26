@@ -299,4 +299,4 @@ time,instruction,arg_1,arg_2
 4.05,POSITION,'{"0": {"position": 1586, "speed": 8000}}',\\
 4.06,POSITION,'{"0": {"position": 1609, "speed": 8000}}',\\
 4.07,POSITION,'{"0": {"position": 1651, "speed": 8000}}',\\
-4.09,POSITION,'{"0": {"position": 1687, "speed": 8000}}',\\
+4.09,POSITION,'{"0": {"position": 2200, "speed": 4000}}',\\

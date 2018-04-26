@@ -41,4 +41,4 @@ time,instruction,arg_1,arg_2
 1.04,POSITION,'{"0": {"position": 800, "speed": 8000}}',""
 1.18,POSITION,'{"0": {"position": 833, "speed": 8000}}',""
 1.19,POSITION,'{"0": {"position": 849, "speed": 8000}}',""
-1.2,POSITION,'{"0": {"position": 1046, "speed": 8000}}',""
+1.2,POSITION,'{"0": {"position": 2200, "speed": 4000}}',""

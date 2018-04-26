@@ -5,4 +5,4 @@ time,instruction,arg_1,arg_2
 0.42,PHONEME,MBP
 0.62,PHONEME,E
 0.79,PHONEME,etc
-1.08,PHONEME,rest
+1.08,PHONEME,rest,400
