@@ -6,6 +6,8 @@ import logging
 from app.interaction_control.interaction_type import InteractionType
 from app.interaction_control.interaction_map import InteractionMap
 from app.playback.audio.audio_cache import AudioCache
+
+from libs.config.device_config import DeviceConfig
 from libs.config.path_helper import PathHelper
 from libs.patterns.singleton import Singleton
 
@@ -38,10 +40,10 @@ class InteractionLoop:
         self._build_interactions(loop_file)
 
     @classmethod
-    def random(cls):
+    def next_loop(cls):
         """ Returns a random interaction loop
         """
-        return cls(InteractionLoopList.Instance().random())
+        return cls(InteractionLoopList.Instance().next())
 
     def reset(self):
         """ Resets the state of this loop. Allows us to iterate over a single interaction type
@@ -99,26 +101,53 @@ class InteractionLoopList:
 
     def __init__(self):
         self._logger = logging.getLogger('interaction_loop_list')
+        config = DeviceConfig.Instance()
+        self._random_order = config.options['INTERACTION_LOOPS'].getboolean('RANDOM_ORDER')
         self.loops = []
         self._base_path = PathHelper.base_interaction_loop_path
         self._valid_extension = '.csv'
         self._last_selected = None
+        self._last_selected_index = -1
         self._build_list()
+
+    def next(self):
+        """ Fetch the next interaction loop to execute.
+        """
+
+        return self.random() if self._random_order else self.next_sequential()
+
+    def next_sequential(self):
+        """ Fetch the next interaction loop in the order they were loaded
+        """
+
+        if not self._check_loops_loaded():
+            return None
+
+        self._last_selected_index = (self._last_selected_index + 1) % len(self.loops)
+        self._last_selected = self.loops[self._last_selected_index]
+        return self._last_selected
 
     def random(self):
         """ Fetch a random loop from all loaded loops. If more than one loop defined, does not
             return the same loop twice in a row
         """
+        if not self._check_loops_loaded():
+            return None
 
-        if not self.loops:
-            self._logger.error("No Loops Loaded. Can't select random")
 
         if len(self.loops) == 1:
             return self.loops[0]
 
         except_last = [loop for loop in self.loops if loop != self._last_selected]
         self._last_selected = random.choice(except_last)
+        self._last_selected_index = self.loops.index(self._last_selected)
         return self._last_selected
+
+    def _check_loops_loaded(self):
+        if not self.loops:
+            self._logger.error("No Loops Loaded. Make sure interaction loop csvs are present in %s", self._base_path)
+            return False
+        return True
 
     def _build_list(self):
         """ Builds a list of interaction loops based on files in the specified interaction
@@ -131,3 +160,4 @@ class InteractionLoopList:
             if os.path.isfile(os.path.join(self._base_path, filename)) and
             os.path.splitext(filename)[1] == self._valid_extension
         ]
+        self.loops.sort()

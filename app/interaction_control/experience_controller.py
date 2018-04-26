@@ -56,7 +56,7 @@ class ExperienceController:
         if self._should_quit:
             return
 
-        self._executor.set_interaction_loop(InteractionLoop.random())
+        self._executor.set_interaction_loop(InteractionLoop.next_loop())
         self._logger.info("Executing Idle State")
         self._executor.queue_execution(InteractionType.IDLE)
 
