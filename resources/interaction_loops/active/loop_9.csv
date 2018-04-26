@@ -1,6 +1,6 @@
 state,interaction_name
 IDLE,idle_1
-IDLE,waking
+ACTIVATING,waking
 INTERRUPTED_ACTIVATING,waking_fast
 ACTIVE,hey_mate
 ACTIVE,look_around
