@@ -7,7 +7,7 @@ time,instruction,arg_1,arg_2
 1.96,PHONEME,AI
 2.12,PHONEME,L
 2.25,PHONEME,O
-2.38,PHONEME,rest
+2.60,PHONEME,rest
 3.79,PHONEME,etc
 3.92,PHONEME,E
 4.0,PHONEME,etc

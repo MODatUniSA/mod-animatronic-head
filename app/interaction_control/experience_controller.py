@@ -19,15 +19,18 @@ class ExperienceController:
         'interrupted_deactivating',
     ]
 
-    def __init__(self, interaction_loop_executor, user_detector):
+    def __init__(self, interaction_loop_executor, user_detector, autorun=False):
         self._logger = logging.getLogger('experience_controller')
         self._machine = None
         self._executor = interaction_loop_executor
         self._user_detector = user_detector
+        self._autorun = autorun
         self._build_state_machine()
         self._add_executor_callbacks()
         self._add_user_detector_callbacks()
         self._should_quit = False
+
+        self._logger.info("Experience Autorun enabled: {}".format(autorun))
 
     def run(self):
         """ Starts the experience. Kicks everything off in idle.
@@ -160,7 +163,11 @@ class ExperienceController:
         """ Sets callbacks on executor so it can tell us when execution has completed
         """
 
-        self._executor.add_idle_complete_callback(self.complete_idle)
+        if self._autorun:
+            self._executor.add_idle_complete_callback(self.activate)
+        else:
+            self._executor.add_idle_complete_callback(self.complete_idle)
+
         self._executor.add_activation_complete_callback(self.complete_activation)
         self._executor.add_active_complete_callback(self.deactivate)
         self._executor.add_deactivation_complete_callback(self.complete_deactivation)

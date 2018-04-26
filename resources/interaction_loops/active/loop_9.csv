@@ -1,6 +1,6 @@
 state,interaction_name
 IDLE,idle_1
-IDLE,waking
+ACTIVATING,waking
 INTERRUPTED_ACTIVATING,waking_fast
 ACTIVE,hey_mate
 ACTIVE,look_around
@@ -8,7 +8,8 @@ ACTIVE,missed_you
 ACTIVE,surprised_2
 ACTIVE,dream_see_everything
 ACTIVE,confused
-ACTIVE,happened_so_fast
+ACTIVE,it_all_happened_so_fast
+ACTIVE,short_rest_blink
 ACTIVE,um_2
 ACTIVE,nothing_sticks
 ACTIVE,sad
