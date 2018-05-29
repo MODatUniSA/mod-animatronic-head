@@ -4,13 +4,15 @@
 
 What does it mean to be human? How do you be a machine?
 
-Josh is an animatronic head built for an exhibit at MOD. from May - October 2018. MOD. collaborated with [Marshall Tearle](https://www.marshalltearle.com) and [Sandpit](http://www.wearesandpit.com) to build the physical head and write the software to control the 15 servos.
+Josh is an animatronic head built by MOD. for an exhibit from May - October 2018 in collaboration with [Marshall Tearle](https://www.marshalltearle.com) and [Sandpit](http://www.wearesandpit.com). An Intel NUC running Debian controls 14 servos that move Josh’s face to matched audio.
 
-Read more: [mod.org.au/josh](https://mod.org.au/exhibits/josh/) or [see Josh at MOD.](https://mod.org.au/visit/getting-here/)
+Read more: [mod.org.au/josh](https://mod.org.au/exhibits/josh/) 
+
+Or visit [Josh at MOD.](https://mod.org.au/visit/getting-here/).
 
 ## Software
 
-This repository has all of the control software for Josh written in Python by [SyntheticDave](https://github.com/SyntheticDave) from Sandpit.
+This repository has all of the control software for Josh written in Python by [Dave](https://github.com/SyntheticDave) from Sandpit.
 
 The most recent work has been done on the [Develop branch](https://github.com/MODatUniSA/mod-animatronic-head/tree/develop). So have a look around that branch too. If you’ve cloned this repo, switch over with: `git checkout develop`
 
