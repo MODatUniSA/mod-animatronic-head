@@ -12,7 +12,7 @@ Read more: [mod.org.au/josh](https://mod.org.au/exhibits/josh/)
 
 This repository has all of the control software for Josh written in Python by [SyntheticDave](https://github.com/SyntheticDave) from Sandpit.
 
-The most recent work has been done on the [Develop branch](/MODatUniSA/mod-animatronic-head/tree/develop). So have a look around that branch too. If you’ve cloned this repo, switch over with: `git checkout develop`
+The most recent work has been done on the [Develop branch](/tree/develop). So have a look around that branch too. If you’ve cloned this repo, switch over with: `git checkout develop`
 
 ## Running the Code
 
