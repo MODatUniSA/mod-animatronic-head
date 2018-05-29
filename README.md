@@ -1,12 +1,12 @@
 # Animatronic Head by MOD.
 
-What does it mean to be human? How do you be a machine?
-
 <img width=100% src="mod-animatronic-head.jpg" alt="Photo by Marshall Tearle" />
+
+What does it mean to be human? How do you be a machine?
 
 Josh is an animatronic head built for an exhibit at MOD. from May - October 2018. MOD. collaborated with [Marshall Tearle](https://www.marshalltearle.com) and [Sandpit](http://www.wearesandpit.com) to build the physical head and write the software to control the 15 servos.
 
-Read more: [mod.org.au/josh](https://mod.org.au/exhibits/josh/)
+Read more: [mod.org.au/josh](https://mod.org.au/exhibits/josh/) or [see Josh at MOD.](https://mod.org.au/visit/getting-here/)
 
 ## Software
 
@@ -33,6 +33,19 @@ The code configuration is stored in `/home/josh/code/almost_human/.default_confi
  
 The code should be restarted following any change to the config files for these changes to be applied.
 
+## Data format for controlling Josh
+
+All servo instructions used to control Josh are in CSV format and are stored under resources/instructions. There are 3 types on instructions Josh responds to. These are Position, Phoneme, and Parallel Sequence instructions.
+
+The basic format of all instruction CSVs is as follows:
+
+* Time - When to execute each individual instruction in the CSV
+* Instruction Type - The type of instruction to execute
+* Argument 1 - Required, and depends on the instruction type
+* Argument 2 - Optional, only relevant for some instruction types
+
+For a complete set of instructions, [get in touch with MOD.](https://mod.org.au/contact/)
+
 ## Service Status/Logs
 
 You can check the status of the code using: `systemctl status almost-human`.
@@ -56,7 +69,7 @@ Note that it is possible for a log to be rotated while being tailed, so the tail
 
 ## Joystick control and more
 
-For more control options including using an Xbox controller to control Josh’s facial movements, get in touch with MOD.
+For more control options including using an Xbox controller to control Josh’s facial movements, [get in touch with MOD.](https://mod.org.au/contact/)
 
 ## Credits
 
